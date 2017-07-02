@@ -36,69 +36,75 @@
 #ifndef _JOYSTICK_H_
 #define _JOYSTICK_H_
 
-	/* Includes: */
-		#include <avr/io.h>
-		#include <avr/wdt.h>
-		#include <avr/power.h>
-		#include <avr/interrupt.h>
-		#include <string.h>
+/* Includes: */
+#include <avr/io.h>
+#include <avr/wdt.h>
+#include <avr/power.h>
+#include <avr/interrupt.h>
+#include <string.h>
 
-		#include "Descriptors.h"
 
-		#include <LUFA/Drivers/USB/USB.h>
-		#include <LUFA/Drivers/Board/Joystick.h>
-		#include <LUFA/Drivers/Board/LEDs.h>
-		#include <LUFA/Drivers/Board/Buttons.h>
-		#include <LUFA/Platform/Platform.h>
+#include <LUFA/Drivers/USB/USB.h>
+#include <LUFA/Drivers/Board/Joystick.h>
+#include <LUFA/Drivers/Board/LEDs.h>
+#include <LUFA/Drivers/Board/Buttons.h>
+#include <LUFA/Platform/Platform.h>
 
-	/* Macros: */
-		/** LED mask for the library LED driver, to indicate that the USB interface is not ready. */
-		#define LEDMASK_USB_NOTREADY      LEDS_LED1
+#include "Descriptors.h"
 
-		/** LED mask for the library LED driver, to indicate that the USB interface is enumerating. */
-		#define LEDMASK_USB_ENUMERATING  (LEDS_LED2 | LEDS_LED3)
+// Type Defines
+// Enumeration for joystick buttons.
+typedef enum {
+	SWITCH_Y       = 0x01,
+	SWITCH_B       = 0x02,
+	SWITCH_A       = 0x04,
+	SWITCH_X       = 0x08,
+	SWITCH_L       = 0x10,
+	SWITCH_R       = 0x20,
+	SWITCH_ZL      = 0x40,
+	SWITCH_ZR      = 0x80,
+	SWITCH_SELECT  = 0x100,
+	SWITCH_START   = 0x200,
+	SWITCH_LCLICK  = 0x400,
+	SWITCH_RCLICK  = 0x800,
+	SWITCH_HOME    = 0x1000,
+	SWITCH_CAPTURE = 0x2000,
+} JoystickButtons_t;
 
-		/** LED mask for the library LED driver, to indicate that the USB interface is ready. */
-		#define LEDMASK_USB_READY        (LEDS_LED2 | LEDS_LED4)
+// Joystick HID report structure. We have an input and an output.
+typedef struct {
+	uint16_t Button; // 16 buttons; see JoystickButtons_t for bit mapping
+	uint8_t  HAT;    // HAT switch; one nibble w/ unused nibble
+	uint8_t  LX;     // Left  Stick X
+	uint8_t  LY;     // Left  Stick Y
+	uint8_t  RX;     // Right Stick X
+	uint8_t  RY;     // Right Stick Y
+	uint8_t  VendorSpec;
+} USB_JoystickReport_Input_t;
 
-		/** LED mask for the library LED driver, to indicate that an error has occurred in the USB interface. */
-		#define LEDMASK_USB_ERROR        (LEDS_LED1 | LEDS_LED3)
+// The output is structured as a mirror of the input.
+// This is based on initial observations of the Pokken Controller.
+typedef struct {
+	uint16_t Button; // 16 buttons; see JoystickButtons_t for bit mapping
+	uint8_t  HAT;    // HAT switch; one nibble w/ unused nibble
+	uint8_t  LX;     // Left  Stick X
+	uint8_t  LY;     // Left  Stick Y
+	uint8_t  RX;     // Right Stick X
+	uint8_t  RY;     // Right Stick Y
+} USB_JoystickReport_Output_t;
 
-	/* Type Defines: */
-		/** Type define for the joystick HID report structure, for creating and sending HID reports to the host PC.
-		 *  This mirrors the layout described to the host in the HID report descriptor, in Descriptors.c.
-		 */
-		typedef struct
-		{
-			uint16_t Button; /**< Bit mask of the currently pressed joystick buttons */
-			uint8_t  HAT;
-			uint8_t  X; /**< Current absolute joystick X position, as a signed 8-bit integer */
-			uint8_t  Y; /**< Current absolute joystick Y position, as a signed 8-bit integer */
-			uint8_t  Slider; /**< Bit mask of the currently pressed joystick buttons */
-			uint8_t  Z; /**< Bit mask of the currently pressed joystick buttons */
-			uint8_t  VendorSpec;
-		} USB_JoystickReport_Input_t;
-
-		typedef struct
-		{
-			uint16_t Button; /**< Bit mask of the currently pressed joystick buttons */
-			uint8_t  HAT;
-			uint8_t  X; /**< Current absolute joystick X position, as a signed 8-bit integer */
-			uint8_t  Y; /**< Current absolute joystick Y position, as a signed 8-bit integer */
-			uint8_t  Slider; /**< Bit mask of the currently pressed joystick buttons */
-			uint8_t  Z; /**< Bit mask of the currently pressed joystick buttons */
-		} USB_JoystickReport_Output_t;
-
-	/* Function Prototypes: */
-		void SetupHardware(void);
-		void HID_Task(void);
-
-		void EVENT_USB_Device_Connect(void);
-		void EVENT_USB_Device_Disconnect(void);
-		void EVENT_USB_Device_ConfigurationChanged(void);
-		void EVENT_USB_Device_ControlRequest(void);
-
-		void GetNextReport(USB_JoystickReport_Input_t* const ReportData);
+// Function Prototypes
+// Setup all necessary hardware, including USB initialization.
+void SetupHardware(void);
+// Process and deliver data from IN and OUT endpoints.
+void HID_Task(void);
+// USB device event handlers.
+void EVENT_USB_Device_Connect(void);
+void EVENT_USB_Device_Disconnect(void);
+void EVENT_USB_Device_ConfigurationChanged(void);
+void EVENT_USB_Device_ControlRequest(void);
+// Prepare the next report for the host.
+void GetNextReport(USB_JoystickReport_Input_t* const ReportData);
 
 #endif
 

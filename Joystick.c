@@ -1,31 +1,21 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2014.
+Nintendo Switch Fightstick - Proof-of-Concept
 
-  dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
-*/
+Based on the LUFA library's Low-Level Joystick Demo
+	(C) Dean Camera
+Based on the HORI's Pokken Tournament Pro Pad design
+	(C) HORI
 
-/*
-  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+This project implements a modified version of HORI's Pokken Tournament Pro Pad
+USB descriptors to allow for the creation of custom controllers for the
+Nintendo Switch. This also works to a limited degree on the PS3.
 
-  Permission to use, copy, modify, distribute, and sell this
-  software and its documentation for any purpose is hereby granted
-  without fee, provided that the above copyright notice appear in
-  all copies and that both that the copyright notice and this
-  permission notice and warranty disclaimer appear in supporting
-  documentation, and that the name of the author not be used in
-  advertising or publicity pertaining to distribution of the
-  software without specific, written prior permission.
-
-  The author disclaims all warranties with regard to this
-  software, including all implied warranties of merchantability
-  and fitness.  In no event shall the author be liable for any
-  special, indirect or consequential damages or any damages
-  whatsoever resulting from loss of use, data or profits, whether
-  in an action of contract, negligence or other tortious action,
-  arising out of or in connection with the use or performance of
-  this software.
+Since System Update v3.0.0, the Nintendo Switch recognizes the Pokken
+Tournament Pro Pad as a Pro Controller. Physical design limitations prevent
+the Pokken Controller from functioning at the same level as the Pro
+Controller. However, by default most of the descriptors are there, with the
+exception of Home and Capture. Descriptor modification allows us to unlock
+these buttons for our use.
 */
 
 /** \file
@@ -35,45 +25,6 @@
  */
 
 #include "Joystick.h"
-
-/*** Button Mappings ****
-The Pokken controller exposes 13 buttons, of which only 10 have physical
-controls available. The Switch is fairly loose regarding the use of
-descriptors, and can be expanded to a full 16 buttons (at least).
-
-Of these 16 buttons, the Switch has 14 of them physically available: the four
-face buttons, the four shoulder buttons, -/+, the stick clicks, Home, and
-Capture (in that order). A curious thought to explore would be to see if we
-can go beyond two bytes; along with the HAT, the Switch Pro Controller also
-has an additional nibble of buttons available (which may correspond to Up,
-Down, Left and Right as specific buttons instead of a 'directional unit').
-**** Button Mappings ***/
-#define PAD_Y       0x01
-#define PAD_B       0x02
-#define PAD_A       0x04
-#define PAD_X       0x08
-#define PAD_L       0x10
-#define PAD_R       0x20
-#define PAD_ZL      0x40
-#define PAD_ZR      0x80
-#define PAD_SELECT  0x100 
-#define PAD_START   0x200
-#define PAD_LS      0x400
-#define PAD_RS      0x800
-#define PAD_HOME    0x1000
-#define PAD_CAPTURE 0x2000
-
-// The following buttons map to buttons within Pokken, as most of this code was originally used for my Pokken fightstick.
-#define POKKEN_PKMNMOVE PAD_A
-#define POKKEN_JUMP     PAD_B
-#define POKKEN_HOMING   PAD_X
-#define POKKEN_LONGDIST PAD_Y
-#define POKKEN_SUPPORT  PAD_L
-#define POKKEN_GUARD    PAD_R
-
-#define POKKEN_COUNTER (PAD_X | PAD_A)
-#define POKKEN_GRAB    (PAD_Y | PAD_B)
-#define POKKEN_BURST   (PAD_L | PAD_R)
 
 /*
 The following ButtonMap variable defines all possible buttons within the
@@ -140,92 +91,84 @@ void debounce_ports(void) {
 	}
 }
 
-/** Main program entry point. This routine configures the hardware required by the application, then
- *  enters a loop to run the application tasks in sequence.
- */
-int main(void)
-{
+// Main entry point.
+int main(void) {
+	// We'll start by performing hardware and peripheral setup.
 	SetupHardware();
+	// We'll then enable global interrupts for our use.
 	GlobalInterruptEnable();
-
+	// Once that's done, we'll enter an infinite loop.
 	for (;;)
 	{
+		// We need to run our task to process and deliver data for our IN and OUT endpoints.
 		HID_Task();
+		// We also need to run the main USB management task.
 		USB_USBTask();
+		// As part of this loop, we'll also run our bad debounce code.
+		// Optimally, we should replace this with something that fires on a timer.
 		debounce_ports();
 	}
 }
 
-/** Configures the board hardware and chip peripherals for the demo's functionality. */
-void SetupHardware(void)
-{
-	/* Disable watchdog if enabled by bootloader/fuses */
+// Configures hardware and peripherals, such as the USB peripherals.
+void SetupHardware(void) {
+	// We need to disable watchdog if enabled by bootloader/fuses.
 	MCUSR &= ~(1 << WDRF);
 	wdt_disable();
 
+	// We need to disable clock division before initializing the USB hardware.
+	clock_prescale_set(clock_div_1);
+	// We can then initialize our hardware and peripherals, including the USB stack.
+
+	// Both PORTD and PORTB will be used for handling the buttons and stick.
 	DDRD  &= ~0xFF;
 	PORTD |=  0xFF;
 
 	DDRB  &= ~0xFF;
 	PORTB |=  0xFF;
-
-	/* Disable clock division */
-	clock_prescale_set(clock_div_1);
-	/* Hardware Initialization */
+	// The USB stack should be initialized last.
 	USB_Init();
 }
 
-/** Event handler for the USB_Connect event. This indicates that the device is enumerating via the status LEDs and
- *  starts the library USB task to begin the enumeration and USB management process.
- */
-void EVENT_USB_Device_Connect(void)
-{
-	/* Indicate USB enumerating */
+// Fired to indicate that the device is enumerating.
+void EVENT_USB_Device_Connect(void) {
+	// We can indicate that we're enumerating here (via status LEDs, sound, etc.).
 }
 
-/** Event handler for the USB_Disconnect event. This indicates that the device is no longer connected to a host via
- *  the status LEDs and stops the USB management and joystick reporting tasks.
- */
-void EVENT_USB_Device_Disconnect(void)
-{
-	/* Indicate USB not ready */
+// Fired to indicate that the device is no longer connected to a host.
+void EVENT_USB_Device_Disconnect(void) {
+	// We can indicate that our device is not ready (via status LEDs, sound, etc.).
 }
 
-/** Event handler for the USB_ConfigurationChanged event. This is fired when the host set the current configuration
- *  of the USB device after enumeration - the device endpoints are configured and the joystick reporting task started.
- */
-void EVENT_USB_Device_ConfigurationChanged(void)
-{
+// Fired when the host set the current configuration of the USB device after enumeration.
+void EVENT_USB_Device_ConfigurationChanged(void) {
 	bool ConfigSuccess = true;
 
-	/* Setup HID Report Endpoint */
+	// We setup the HID report endpoints.
 	ConfigSuccess &= Endpoint_ConfigureEndpoint(JOYSTICK_OUT_EPADDR, EP_TYPE_INTERRUPT, JOYSTICK_EPSIZE, 1);
 	ConfigSuccess &= Endpoint_ConfigureEndpoint(JOYSTICK_IN_EPADDR, EP_TYPE_INTERRUPT, JOYSTICK_EPSIZE, 1);
 
-	/* Indicate endpoint configuration success or failure */
+	// We can read ConfigSuccess to indicate a success or failure at this point.
 }
 
-/** Event handler for the USB_ControlRequest event. This is used to catch and process control requests sent to
- *  the device from the USB host before passing along unhandled control requests to the library for processing
- *  internally.
- */
-void EVENT_USB_Device_ControlRequest(void)
-{
-	/* Handle HID Class specific requests */
+// Process control requests sent to the device from the USB host.
+void EVENT_USB_Device_ControlRequest(void) {
+	// We can handle two control requests: a GetReport and a SetReport.
 	switch (USB_ControlRequest.bRequest)
 	{
+		// GetReport is a request for data from the device.
 		case HID_REQ_GetReport:
 			if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE))
 			{
-				USB_JoystickReport_Input_t JoystickReportData;
-
-				/* Create the next HID report to send to the host */
-				GetNextReport(&JoystickReportData);
-
+				// We'll create an empty report.
+				USB_JoystickReport_Input_t JoystickInputData;
+				// We'll then populate this report with what we want to send to the host.
+				GetNextReport(&JoystickInputData);
+				// Since this is a control endpoint, we need to clear up the SETUP packet on this endpoint.
 				Endpoint_ClearSETUP();
-
-				/* Write the report data to the control endpoint */
-				Endpoint_Write_Control_Stream_LE(&JoystickReportData, sizeof(JoystickReportData));
+				// Once populated, we can output this data to the host. We do this by first writing the data to the control stream.
+				Endpoint_Write_Control_Stream_LE(&JoystickInputData, sizeof(JoystickInputData));
+				// We then acknowledge an OUT packet on this endpoint.
 				Endpoint_ClearOUT();
 			}
 
@@ -233,12 +176,13 @@ void EVENT_USB_Device_ControlRequest(void)
 		case HID_REQ_SetReport:
 			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
 			{
-				USB_JoystickReport_Output_t TempData;
-
+				// We'll create a place to store our data received from the host.
+				USB_JoystickReport_Output_t JoystickOutputData;
+				// Since this is a control endpoint, we need to clear up the SETUP packet on this endpoint.
 				Endpoint_ClearSETUP();
-
-				/* Read the report data from the control endpoint */
-				Endpoint_Read_Control_Stream_LE(&TempData, sizeof(TempData));
+				// With our report available, we read data from the control stream.
+				Endpoint_Read_Control_Stream_LE(&JoystickOutputData, sizeof(JoystickOutputData));
+				// We then send an IN packet on this endpoint.
 				Endpoint_ClearIN();
 			}
 
@@ -246,14 +190,52 @@ void EVENT_USB_Device_ControlRequest(void)
 	}
 }
 
-/** Fills the given HID report data structure with the next HID report to send to the host.
- *
- *  \param[out] ReportData  Pointer to a HID report data structure to be filled
- *
- *  \return Boolean \c true if the new report differs from the last report, \c false otherwise
- */
-void GetNextReport(USB_JoystickReport_Input_t* const ReportData)
-{
+// Process and deliver data from IN and OUT endpoints.
+void HID_Task(void) {
+	// If the device isn't connected and properly configured, we can't do anything here.
+	if (USB_DeviceState != DEVICE_STATE_Configured)
+	  return;
+
+	// We'll start with the OUT endpoint.
+	Endpoint_SelectEndpoint(JOYSTICK_OUT_EPADDR);
+	// We'll check to see if we received something on the OUT endpoint.
+	if (Endpoint_IsOUTReceived())
+	{
+		// If we did, and the packet has data, we'll react to it.
+		if (Endpoint_IsReadWriteAllowed())
+		{
+			// We'll create a place to store our data received from the host.
+			USB_JoystickReport_Output_t JoystickOutputData;
+			// We'll then take in that data, setting it up in our storage.
+			Endpoint_Read_Stream_LE(&JoystickOutputData, sizeof(JoystickOutputData), NULL);
+			// At this point, we can react to this data.
+			// However, since we're not doing anything with this data, we abandon it.
+		}
+		// Regardless of whether we reacted to the data, we acknowledge an OUT packet on this endpoint.
+		Endpoint_ClearOUT();
+	}
+
+	// We'll then move on to the IN endpoint.
+	Endpoint_SelectEndpoint(JOYSTICK_IN_EPADDR);
+	// We first check to see if the host is ready to accept data.
+	if (Endpoint_IsINReady())
+	{
+		// We'll create an empty report.
+		USB_JoystickReport_Input_t JoystickInputData;
+		// We'll then populate this report with what we want to send to the host.
+		GetNextReport(&JoystickInputData);
+		// Once populated, we can output this data to the host. We do this by first writing the data to the control stream.
+		Endpoint_Write_Stream_LE(&JoystickInputData, sizeof(JoystickInputData), NULL);
+		// We then send an IN packet on this endpoint.
+		Endpoint_ClearIN();
+
+		/* Clear the report data afterwards */
+		// memset(&JoystickInputData, 0, sizeof(JoystickInputData));
+	}
+}
+
+// Prepare the next report for the host.
+void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	// All of this code here is handled -really poorly-, and should be replaced with something a bit more production-worthy.
 	uint16_t buf_button   = 0x00;
 	uint8_t  buf_joystick = 0x00;
@@ -270,18 +252,18 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData)
 	}
 
 	if (buf_joystick & 0x10)
-		ReportData->X = 0;
+		ReportData->LX = 0;
 	else if (buf_joystick & 0x20)
-		ReportData->X = 255;
+		ReportData->LX = 255;
 	else
-		ReportData->X = 128;
+		ReportData->LX = 128;
 
 	if (buf_joystick & 0x80)
-		ReportData->Y = 0;
+		ReportData->LY = 0;
 	else if (buf_joystick & 0x40)
-		ReportData->Y = 255;
+		ReportData->LY = 255;
 	else
-		ReportData->Y = 128;
+		ReportData->LY = 128;
 
 	switch(buf_joystick & 0xF0) {
 		case 0x80: // Top
@@ -309,53 +291,6 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData)
 			ReportData->HAT = 0x07;
 			break;
 		default:
-			ReportData->HAT = 0xff;
+			ReportData->HAT = 0x08;
 	}
 }
-
-/** Function to manage HID report generation and transmission to the host. */
-void HID_Task(void)
-{
-	/* Device must be connected and configured for the task to run */
-	if (USB_DeviceState != DEVICE_STATE_Configured)
-	  return;
-
-	/* Select the Joystick Report Endpoint */
-	Endpoint_SelectEndpoint(JOYSTICK_OUT_EPADDR);
-
-	/* Check to see if the host is ready for another packet */
-	if (Endpoint_IsOUTReceived())
-	{
-		/* Check to see if the packet contains data */
-		if (Endpoint_IsReadWriteAllowed())
-		{
-			USB_JoystickReport_Output_t TempData;
-			/* Read Generic Report Data */
-			// We're not actually doing anything with this data, simply reading it in and continuing on our way.
-			Endpoint_Read_Stream_LE(&TempData, sizeof(TempData), NULL);
-		}
-		Endpoint_ClearOUT();
-	}
-
-	/* Select the Joystick Report Endpoint */
-	Endpoint_SelectEndpoint(JOYSTICK_IN_EPADDR);
-
-	/* Check to see if the host is ready for another packet */
-	if (Endpoint_IsINReady())
-	{
-		USB_JoystickReport_Input_t JoystickReportData;
-
-		/* Create the next HID report to send to the host */
-		GetNextReport(&JoystickReportData);
-
-		/* Write Joystick Report Data */
-		Endpoint_Write_Stream_LE(&JoystickReportData, sizeof(JoystickReportData), NULL);
-
-		/* Finalize the stream transfer to send the last packet */
-		Endpoint_ClearIN();
-
-		/* Clear the report data afterwards */
-		memset(&JoystickReportData, 0, sizeof(JoystickReportData));
-	}
-}
-
