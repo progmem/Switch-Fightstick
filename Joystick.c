@@ -33,23 +33,25 @@ original 13 bits of space, along with attempting to investigate the remaining
 button was operational on the stick.
 */
 uint16_t ButtonMap[16] = {
-	0x01,
-	0x02,
-	0x04,
-	0x08,
-	0x10,
-	0x20,
-	0x40,
-	0x80,
-	0x100,
-	0x200,
-	0x400,
-	0x800,
-	0x1000,
-	0x2000,
-	0x4000,
-	0x8000,
+	0x01, //Y
+	0x02, //B
+	0x04, //A
+	0x08, //X
+	0x10, //L
+	0x20, //R
+	0x40, //ZL
+	0x80, //ZR
+	0x100, //Minus
+	0x200, //Plus
+	0x400, //L-stick
+	0x800, //R-stick
+	0x1000, //Unk
+	0x2000, //Unk
+	0x4000, //Unk
+	0x8000, //Unk
 };
+
+uint8_t image_data[0x12c1];
 
 /*** Debounce ****
 The following is some -really bad- debounce code. I have a more robust library
@@ -71,26 +73,6 @@ uint16_t bd_state = 0;
 #define PINB_DEBOUNCED ((bd_state >> 0) & 0xFF)
 #define PIND_DEBOUNCED ((bd_state >> 8) & 0xFF) 
 
-// So let's do some debounce! Lazily, and really poorly.
-void debounce_ports(void) {
-	// We'll shift the current value of the debounce down one set of 8 bits. We'll also read in the state of the pins.
-	pb_debounce = (pb_debounce << 8) + PINB;
-	pd_debounce = (pd_debounce << 8) + PIND;
-
-	// We'll then iterate through a simple for loop.
-	for (int i = 0; i < 8; i++) {
-		if ((pb_debounce & (0x1010101 << i)) == (0x1010101 << i)) // wat
-			bd_state |= (1 << i);
-		else if ((pb_debounce & (0x1010101 << i)) == (0))
-			bd_state &= ~(uint16_t)(1 << i);
-
-		if ((pd_debounce & (0x1010101 << i)) == (0x1010101 << i))
-			bd_state |= (1 << (8 + i));
-		else if ((pd_debounce & (0x1010101 << i)) == (0))
-			bd_state &= ~(uint16_t)(1 << (8 + i));
-	}
-}
-
 // Main entry point.
 int main(void) {
 	// We'll start by performing hardware and peripheral setup.
@@ -104,9 +86,6 @@ int main(void) {
 		HID_Task();
 		// We also need to run the main USB management task.
 		USB_USBTask();
-		// As part of this loop, we'll also run our bad debounce code.
-		// Optimally, we should replace this with something that fires on a timer.
-		debounce_ports();
 	}
 }
 
@@ -234,6 +213,20 @@ void HID_Task(void) {
 	}
 }
 
+int meme = 1;
+int input_brakes = 0;
+int input_count = 0;
+int xpos = 0;
+int ypos = -1;
+bool print_right = true;
+bool other = true;
+
+bool reset_request = false;
+bool reset = true;
+int reset_count = 0;
+
+bool done_printing = false;
+
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	// All of this code here is handled -really poorly-, and should be replaced with something a bit more production-worthy.
@@ -243,8 +236,8 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	/* Clear the report contents */
 	memset(ReportData, 0, sizeof(USB_JoystickReport_Input_t));
 
-	buf_button   = (~PIND_DEBOUNCED & 0xFF) << (~PINB_DEBOUNCED & 0x08 ? 8 : 0);
-	buf_joystick = (~PINB_DEBOUNCED & 0xFF);
+	buf_button   = 0x0;
+	buf_joystick = 0x0;
 
 	for (int i = 0; i < 16; i++) {
 		if (buf_button & (1 << i))
@@ -293,4 +286,76 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 		default:
 			ReportData->HAT = 0x08;
 	}
+	
+	//ReportData->LX = xpos;
+	//ReportData->LY = ypos;
+	
+	if (done_printing) return;
+	
+	if (reset)
+	{
+	   reset_count++;
+	   
+	   ReportData->HAT = 0x2;
+	   
+	   if (reset_count >= 800)
+	   {
+	      reset_count = 0;
+	      reset = false;
+	      
+	      xpos = 320;
+	      ypos++;
+	   }
+	   return;
+	}
+	
+	input_brakes++;
+	
+	if (input_brakes >= 5)
+	{
+	   if (reset_request)
+	   {
+	      reset = true;
+	      input_brakes = 0;
+	      reset_request = false;;
+	      return;
+	   }
+	   
+	   meme = !meme;
+	   
+	   if (!meme)
+	      other = !other;
+	      
+	   input_brakes = 0;
+	}
+	
+	if (meme)
+	{
+	   input_count = 0;
+	   
+	   if (xpos >= 0)
+	   {
+	      ReportData->HAT = 0x6; //go left
+	   }
+	   else
+	   {
+	      ReportData->HAT = 0x4;
+	      reset_request = true;
+	   }
+	}
+	else
+	{
+	   if (!input_count)
+	   {
+	      if (xpos >= 0)
+	         xpos--;
+	   }
+	   
+	   if ((image_data[(xpos / 8)+(ypos*40)] & 1 << (xpos % 8)) && (xpos >= 0))
+	      ReportData->Button |= 0x4;
+	      
+	   if (xpos <= 0 && ypos >= 120-1) done_printing = true;
+
+	   input_count++;
+   }
 }
