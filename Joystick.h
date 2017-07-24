@@ -41,8 +41,8 @@
 #include <avr/wdt.h>
 #include <avr/power.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 #include <string.h>
-
 
 #include <LUFA/Drivers/USB/USB.h>
 #include <LUFA/Drivers/Board/Joystick.h>
