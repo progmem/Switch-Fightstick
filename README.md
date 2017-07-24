@@ -6,14 +6,16 @@ On June 20, 2017, Nintendo released System Update v3.0.0 for the Nintendo Switch
 
 Unlike the Wii U, which handles these controllers on a 'per-game' basis, the Switch treats the Pokken controller as if it was a Switch Pro Controller. Along with having the icon for the Pro Controller, it functions just like it in terms of using it in other games, apart from the lack of physical controls such as analog sticks, the buttons for the stick clicks, or other system buttons such as Home or Capture.
 
-### But games like ARMS use the analog sticks!
-The Pokken Tournament Pro Pad was made by HORI, who also makes controllers for other consoles; because of this, the descriptors provided to Nintendo for the Pokken controller are **very** similar to that of some third-party PS3 controllers. In fact, the Pokken Tournament Pro Pad -can- be used on the PS3 without anything special needing to be done. The original descriptors feature 13 buttons, two analog sticks, a HAT switch, and some vendor-specific items that we can safely ignore. Compare this to a PS3 controller, which has...13 buttons (4 Face, 4 Shoulders, 2 Sticks, Select/Start, and PS), two analog sticks, and a HAT switch (the D-Pad). 
+### Printing Splatoon Posts
+For my own personal use, I repurposed Switch-Fightstick to output a set sequence of inputs to systematically print Splatoon posts. This works by using the smallest size pen and D-pad inputs to plot out each pixel one-by-one.
 
-### What do you mean by 'original descriptors?'
-Turns out we can modify the descriptors to expose up to 16 buttons at **least**. The Switch Pro Controller has 14 buttons on it, and as it turns out, the modified set of descriptors does allow us to enable the use of the most important button:
+#### Printing Procedure
+Use the analog stick to bring the cursor to the top-right corner, then press the D-pad down once to make sure the cursor is at y-position `0` instead of y-position `-1`. Then plug in the controller. Currently there are issues with controller conflicts while in docked mode which are avoided by using a USB-C to USB-A adapter in handheld mode. Printing currently takes about an hour.
 
-### Is it the Captu-
+The image printed depends on `image.c` which is generated with `bin2c.py` which takes a 1-bit RAW paletted .data exported from GIMP. An example file is included as `ironic.data`. `bin2c.py` will pack the 8bpp .data to a linear 1bpp array, ie
 
-# THE CAPTURE BUTTON
+```
+$ python2 bin2c.py ironic.data > image.c
+```
 
-The Switch Pro Controller also exposes **additional** buttons within its descriptors; however, it's unknown as to what those do at this time. These come immediately after the HAT, so I'm under the assumption that they may be individual button presses instead of an angle. That being said, considering how flexible the Switch is with the Pokken controller descriptors, we may be able to mirror the Switch Pro Controller descriptors up to a certain point.
+Each line is printed from right to left in order to avoid pixel skipping issues. Currently there are also issues printing to the right and bottom edges. This repository has been tested using a Teensy 2.0++.
