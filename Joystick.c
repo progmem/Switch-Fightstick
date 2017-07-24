@@ -45,8 +45,8 @@ uint16_t ButtonMap[16] = {
 	0x200, //Plus
 	0x400, //L-stick
 	0x800, //R-stick
-	0x1000, //Unk
-	0x2000, //Unk
+	0x1000, //Home
+	0x2000, //Capture
 	0x4000, //Unk
 	0x8000, //Unk
 };
@@ -320,7 +320,7 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	}
 	
 	sync_setup = false;
-	
+
 	input_brakes++;
 	
 	if (input_brakes >= 5)
