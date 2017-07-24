@@ -222,7 +222,7 @@ bool print_right = true;
 bool other = true;
 
 bool reset_request = false;
-bool reset = true;
+bool reset = true, sync_setup = true;
 int reset_count = 0;
 
 bool done_printing = false;
@@ -298,6 +298,16 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	   
 	   ReportData->HAT = 0x2;
 	   
+   	   if (
+		reset_count % 100 == 0 &&
+		reset_count < 400 &&
+		sync_setup == true
+	   )
+	   	ReportData->Button |= 0x30;
+
+	   if (reset_count == 500 && sync_setup == true)
+	   	ReportData->Button |= 0x04;
+
 	   if (reset_count >= 800)
 	   {
 	      reset_count = 0;
@@ -308,6 +318,8 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	   }
 	   return;
 	}
+	
+	sync_setup = false;
 	
 	input_brakes++;
 	
