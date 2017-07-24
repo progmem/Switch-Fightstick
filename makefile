@@ -11,7 +11,7 @@
 
 # Run "make help" for target help.
 
-MCU          = atmega32u4
+MCU          = at90usb1286
 ARCH         = AVR8
 F_CPU        = 16000000
 F_USB        = $(F_CPU)
