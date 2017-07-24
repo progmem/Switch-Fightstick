@@ -19,3 +19,7 @@ $ python2 bin2c.py ironic.data > image.c
 ```
 
 Each line is printed from right to left in order to avoid pixel skipping issues. Currently there are also issues printing to the right and bottom edges. This repository has been tested using a Teensy 2.0++.
+
+### Sample
+![http://i.imgur.com/93B1Usb.jpg](http://i.imgur.com/93B1Usb.jpg)
+*image via [/u/Stofers](https://www.reddit.com/user/Stofers)*
