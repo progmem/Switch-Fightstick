@@ -16,4 +16,5 @@ for i in range(0, (320*120) / 8):
    
 str_out += "0x0};"
    
-print(str_out);
+with open('image.c', 'w') as f:
+  f.write(str_out)
