@@ -19,13 +19,13 @@ Now you should be ready to rock. Open a terminal window in the `Switch-Fightstic
 #### Using your own image
 The image printed depends on `image.c` which is generated with `png2c.py` which takes a 320x120 .png image. `png2c.py` will pack the image to a linear 1bpp array. If the image is not already made up of only black and white pixels, it will be dithered. Here is an example of the dithering:
 
-![http://i.imgur.com/O4uQWKk.png](http://i.imgur.com/O4uQWKk.png)
-
 *Before dithering*
 
-![http://i.imgur.com/oiPh4KK.png](http://i.imgur.com/oiPh4KK.png)
+![http://i.imgur.com/O4uQWKk.png](http://i.imgur.com/O4uQWKk.png)
 
 *After dithering*
+
+![http://i.imgur.com/oiPh4KK.png](http://i.imgur.com/oiPh4KK.png)
 
 *images via [vjapolitzer](https://github.com/vjapolitzer)*
 
