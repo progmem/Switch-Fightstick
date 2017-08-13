@@ -29,7 +29,7 @@ $ python png2c.py splatoonpattern.png
 ```
 Substitute your own .png image to generate the `image.c` file necessary to print. Just make sure your image is in the `Switch-Fightstick` directory.
 
-### What the dither?
+#### What the dither?
 As previously mentioned, png2c.py will dither the input image if you supply an image that is not already made up of only black and white pixels. Say you want to print this bomb image you created...
 
 ![http://imgur.com/r2GoVdD.png](http://imgur.com/r2GoVdD.png)
