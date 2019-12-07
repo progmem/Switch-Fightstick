@@ -8,4 +8,5 @@
 *.map
 *.sym
 *.eep
+*.exe
 LUFA/
