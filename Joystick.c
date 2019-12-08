@@ -148,8 +148,6 @@ typedef enum {
 } Proc_State_t;
 Proc_State_t proc_state = INF_WATT;
 
-#define ECHOES 2
-int echoes = 0;
 USB_JoystickReport_Input_t last_report;
 
 int report_count;
@@ -160,7 +158,10 @@ int portsval;
 Command cur_command;
 int duration_buf;
 int step_size_buf;
-uint8_t echo_ratio = 3;
+uint8_t echo_ratio = 3.5;
+
+Command* cur_commands;
+int cur_commands_size;
 
 bool is_use_sync = true;
 
@@ -187,68 +188,12 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 			break;
 
 		case SYNC:
-			// Repeat duration times the last report
-			// As of now, duration_buf is mul by a ratio for concerning compatibility with code using echo variables
-			if (duration_count++ < duration_buf * echo_ratio)
-			{
-				memcpy(ReportData, &last_report, sizeof(USB_JoystickReport_Input_t));
-				return;
-			}
-			else
-			{
-				duration_count = 0;		
-			}
-
-			// Check step size range
-			if (step_index > step_size_buf - 1)
-			{
-				step_index = 0; // go back to first step
-
-				ReportData->LX = STICK_CENTER;
-				ReportData->LY = STICK_CENTER;
-				ReportData->RX = STICK_CENTER;
-				ReportData->RY = STICK_CENTER;
-				ReportData->HAT = HAT_CENTER;
-
+			if (!GetNextReportFromCommands(sync, sync_size, ReportData))
 				state = PROCESS;
-				return;
-			}
-
-			memcpy_P(&cur_command, &sync[step_index++], sizeof(Command));
-			step_size_buf = sync_size;
-
-			duration_buf = cur_command.duration;
-			ApplyCommandButton(cur_command.button, ReportData);
 
 			break;
 
 		case PROCESS:
-
-			// Repeat duration times the last report
-			// As of now, duration_buf is mul by a ratio for concerning compatibility with code using echo variables
-			if (duration_count++ < duration_buf * echo_ratio)
-			{
-				memcpy(ReportData, &last_report, sizeof(USB_JoystickReport_Input_t));
-				return;
-			}
-			else
-			{
-				duration_count = 0;		
-			}
-
-			// Check step size range
-			if (step_index > step_size_buf - 1)
-			{
-				step_index = 0; // go back to first step
-
-				ReportData->LX = STICK_CENTER;
-				ReportData->LY = STICK_CENTER;
-				ReportData->RX = STICK_CENTER;
-				ReportData->RY = STICK_CENTER;
-				ReportData->HAT = HAT_CENTER;
-				break;
-			}
-
 			// Get a next command from flash memory
 			switch (proc_state)
 			{
@@ -259,22 +204,20 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 					break;
 
 				case INF_WATT:
-					memcpy_P(&cur_command, &inf_watt_commands[step_index++], sizeof(Command));
-					step_size_buf = inf_watt_size;
+					cur_commands = inf_watt_commands;
+					cur_commands_size = inf_watt_size;
 					break;
 
 				case INF_ID_WATT:
-					memcpy_P(&cur_command, &inf_id_watt_commands[step_index++], sizeof(Command));
-					step_size_buf = inf_id_watt_size;
+					cur_commands = inf_id_watt_commands;
+					cur_commands_size = inf_id_watt_size;
 					break;
 
 				default:
 					break;
 			}
 
-			duration_buf = cur_command.duration;
-			ApplyCommandButton(cur_command.button, ReportData);
-
+			GetNextReportFromCommands(cur_commands, cur_commands_size, ReportData);
 			break;
 
 		case CLEANUP:
@@ -290,12 +233,51 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 			#endif
 			return;
 	}
+}
+
+// return: commands have not reached to the end?
+bool GetNextReportFromCommands(
+	const Command* const commands, 
+	const int step_size, 
+	USB_JoystickReport_Input_t* const ReportData)
+{
+	// Repeat duration times the last report
+	// As of now, duration_buf is mul by the ratio for concerning compatibility with code using echo variables
+	if (duration_count++ < duration_buf * echo_ratio)
+	{
+		memcpy(ReportData, &last_report, sizeof(USB_JoystickReport_Input_t));
+		return true;
+	}
+	else
+	{
+		duration_count = 0;		
+	}
+
+	// Check step size range
+	if (step_index > step_size_buf - 1)
+	{
+		step_index = 0; // go back to first step
+
+		ReportData->LX = STICK_CENTER;
+		ReportData->LY = STICK_CENTER;
+		ReportData->RX = STICK_CENTER;
+		ReportData->RY = STICK_CENTER;
+		ReportData->HAT = HAT_CENTER;
+		return false;
+	}
+
+	memcpy_P(&cur_command, &commands[step_index++], sizeof(Command));
+	step_size_buf = step_size;
+
+	duration_buf = cur_command.duration;
+	ApplyButtonCommand(cur_command.button, ReportData);
 
 	// Prepare to echo this report
 	memcpy(&last_report, ReportData, sizeof(USB_JoystickReport_Input_t));
+	return true;
 }
 
-void ApplyCommandButton(const Buttons_t button, USB_JoystickReport_Input_t* const ReportData)
+void ApplyButtonCommand(const Buttons_t button, USB_JoystickReport_Input_t* const ReportData)
 {
 	switch (button)
 	{

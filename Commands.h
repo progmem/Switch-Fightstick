@@ -12,12 +12,14 @@ typedef struct {
 	uint16_t duration;
 } Command; 
 
+bool GetNextReportFromCommands(const Command* const commands, int step_size, USB_JoystickReport_Input_t* const ReportData);
+
 // The commands that run independently from a PC
 // Store arrays in Flash memory to save a SRAM data capacity
 
 // controller sync (use for ease of debugging)
 extern const Command sync[];
-extern const uint8_t sync_size;
+extern const int sync_size;
 
 // Infinity Watt
 extern const Command inf_watt_commands[];

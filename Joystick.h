@@ -141,5 +141,5 @@ void EVENT_USB_Device_ConfigurationChanged(void);
 void EVENT_USB_Device_ControlRequest(void);
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData);
-void ApplyCommandButton(const Buttons_t button, USB_JoystickReport_Input_t* const ReportData);
+void ApplyButtonCommand(Buttons_t button, USB_JoystickReport_Input_t* const ReportData);
 #endif
