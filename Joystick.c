@@ -158,7 +158,7 @@ int portsval;
 Command cur_command;
 int duration_buf;
 int step_size_buf;
-uint8_t echo_ratio = 3.5;
+float echo_ratio = 3.5;
 
 Command* cur_commands;
 int cur_commands_size;
@@ -243,7 +243,7 @@ bool GetNextReportFromCommands(
 {
 	// Repeat duration times the last report
 	// As of now, duration_buf is mul by the ratio for concerning compatibility with code using echo variables
-	if (duration_count++ < duration_buf * echo_ratio)
+	if (duration_count++ < (int)(duration_buf * echo_ratio))
 	{
 		memcpy(ReportData, &last_report, sizeof(USB_JoystickReport_Input_t));
 		return true;
@@ -263,6 +263,8 @@ bool GetNextReportFromCommands(
 		ReportData->RX = STICK_CENTER;
 		ReportData->RY = STICK_CENTER;
 		ReportData->HAT = HAT_CENTER;
+
+		memcpy(&last_report, ReportData, sizeof(USB_JoystickReport_Input_t)); // create echo report
 		return false;
 	}
 
@@ -272,8 +274,7 @@ bool GetNextReportFromCommands(
 	duration_buf = cur_command.duration;
 	ApplyButtonCommand(cur_command.button, ReportData);
 
-	// Prepare to echo this report
-	memcpy(&last_report, ReportData, sizeof(USB_JoystickReport_Input_t));
+	memcpy(&last_report, ReportData, sizeof(USB_JoystickReport_Input_t)); // create echo report
 	return true;
 }
 
