@@ -19,211 +19,7 @@ these buttons for our use.
 */
 
 #include "Joystick.h"
-
-typedef enum {
-	UP,
-	DOWN,
-	LEFT,
-	RIGHT,
-	X,
-	Y,
-	A,
-	B,
-	L,
-	R,
-	THROW,
-	NOTHING,
-	TRIGGERS,
-    HOME,
-} Buttons_t;
-
-typedef struct {
-	Buttons_t button;
-	uint16_t duration;
-} command; 
-
-static const command step[] = {
-	// Setup controller
-    /*
-	{ NOTHING,  250 },
-	{ TRIGGERS,   5 },
-	{ NOTHING,  200 },
-	{ TRIGGERS,   5 },
-	{ NOTHING,  200 },
-	{ A,          5 },
-	{ NOTHING,  250 },
-    */
-    
-	// Talk to Pondo
-    { NOTHING,  100 },
-	{ A,          5 },
-	{ NOTHING,   30 },
-    { A,          5 },
-    { NOTHING,   30 },
-    { A,          5 },
-    { NOTHING,  150 },
-    { HOME,       5 },
-    { NOTHING,   30 },
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { RIGHT,      5 },
-    { NOTHING,   30 },
-    { NOTHING,   30 },
-    { RIGHT,      5 },
-    { NOTHING,   30 },
-    { RIGHT,      5 },
-    { NOTHING,   30 },
-    { RIGHT,      5 },
-    { NOTHING,   30 },
-    { A,          5 }, // 設定選択
-    { NOTHING,   30 },
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { A,          5 }, // 設定>本体 選択
-    { NOTHING,   30 },
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { A,          5 }, // 日付と時刻選択
-    { NOTHING,   30 },
-    { A,          5 },
-    { NOTHING,   30 },
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { A,          5 },
-    { NOTHING,   30 },
-    { UP,         5 },
-    { NOTHING,   30 },
-    { RIGHT,      5 },
-    { RIGHT,      5 },
-    { RIGHT,      5 },
-    { RIGHT,      5 },
-    { RIGHT,      5 },
-    { NOTHING,   30 },
-    { A,          5 }, // OK選択
-    { NOTHING,   30 },
-    { HOME,       5 },
-    { NOTHING,   30 },
-    { HOME,       5 }, // ゲームに戻る
-    { NOTHING,   30 },
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { A,          5 },
-    { NOTHING,   30 },
-    { A,          5 }, // レイドバトルをいったんやめる
-    { NOTHING,   30 },
-    { NOTHING,   150 },// 待機
-    { A,          5 },
-    { NOTHING,   30 },
-    { A,          5 },
-    { NOTHING,   30 },
-    { B,          5 },
-    { NOTHING,   30 },
-    { B,          5 },
-    { NOTHING,   30 },
-    { NOTHING,   150 },// 待機
-    
-    { HOME,       5 }, // ホームへ
-    { NOTHING,   30 },
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { RIGHT,      5 },
-    { NOTHING,   30 },
-    { RIGHT,      5 },
-    { NOTHING,   30 },
-    { RIGHT,      5 },
-    { NOTHING,   30 },
-    { RIGHT,      5 },
-    { NOTHING,   30 },
-    { A,          5 }, // 設定選択
-    { NOTHING,   30 },
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { A,          5 }, // 設定>本体 選択
-    { NOTHING,   30 },
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { DOWN,       5 },
-    { NOTHING,   30 },
-    { A,          5 }, // 日付と時刻選択
-    { NOTHING,   30 },
-    { A,          5 },
-    { NOTHING,   30 },
-    { HOME,       5 }, // ゲームへ
-    { NOTHING,   30 },
-    { HOME,       5 },
-    { NOTHING,  230 },
-    { A,          5 },
-    { NOTHING,   30 },
-    { A,          5 },
-    { NOTHING,   30 },
-    { UP,         5 },
-    { NOTHING,   30 },
-	
-};
+#include "Commands.h"
 
 // Main entry point.
 int main(void) {
@@ -257,7 +53,7 @@ void SetupHardware(void) {
 PORTD will toggle when printing is done.
 	DDRD  = 0xFF; //Teensy uses PORTD
 	PORTD =  0x0;
-                  //We'll just flash all pins on both ports since the UNO R3
+		 //We'll just flash all pins on both ports since the UNO R3
 	DDRB  = 0xFF; //uses PORTB. Micro can use either or, but both give us 2 LEDs
 	PORTB =  0x0; //The ATmega328P on the UNO will be resetting, so unplug it?
 	#endif
@@ -336,25 +132,32 @@ void HID_Task(void) {
 }
 
 typedef enum {
-	SYNC_CONTROLLER,
-	SYNC_POSITION,
-	BREATHE,
+	INIT,
 	PROCESS,
 	CLEANUP,
 	DONE
 } State_t;
-State_t state = SYNC_CONTROLLER;
+State_t state = INIT;
+
+typedef enum {
+	NONE,		// do nothing
+	MASH_A,		// mash button A
+	INF_WATT, 	// infinity watt
+} Proc_State_t;
+Proc_State_t proc_state = INF_WATT;
 
 #define ECHOES 2
 int echoes = 0;
 USB_JoystickReport_Input_t last_report;
 
 int report_count = 0;
-int xpos = 0;
-int ypos = 0;
-int bufindex = 0;
+int step_index = 0;
 int duration_count = 0;
 int portsval = 0;
+
+Command cur_command;
+int duration_buf = 0;
+int step_size_buf = 0;
 
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
@@ -378,61 +181,35 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	// States and moves management
 	switch (state)
 	{
-
-		case SYNC_CONTROLLER:
-			state = BREATHE;
-			break;
-
-		// case SYNC_CONTROLLER:
-		// 	if (report_count > 550)
-		// 	{
-		// 		report_count = 0;
-		// 		state = SYNC_POSITION;
-		// 	}
-		// 	else if (report_count == 250 || report_count == 200 || report_count == 325)
-		// 	{
-		// 		ReportData->Button |= SWITCH_L | SWITCH_R;
-		// 	}
-		// 	else if (report_count == 350 || report_count == 375 || report_count == 400)
-		// 	{
-		// 		ReportData->Button |= SWITCH_A;
-		// 	}
-		// 	else
-		// 	{
-		// 		ReportData->Button = 0;
-		// 		ReportData->LX = STICK_CENTER;
-		// 		ReportData->LY = STICK_CENTER;
-		// 		ReportData->RX = STICK_CENTER;
-		// 		ReportData->RY = STICK_CENTER;
-		// 		ReportData->HAT = HAT_CENTER;
-		// 	}
-		// 	report_count++;
-		// 	break;
-
-		case SYNC_POSITION:
-			bufindex = 0;
-
-
-			ReportData->Button = 0;
-			ReportData->LX = STICK_CENTER;
-			ReportData->LY = STICK_CENTER;
-			ReportData->RX = STICK_CENTER;
-			ReportData->RY = STICK_CENTER;
-			ReportData->HAT = HAT_CENTER;
-
-
-			state = BREATHE;
-			break;
-
-		case BREATHE:
+		case INIT:
 			state = PROCESS;
 			break;
 
 		case PROCESS:
 
-			switch (step[bufindex].button)
+			// Get a command from flash memory
+			switch (proc_state)
 			{
+				case NONE:
+					break;
 
+				case MASH_A:
+					break;
+
+				case INF_WATT:
+					memcpy_P(&cur_command, &inf_watt_commands[step_index], sizeof(Command));
+					step_size_buf = inf_watt_size;
+					break;
+
+				default:
+					break;
+			}
+
+			// 継続回数
+			duration_buf = cur_command.duration;
+
+			switch (cur_command.button)
+			{
 				case UP:
 					ReportData->LY = STICK_MIN;				
 					break;
@@ -461,58 +238,40 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 					ReportData->Button |= SWITCH_R;
 					break;
 
-				case THROW:
-					ReportData->LY = STICK_MIN;				
-					ReportData->Button |= SWITCH_R;
-					break;
+				// case THROW:
+				// 	ReportData->LY = STICK_MIN;				
+				// 	ReportData->Button |= SWITCH_R;
+				// 	break;
 
 				case TRIGGERS:
 					ReportData->Button |= SWITCH_L | SWITCH_R;
 					break;
-                    
-                case HOME:
-                    ReportData->Button |= SWITCH_HOME;
-                    break;
+		
+	      		case HOME:
+					ReportData->Button |= SWITCH_HOME;
+					break;
+
 				default:
-                    /*
-					ReportData->LX = STICK_CENTER;
-					ReportData->LY = STICK_CENTER;
-					ReportData->RX = STICK_CENTER;
-					ReportData->RY = STICK_CENTER;
-					ReportData->HAT = HAT_CENTER;
-                    */
 					break;
 			}
 
 			duration_count++;
-
-			if (duration_count > step[bufindex].duration)
+			if (duration_count > duration_buf)
 			{
-				bufindex++;
+				step_index++;
 				duration_count = 0;				
 			}
 
-
-			if (bufindex > (int)( sizeof(step) / sizeof(step[0])) - 1)
+			if (step_index > step_size_buf - 1)
 			{
-
-				// state = CLEANUP;
-
-				bufindex = 7;
+				step_index = 0; // 最初からに戻す
 				duration_count = 0;
-
-				state = BREATHE;
 
 				ReportData->LX = STICK_CENTER;
 				ReportData->LY = STICK_CENTER;
 				ReportData->RX = STICK_CENTER;
 				ReportData->RY = STICK_CENTER;
 				ReportData->HAT = HAT_CENTER;
-
-
-				// state = DONE;
-//				state = BREATHE;
-
 			}
 
 			break;
@@ -531,13 +290,7 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 			return;
 	}
 
-	// // Inking
-	// if (state != SYNC_CONTROLLER && state != SYNC_POSITION)
-	// 	if (pgm_read_byte(&(image_data[(xpos / 8) + (ypos * 40)])) & 1 << (xpos % 8))
-	// 		ReportData->Button |= SWITCH_A;
-
 	// Prepare to echo this report
 	memcpy(&last_report, ReportData, sizeof(USB_JoystickReport_Input_t));
 	echoes = ECHOES;
-
 }
