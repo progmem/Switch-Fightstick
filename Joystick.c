@@ -143,6 +143,7 @@ typedef enum {
 	NONE,		// do nothing
 	MASH_A,		// mash button A
 	INF_WATT, 	// infinity watt
+	INF_ID_WATT,// infinity id lottery & watt
 } Proc_State_t;
 Proc_State_t proc_state = INF_WATT;
 
@@ -150,14 +151,15 @@ Proc_State_t proc_state = INF_WATT;
 int echoes = 0;
 USB_JoystickReport_Input_t last_report;
 
-int report_count = 0;
-int step_index = 0;
-int duration_count = 0;
-int portsval = 0;
+int report_count;
+int step_index;
+int duration_count;
+int portsval;
 
 Command cur_command;
-int duration_buf = 0;
-int step_size_buf = 0;
+int duration_buf;
+int step_size_buf;
+uint8_t echo_ratio = 3;
 
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
@@ -170,24 +172,46 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	ReportData->RY = STICK_CENTER;
 	ReportData->HAT = HAT_CENTER;
 
-	// Repeat ECHOES times the last report
-	if (echoes > 0)
-	{
-		memcpy(ReportData, &last_report, sizeof(USB_JoystickReport_Input_t));
-		echoes--;
-		return;
-	}
-
 	// States and moves management
 	switch (state)
 	{
 		case INIT:
+			// initialize for avoiding first itereation mismatch
+			step_index = 0;
+			step_size_buf = 127;
+
 			state = PROCESS;
 			break;
 
 		case PROCESS:
 
-			// Get a command from flash memory
+			// Repeat duration times the last report
+			// As of now, duration_buf is mul by a ratio for concerning compatibility with code using echo variables
+			if (duration_count++ < duration_buf * echo_ratio)
+			{
+				memcpy(ReportData, &last_report, sizeof(USB_JoystickReport_Input_t));
+				return;
+			}
+			else
+			{
+				duration_count = 0;		
+			}
+
+			// Check step size range
+			if (step_index > step_size_buf - 1)
+			{
+				step_index = 0; // go back to first step
+
+				ReportData->LX = STICK_CENTER;
+				ReportData->LY = STICK_CENTER;
+				ReportData->RX = STICK_CENTER;
+				ReportData->RY = STICK_CENTER;
+				ReportData->HAT = HAT_CENTER;
+
+				break;
+			}
+
+			// Get a next command from flash memory
 			switch (proc_state)
 			{
 				case NONE:
@@ -197,82 +221,21 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 					break;
 
 				case INF_WATT:
-					memcpy_P(&cur_command, &inf_watt_commands[step_index], sizeof(Command));
+					memcpy_P(&cur_command, &inf_watt_commands[step_index++], sizeof(Command));
 					step_size_buf = inf_watt_size;
 					break;
 
+				case INF_ID_WATT:
+					memcpy_P(&cur_command, &inf_id_watt_commands[step_index++], sizeof(Command));
+					step_size_buf = inf_id_watt_size;
+					break;
+
 				default:
 					break;
 			}
 
-			// 継続回数
 			duration_buf = cur_command.duration;
-
-			switch (cur_command.button)
-			{
-				case UP:
-					ReportData->LY = STICK_MIN;				
-					break;
-
-				case LEFT:
-					ReportData->LX = STICK_MIN;				
-					break;
-
-				case DOWN:
-					ReportData->LY = STICK_MAX;				
-					break;
-
-				case RIGHT:
-					ReportData->LX = STICK_MAX;				
-					break;
-
-				case A:
-					ReportData->Button |= SWITCH_A;
-					break;
-
-				case B:
-					ReportData->Button |= SWITCH_B;
-					break;
-
-				case R:
-					ReportData->Button |= SWITCH_R;
-					break;
-
-				// case THROW:
-				// 	ReportData->LY = STICK_MIN;				
-				// 	ReportData->Button |= SWITCH_R;
-				// 	break;
-
-				case TRIGGERS:
-					ReportData->Button |= SWITCH_L | SWITCH_R;
-					break;
-		
-	      		case HOME:
-					ReportData->Button |= SWITCH_HOME;
-					break;
-
-				default:
-					break;
-			}
-
-			duration_count++;
-			if (duration_count > duration_buf)
-			{
-				step_index++;
-				duration_count = 0;				
-			}
-
-			if (step_index > step_size_buf - 1)
-			{
-				step_index = 0; // 最初からに戻す
-				duration_count = 0;
-
-				ReportData->LX = STICK_CENTER;
-				ReportData->LY = STICK_CENTER;
-				ReportData->RX = STICK_CENTER;
-				ReportData->RY = STICK_CENTER;
-				ReportData->HAT = HAT_CENTER;
-			}
+			ApplyCommandButton(cur_command.button, ReportData);
 
 			break;
 
@@ -292,5 +255,81 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 
 	// Prepare to echo this report
 	memcpy(&last_report, ReportData, sizeof(USB_JoystickReport_Input_t));
-	echoes = ECHOES;
+}
+
+void ApplyCommandButton(const Buttons_t button, USB_JoystickReport_Input_t* const ReportData)
+{
+	switch (button)
+	{
+		case UP:
+			ReportData->LY = STICK_MIN;				
+			break;
+
+		case LEFT:
+			ReportData->LX = STICK_MIN;				
+			break;
+
+		case DOWN:
+			ReportData->LY = STICK_MAX;				
+			break;
+
+		case RIGHT:
+			ReportData->LX = STICK_MAX;				
+			break;
+
+		case A:
+			ReportData->Button |= SWITCH_A;
+			break;
+
+		case B:
+			ReportData->Button |= SWITCH_B;
+			break;
+
+		case L:
+			ReportData->Button |= SWITCH_L;
+			break;
+
+		case R:
+			ReportData->Button |= SWITCH_R;
+			break;
+
+		case TRIGGERS:
+			ReportData->Button |= SWITCH_L | SWITCH_R;
+			break;
+
+		case UPLEFT:
+			ReportData->LX = STICK_MIN;
+			ReportData->LY = STICK_MIN;
+			break;
+
+		case UPRIGHT:
+			ReportData->LX = STICK_MAX;
+			ReportData->LY = STICK_MIN;
+			break;	
+
+		case DOWNRIGHT:
+			ReportData->LX = STICK_MAX;
+			ReportData->LY = STICK_MAX;
+			break;
+
+		case DOWNLEFT:
+			ReportData->LX = STICK_MIN;
+			ReportData->LY = STICK_MAX;
+			break;
+
+		case PLUS:
+			ReportData->Button |= SWITCH_PLUS;
+			break;
+
+		case MINUS:
+			ReportData->Button |= SWITCH_MINUS;
+			break;
+
+		case HOME:
+			ReportData->Button |= SWITCH_HOME;
+			break;
+
+		default:
+			break;
+	}
 }

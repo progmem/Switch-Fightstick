@@ -3,27 +3,9 @@
  *  Header file for Commands.c.
  */
 
-#ifndef _COMMAND_MCU_H_
-#define _COMMAND_MCU_H_
+#pragma once
 
 #include "Joystick.h"
-
-typedef enum {
-	UP,
-	DOWN,
-	LEFT,
-	RIGHT,
-	X,
-	Y,
-	A,
-	B,
-	L,
-	R,
-	THROW,
-	NOP,
-	TRIGGERS,
-    HOME,
-} Buttons_t;
 
 typedef struct {
 	Buttons_t button;
@@ -34,9 +16,9 @@ typedef struct {
 // Store arrays in Flash memory to save a SRAM data capacity
 
 // Infinity Watt
-Command inf_watt_commands[];
-int inf_watt_size;
+extern const Command inf_watt_commands[];
+extern const int inf_watt_size;
 
-
-
-#endif
+// Inf ID lottery & Watt
+extern const Command inf_id_watt_commands[];
+extern const int inf_id_watt_size;

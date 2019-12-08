@@ -107,6 +107,28 @@ typedef struct {
 	uint8_t  RY;     // Right Stick Y
 } USB_JoystickReport_Output_t;
 
+typedef enum {
+	UP,
+	DOWN,
+	LEFT,
+	RIGHT,
+    UPLEFT,
+	UPRIGHT,
+	DOWNLEFT,
+	DOWNRIGHT,
+	X,
+	Y,
+	A,
+	B,
+	L,
+	R,
+	PLUS,
+    MINUS,
+	NOP,
+	TRIGGERS,
+    HOME,
+} Buttons_t;
+
 // Function Prototypes
 // Setup all necessary hardware, including USB initialization.
 void SetupHardware(void);
@@ -119,5 +141,5 @@ void EVENT_USB_Device_ConfigurationChanged(void);
 void EVENT_USB_Device_ControlRequest(void);
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData);
-
+void ApplyCommandButton(const Buttons_t button, USB_JoystickReport_Input_t* const ReportData);
 #endif
