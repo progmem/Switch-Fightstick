@@ -15,6 +15,10 @@ typedef struct {
 // The commands that run independently from a PC
 // Store arrays in Flash memory to save a SRAM data capacity
 
+// controller sync (use for ease of debugging)
+extern const Command sync[];
+extern const uint8_t sync_size;
+
 // Infinity Watt
 extern const Command inf_watt_commands[];
 extern const int inf_watt_size;

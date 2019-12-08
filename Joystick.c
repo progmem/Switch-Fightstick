@@ -133,6 +133,7 @@ void HID_Task(void) {
 
 typedef enum {
 	INIT,
+	SYNC,
 	PROCESS,
 	CLEANUP,
 	DONE
@@ -161,6 +162,8 @@ int duration_buf;
 int step_size_buf;
 uint8_t echo_ratio = 3;
 
+bool is_use_sync = true;
+
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 
@@ -180,7 +183,43 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 			step_index = 0;
 			step_size_buf = 127;
 
-			state = PROCESS;
+			state = is_use_sync ? SYNC : PROCESS;
+			break;
+
+		case SYNC:
+			// Repeat duration times the last report
+			// As of now, duration_buf is mul by a ratio for concerning compatibility with code using echo variables
+			if (duration_count++ < duration_buf * echo_ratio)
+			{
+				memcpy(ReportData, &last_report, sizeof(USB_JoystickReport_Input_t));
+				return;
+			}
+			else
+			{
+				duration_count = 0;		
+			}
+
+			// Check step size range
+			if (step_index > step_size_buf - 1)
+			{
+				step_index = 0; // go back to first step
+
+				ReportData->LX = STICK_CENTER;
+				ReportData->LY = STICK_CENTER;
+				ReportData->RX = STICK_CENTER;
+				ReportData->RY = STICK_CENTER;
+				ReportData->HAT = HAT_CENTER;
+
+				state = PROCESS;
+				return;
+			}
+
+			memcpy_P(&cur_command, &sync[step_index++], sizeof(Command));
+			step_size_buf = sync_size;
+
+			duration_buf = cur_command.duration;
+			ApplyCommandButton(cur_command.button, ReportData);
+
 			break;
 
 		case PROCESS:
@@ -207,7 +246,6 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 				ReportData->RX = STICK_CENTER;
 				ReportData->RY = STICK_CENTER;
 				ReportData->HAT = HAT_CENTER;
-
 				break;
 			}
 

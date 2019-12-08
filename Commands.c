@@ -1,5 +1,16 @@
 #include "Commands.h"
 
+const Command sync[] PROGMEM = {
+	{ NOP,      200 },
+	{ A,        2 },
+	{ NOP,      200 },
+	{ HOME,     2 },
+	{ NOP,      50 },
+	{ A,        2 },
+	{ NOP,      70 },
+};
+const uint8_t sync_size = sizeof(sync) / sizeof(Command);
+
 const Command inf_watt_commands[] PROGMEM = {
     { NOP,  	100 },
 	{ A,		5 }, // レイドを始める
