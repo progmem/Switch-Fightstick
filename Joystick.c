@@ -18,6 +18,7 @@ exception of Home and Capture. Descriptor modification allows us to unlock
 these buttons for our use.
 */
 
+#include <LUFA/Drivers/Peripheral/Serial.h>
 #include "Commands.h"
 
 // Main entry point.
@@ -130,6 +131,59 @@ void HID_Task(void) {
 	}
 }
 
+// Serial communication
+#define MAX_BUFFER 32
+char pc_report_str[MAX_BUFFER];
+uint8_t idx = 0;
+USB_JoystickReport_Input_t pc_report;
+const uint8_t pc_rep_duration_max = 5;
+uint8_t pc_rep_duration = 0;
+
+void ParseLine(char* line)
+{
+	char btns[16];
+
+	// format [button LeftStickX LeftStickY RightStickX RightStickY HAT] 
+	// button: A | B | X | Y | L | R | ZL | ZR | MINUS | PLUS | LCLICK | RCLICK | HOME | CAP
+	// LeftStick : 0 to 255
+	// RightStick: 0 to 255
+	// HAT : 0(TOP) to 7(TOP_LEFT) in clockwise | 8(CENTER)
+	sscanf(line, "%s %hhu %hhu %hhu %hhu %hhu", btns,
+		&pc_report.LX, &pc_report.LY, &pc_report.RX, &pc_report.RY, &pc_report.HAT);
+
+	if (btns[0] == '1')		pc_report.Button |= SWITCH_A;
+	if (btns[1] == '1')		pc_report.Button |= SWITCH_B;
+	if (btns[2] == '1')		pc_report.Button |= SWITCH_X;
+	if (btns[3] == '1')		pc_report.Button |= SWITCH_Y;
+	if (btns[4] == '1')		pc_report.Button |= SWITCH_L;
+	if (btns[5] == '1')		pc_report.Button |= SWITCH_R;
+	if (btns[6] == '1')		pc_report.Button |= SWITCH_ZL;
+	if (btns[7] == '1')		pc_report.Button |= SWITCH_ZR;
+	if (btns[8] == '1')		pc_report.Button |= SWITCH_MINUS;
+	if (btns[9] == '1')		pc_report.Button |= SWITCH_PLUS;
+	if (btns[10] == '1')	pc_report.Button |= SWITCH_LCLICK;
+	if (btns[11] == '1')	pc_report.Button |= SWITCH_RCLICK;
+	if (btns[12] == '1')	pc_report.Button |= SWITCH_HOME;
+	if (btns[13] == '1')	pc_report.Button |= SWITCH_CAPTURE;	
+}
+
+ISR(USART1_RX_vect) 
+{
+	// one character comes at a time
+	char c = fgetc(stdin);
+	if (Serial_IsSendReady()) 
+		printf("%c", c);
+
+	if (c == '\r') 
+	{
+		ParseLine(pc_report_str);
+		idx = 0;
+		memset(pc_report_str, 0, sizeof(pc_report_str));
+	} 
+	else if (c != '\n' && idx < MAX_BUFFER)
+		pc_report_str[idx++] = c;
+}
+
 typedef enum {
 	INIT,
 	SYNC,
@@ -144,6 +198,7 @@ typedef enum {
 	MASH_A,		// mash button A
 	INF_WATT, 	// infinity watt
 	INF_ID_WATT,// infinity id lottery & watt (not recommended now)
+	PC_CALL,	// from PC
 } Proc_State_t;
 Proc_State_t proc_state = MASH_A;
 
@@ -158,9 +213,6 @@ Command cur_command;
 int duration_buf;
 int step_size_buf;
 const int echo_ratio = 3;
-
-const Command* cur_commands;
-int cur_commands_size;
 
 bool is_use_sync = true;
 
@@ -200,25 +252,32 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 					break;
 
 				case MASH_A:
-					cur_commands = mash_a_commands;
-					cur_commands_size = mash_a_size;
+					GetNextReportFromCommands(mash_a_commands, mash_a_size, ReportData);
 					break;
 
 				case INF_WATT:
-					cur_commands = inf_watt_commands;
-					cur_commands_size = inf_watt_size;
+					GetNextReportFromCommands(inf_watt_commands, inf_watt_size, ReportData);
 					break;
 
 				case INF_ID_WATT:
-					cur_commands = inf_id_watt_commands;
-					cur_commands_size = inf_id_watt_size;
+					GetNextReportFromCommands(inf_id_watt_commands, inf_id_watt_size, ReportData);
+					break;
+				
+				case PC_CALL:
+					if (pc_rep_duration++ < pc_rep_duration_max)
+					{
+						// copy a report that was sent from PC
+						memcpy(ReportData, &pc_report, sizeof(USB_JoystickReport_Input_t));
+					}
+					else
+						pc_rep_duration = 0;
+					
 					break;
 
 				default:
 					break;
 			}
 
-			GetNextReportFromCommands(cur_commands, cur_commands_size, ReportData);
 			break;
 
 		case CLEANUP:
