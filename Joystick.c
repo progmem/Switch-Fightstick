@@ -195,24 +195,27 @@ State_t state = INIT;
 
 typedef enum {
 	NONE,		// do nothing
+
+	// On MCU
 	MASH_A,		// mash button A
 	INF_WATT, 	// infinity watt
 	INF_ID_WATT,// infinity id lottery & watt (not recommended now)
-	PC_CALL,	// from PC
+
+	// From PC
+	PC_CALL,
 } Proc_State_t;
 Proc_State_t proc_state = MASH_A;
 
 USB_JoystickReport_Input_t last_report;
 
-int report_count;
 int step_index;
 int duration_count;
-int portsval;
 
 Command cur_command;
 int duration_buf;
 int step_size_buf;
-const int echo_ratio = 3;
+
+int echo_ratio = 1; // for compatible mode
 
 bool is_use_sync = true;
 
@@ -245,6 +248,8 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 			break;
 
 		case PROCESS:
+			echo_ratio = 1;
+
 			// Get a next command from flash memory
 			switch (proc_state)
 			{
@@ -256,10 +261,12 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 					break;
 
 				case INF_WATT:
+					echo_ratio = 3;
 					GetNextReportFromCommands(inf_watt_commands, inf_watt_size, ReportData);
 					break;
 
 				case INF_ID_WATT:
+					echo_ratio = 3;
 					GetNextReportFromCommands(inf_id_watt_commands, inf_id_watt_size, ReportData);
 					break;
 				
