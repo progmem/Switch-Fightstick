@@ -18,7 +18,6 @@ exception of Home and Capture. Descriptor modification allows us to unlock
 these buttons for our use.
 */
 
-#include "Joystick.h"
 #include "Commands.h"
 
 // Main entry point.
@@ -144,9 +143,9 @@ typedef enum {
 	NONE,		// do nothing
 	MASH_A,		// mash button A
 	INF_WATT, 	// infinity watt
-	INF_ID_WATT,// infinity id lottery & watt
+	INF_ID_WATT,// infinity id lottery & watt (not recommended now)
 } Proc_State_t;
-Proc_State_t proc_state = INF_WATT;
+Proc_State_t proc_state = MASH_A;
 
 USB_JoystickReport_Input_t last_report;
 
@@ -158,9 +157,9 @@ int portsval;
 Command cur_command;
 int duration_buf;
 int step_size_buf;
-float echo_ratio = 3.5;
+const int echo_ratio = 3;
 
-Command* cur_commands;
+const Command* cur_commands;
 int cur_commands_size;
 
 bool is_use_sync = true;
@@ -201,6 +200,8 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 					break;
 
 				case MASH_A:
+					cur_commands = mash_a_commands;
+					cur_commands_size = mash_a_size;
 					break;
 
 				case INF_WATT:
@@ -306,6 +307,14 @@ void ApplyButtonCommand(const Buttons_t button, USB_JoystickReport_Input_t* cons
 			ReportData->Button |= SWITCH_B;
 			break;
 
+		case X:
+			ReportData->Button |= SWITCH_X;
+			break;
+
+		case Y:
+			ReportData->Button |= SWITCH_Y;
+			break;
+
 		case L:
 			ReportData->Button |= SWITCH_L;
 			break;
@@ -351,6 +360,11 @@ void ApplyButtonCommand(const Buttons_t button, USB_JoystickReport_Input_t* cons
 			break;
 
 		default:
+			ReportData->LX = STICK_CENTER;
+			ReportData->LY = STICK_CENTER;
+			ReportData->RX = STICK_CENTER;
+			ReportData->RY = STICK_CENTER;
+			ReportData->HAT = HAT_CENTER;
 			break;
 	}
 }

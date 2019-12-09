@@ -21,6 +21,10 @@ bool GetNextReportFromCommands(const Command* const commands, int step_size, USB
 extern const Command sync[];
 extern const int sync_size;
 
+// Mash A Button
+extern const Command mash_a_commands[];
+extern const int mash_a_size;
+
 // Infinity Watt
 extern const Command inf_watt_commands[];
 extern const int inf_watt_size;

@@ -1,18 +1,24 @@
 #include "Commands.h"
 
 const Command sync[] PROGMEM = {
-	{ NOP,      100 },
+	{ NOP,      50 },
 	{ A,        2 },
 	{ NOP,      200 },
 	{ HOME,     2 },
 	{ NOP,      50 },
 	{ A,        2 },
-	{ NOP,      70 },
+	{ NOP,      50 },
 };
 const int sync_size = (int)(sizeof(sync) / sizeof(Command));
 
+const Command mash_a_commands[] PROGMEM = {
+	{ NOP,      20 },
+	{ A,        5 },
+};
+const int mash_a_size = (int)(sizeof(mash_a_commands) / sizeof(Command));
+
 const Command inf_watt_commands[] PROGMEM = {
-    { NOP,  	150 },
+    { NOP,  	70 },
 	{ A,		5 }, // レイドを始める
     { NOP, 		20 },
     { A,		5 },
@@ -22,15 +28,15 @@ const Command inf_watt_commands[] PROGMEM = {
     { HOME,		5 },
     { NOP, 		20 },
     { DOWN,		5 },
-    { NOP, 		20 },
-    { RIGHT, 	5 },
-    { NOP, 		20 },
-    { RIGHT, 	5 },
-    { NOP,  	20 },
-    { RIGHT,  	5 },
-    { NOP, 		20 },
-    { RIGHT,  	5 },
-    { NOP,   	20 },
+    { NOP, 		2 },
+    { RIGHT, 	2 },
+    { NOP, 		5 },
+    { RIGHT, 	2 },
+    { NOP,  	5 },
+    { RIGHT,  	2 },
+    { NOP, 		5 },
+    { RIGHT,  	2 },
+    { NOP,   	5 },
     { A,		5 }, // 設定選択
     { NOP,   	20 },
     { DOWN,   	60 },
@@ -39,21 +45,21 @@ const Command inf_watt_commands[] PROGMEM = {
     { A,		5 }, // 設定>本体 選択
     { NOP,   	20 },
     { DOWN,		5 },
-    { NOP,   	20 },
+    { NOP,   	10 },
     { DOWN,		5 },
-    { NOP,   	20 },
+    { NOP,   	10 },
     { DOWN,		5 },
-    { NOP,   	20 },
+    { NOP,   	10 },
     { DOWN,		5 },
-    { NOP,   	20 },
+    { NOP,   	10 },
     { A,		5 }, // 日付と時刻選択
-    { NOP,   	20 },
+    { NOP,   	10 },
     { A,		5 },
-    { NOP,   	20 },
+    { NOP,   	10 },
     { DOWN,		5 },
-    { NOP,   	20 },
+    { NOP,   	10 },
     { DOWN,		5 },
-    { NOP,   	20 },
+    { NOP,   	10 },
     { A,		5 },
     { NOP,   	20 },
     { UP,	  	5 },
@@ -83,16 +89,16 @@ const Command inf_watt_commands[] PROGMEM = {
     
     { HOME,		5 }, // ホームへ
     { NOP,   	20 },
-    { DOWN,		5 },
-    { NOP,   	20 },
-    { RIGHT,	5 },
-    { NOP,   	20 },
-    { RIGHT, 	5 },
-    { NOP,   	20 },
-    { RIGHT,	5 },
-    { NOP,   	20 },
-    { RIGHT,	5 },
-    { NOP,   	20 },
+    { DOWN,		2 },
+    { NOP,   	5 },
+    { RIGHT,	2 },
+    { NOP,   	5 },
+    { RIGHT, 	2 },
+    { NOP,   	5 },
+    { RIGHT,	2 },
+    { NOP,   	5 },
+    { RIGHT,	2 },
+    { NOP,   	5 },
     { A,		5 }, // 設定選択
     { NOP,   	20 },
     { DOWN,		60 },
@@ -100,15 +106,15 @@ const Command inf_watt_commands[] PROGMEM = {
     { DOWN,		5 },
     { NOP,   	20 },
     { A,		5 }, // 設定>本体 選択
-    { NOP,   	20 },
+    { NOP,   	10 },
     { DOWN,		5 },
-    { NOP,   	20 },
+    { NOP,   	10 },
     { DOWN,		5 },
-    { NOP,   	20 },
+    { NOP,   	10 },
     { DOWN,		5 },
-    { NOP,   	20 },
+    { NOP,   	10 },
     { DOWN,		5 },
-    { NOP,   	20 },
+    { NOP,   	10 },
     { A,		5 }, // 日付と時刻選択
     { NOP,   	20 },
     { A,		5 },
@@ -118,6 +124,7 @@ const Command inf_watt_commands[] PROGMEM = {
     { HOME,		5 }, // ゲームへ
 };
 
+// not recommended now
 const Command inf_id_watt_commands[] PROGMEM = {
 	// ワットの回収
 	{ A,          5 }, // 巣を選択
@@ -129,7 +136,14 @@ const Command inf_id_watt_commands[] PROGMEM = {
 	{ NOP,   30 },
 	{ DOWN,       2 },
 	{ NOP,    2 },
-	{ RIGHT,     20 },
+    { RIGHT,     2 },
+	{ NOP,    5 },
+    { RIGHT,     2 },
+	{ NOP,    5 },
+    { RIGHT,     2 },
+	{ NOP,    5 },
+    { RIGHT,     2 },
+	{ NOP,    5 },
 	{ NOP,    2 },
 
 	{ A,          5 }, // 設定に入る
@@ -156,7 +170,14 @@ const Command inf_id_watt_commands[] PROGMEM = {
 	{ NOP,    2 },
 	{ UP,         2 },
 	{ NOP,    2 },
-	{ RIGHT,     20 },
+    { RIGHT,     2 },
+	{ NOP,    5 },
+    { RIGHT,     2 },
+	{ NOP,    5 },
+    { RIGHT,     2 },
+	{ NOP,    5 },
+    { RIGHT,     2 },
+	{ NOP,    5 },
 	{ A,          5 }, // 日付の決定
 
 	{ HOME,       5 }, // ホームに戻る
@@ -262,8 +283,8 @@ const Command inf_id_watt_commands[] PROGMEM = {
 
 	{ PLUS,       5 },
 	{ NOP,   20 },
-	{ UP,       170 }, // 巣への移動
-	{ UPLEFT,    65 },
+	{ UP,       165 }, // 巣への移動
+	{ UPLEFT,    60 },
 	{ UP,         5 },
 
 };
