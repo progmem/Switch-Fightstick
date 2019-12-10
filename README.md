@@ -1,6 +1,6 @@
-## Switch-Fightstick
+## Fork元: Switch-Fightstick
 マイコンをコントローラに偽装してSwitchと通信を行えるようにするプロジェクト  
-Fork元なのでそちらや解説してくれてるサイトを要参照
+有名なプロジェクトなので詳しくはそちらのReadmeや解説してくれてるサイトを参照してください
 
 ## About this project
 AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以下の操作の自動化が目的です  
@@ -15,17 +15,31 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
   - idくじ
   - などなど...時渡り全般
   
+自動化以外の目的としては
++ マクロ作成機能  
++ 取得情報の記録と通知  
++ 不測挙動時の自動停止 など  
+  
 本プロジェクトではキャプボを使わない動作/軽い動作はマイコン独立で,  
 それ以外はPCに繋いで動作させるつもりです  
-操作切り替えはPCからすべて行う予定(組み込みの知識が乏しいので)  
+既存マクロの切り替えやPCで作成したマクロのマイコン/.cファイルへの書き込みはPCからすべて行う予定  
   
 ### 現在実行可能な操作  
+現バージョンではデバグの効率化のためコントローラの接続画面から開始する必要があります  
+  
 - ワット自動化
 0. 無限ワット対象の巣の200W/2000Wの光は消しておく.   
    レイドのある巣を選ぶ場合倒しておくかレイドの無い巣を選ぶ  
    またSwitch側の本体設定で「インターネットで時間を合わせる」をONにしておく  
 1. 「ねがいのかたまり」を巣に投げてレポート書いた後, 話しかけずに待機  
 2. .hex書き込み済みのマイコンを接続   
+  
+- A連打
+  
+- IDくじ&ワット自動化
+  
+主要部分が完成したらきちんと載せるつもりです  
+現在これらコマンドはすべてReferenceの配布スレから拝借  
   
 ## What you need
 - ハードウェア
@@ -64,11 +78,9 @@ Arduino-Switch間の無限ワットプログラム配布をしてくれた所
 マイコン-Switchでの実行はここで教わりました アクセスできなくなったら詳細も載せます  
 https://medaka.5ch.net/test/read.cgi/poke/1574816324/
   
-PCからSwitchへの通信のやり方 おいら屋ファクトリー  
-https://blog.feelmy.net/control-nintendo-switch-from-computer/  
-  
-ATmega16U2へdfu-programmerでカスタムファームを書き込み  
-https://another.maple4ever.net/archives/2380/  
+[PCからSwitchへの通信のやり方 おいら屋ファクトリー](https://blog.feelmy.net/control-nintendo-switch-from-computer/)
+
+[ATmega16U2へdfu-programmerでカスタムファームを書き込み](https://another.maple4ever.net/archives/2380/)
   
 PC-ATmegaマイコン-PCを繋いでる プログラムを参考にさせていただきました  
 https://github.com/ebith/Switch-Fightstick  
