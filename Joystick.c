@@ -200,11 +200,12 @@ typedef enum {
 	MASH_A,		// mash button A
 	INF_WATT, 	// infinity watt
 	INF_ID_WATT,// infinity id lottery & watt (not recommended now)
+	DEBUG,
 
 	// From PC
 	PC_CALL,
 } Proc_State_t;
-Proc_State_t proc_state = MASH_A;
+Proc_State_t proc_state = INF_ID_WATT;
 
 USB_JoystickReport_Input_t last_report;
 
@@ -234,9 +235,8 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	switch (state)
 	{
 		case INIT:
-			// initialize for avoiding first itereation mismatch
 			step_index = 0;
-			step_size_buf = 127;
+			step_size_buf = INT16_MAX;
 
 			state = is_use_sync ? SYNC : PROCESS;
 			break;
@@ -308,9 +308,9 @@ bool GetNextReportFromCommands(
 	const int step_size, 
 	USB_JoystickReport_Input_t* const ReportData)
 {
-	// Repeat duration times the last report
+	// Repeat the last report at duration times
 	// As of now, duration_buf is mul by the ratio for concerning compatibility with code using echo variables
-	if (duration_count++ < (int)(duration_buf * echo_ratio))
+	if (duration_count++ < duration_buf * echo_ratio)
 	{
 		memcpy(ReportData, &last_report, sizeof(USB_JoystickReport_Input_t));
 		return true;
@@ -335,6 +335,7 @@ bool GetNextReportFromCommands(
 		return false;
 	}
 
+	// Get command from flash memory
 	memcpy_P(&cur_command, &commands[step_index++], sizeof(Command));
 	step_size_buf = step_size;
 

@@ -126,7 +126,7 @@ const Command inf_watt_commands[] PROGMEM = {
 
 // not recommended now
 const Command inf_id_watt_commands[] PROGMEM = {
-	// ワットの回収
+// ワットの回収
 	{ A,          5 }, // 巣を選択
 	{ NOP,   20 },
 	{ A,          5 }, // みんなで　ちょうせん！
@@ -136,14 +136,7 @@ const Command inf_id_watt_commands[] PROGMEM = {
 	{ NOP,   30 },
 	{ DOWN,       2 },
 	{ NOP,    2 },
-    { RIGHT,     2 },
-	{ NOP,    5 },
-    { RIGHT,     2 },
-	{ NOP,    5 },
-    { RIGHT,     2 },
-	{ NOP,    5 },
-    { RIGHT,     2 },
-	{ NOP,    5 },
+	{ RIGHT,     20 },
 	{ NOP,    2 },
 
 	{ A,          5 }, // 設定に入る
@@ -170,14 +163,7 @@ const Command inf_id_watt_commands[] PROGMEM = {
 	{ NOP,    2 },
 	{ UP,         2 },
 	{ NOP,    2 },
-    { RIGHT,     2 },
-	{ NOP,    5 },
-    { RIGHT,     2 },
-	{ NOP,    5 },
-    { RIGHT,     2 },
-	{ NOP,    5 },
-    { RIGHT,     2 },
-	{ NOP,    5 },
+	{ RIGHT,     20 },
 	{ A,          5 }, // 日付の決定
 
 	{ HOME,       5 }, // ホームに戻る
@@ -283,8 +269,8 @@ const Command inf_id_watt_commands[] PROGMEM = {
 
 	{ PLUS,       5 },
 	{ NOP,   20 },
-	{ UP,       165 }, // 巣への移動
-	{ UPLEFT,    60 },
+	{ UP,       170 }, // 巣への移動
+	{ UPLEFT,    65 },
 	{ UP,         5 },
 
 };
