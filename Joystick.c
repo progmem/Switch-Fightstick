@@ -165,6 +165,8 @@ void ParseLine(char* line)
 	if (btns[11] == '1')	pc_report.Button |= SWITCH_RCLICK;
 	if (btns[12] == '1')	pc_report.Button |= SWITCH_HOME;
 	if (btns[13] == '1')	pc_report.Button |= SWITCH_CAPTURE;	
+
+	pc_rep_duration = 0;
 }
 
 ISR(USART1_RX_vect) 
@@ -205,7 +207,7 @@ typedef enum {
 	// From PC
 	PC_CALL,
 } Proc_State_t;
-Proc_State_t proc_state = INF_ID_WATT;
+Proc_State_t proc_state = MASH_A;
 
 USB_JoystickReport_Input_t last_report;
 
@@ -216,8 +218,7 @@ Command cur_command;
 int duration_buf;
 int step_size_buf;
 
-int echo_ratio = 1; // for compatible mode
-
+const int echo_ratio = 3; // for compatiblity
 bool is_use_sync = true;
 
 // Prepare the next report for the host.
@@ -236,7 +237,7 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	{
 		case INIT:
 			step_index = 0;
-			step_size_buf = INT16_MAX;
+			step_size_buf = INT8_MAX;
 
 			state = is_use_sync ? SYNC : PROCESS;
 			break;
@@ -261,12 +262,10 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 					break;
 
 				case INF_WATT:
-					echo_ratio = 3;
 					GetNextReportFromCommands(inf_watt_commands, inf_watt_size, ReportData);
 					break;
 
 				case INF_ID_WATT:
-					echo_ratio = 3;
 					GetNextReportFromCommands(inf_id_watt_commands, inf_id_watt_size, ReportData);
 					break;
 				
@@ -309,7 +308,7 @@ bool GetNextReportFromCommands(
 	USB_JoystickReport_Input_t* const ReportData)
 {
 	// Repeat the last report at duration times
-	// As of now, duration_buf is mul by the ratio for concerning compatibility with code using echo variables
+	// duration_buf is mul by the ratio for concerning compatibility with code using echo variables
 	if (duration_count++ < duration_buf * echo_ratio)
 	{
 		memcpy(ReportData, &last_report, sizeof(USB_JoystickReport_Input_t));
