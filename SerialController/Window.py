@@ -9,10 +9,12 @@ import cv2
 from PIL import Image,ImageTk
 import time
 import datetime
-import Command
+import McuCommand
+import PythonCommand
+import Sender
 
 DEFAULT_CAMERA_ID = 0
-DEFAULT_COM_PORT = 8
+DEFAULT_COM_PORT = 3
 
 # To avoid the error says 'ScrolledText' object has no attribute 'flush'
 class MyScrolledText(ScrolledText):
@@ -89,6 +91,21 @@ class GUI:
 		self.logArea.write = self.write
 		sys.stdout = self.logArea
 
+		# commands registration
+		self.cur_command = McuCommand.Mash_A('A連打')
+		self.mcu_commands = [McuCommand.Mash_A('A連打'), McuCommand.InfinityWatt('無限ワット'), McuCommand.InfinityId('無限IDくじ')]
+		self.py_commands = [PythonCommand.Sync('sync')]
+
+		self.mcu_cb = ttk.Combobox(self.frame1)
+		self.mcu_cb['values'] = [c.getName() for c in self.mcu_commands]
+		self.mcu_cb.bind('<<ComboboxSelected>>', self.assignMcuCommand)
+		self.mcu_cb.current(0)
+
+		self.py_cb = ttk.Combobox(self.frame1)
+		self.py_cb['values'] = [c.getName() for c in self.py_commands]
+		self.py_cb.bind('<<ComboboxSelected>>', self.assignPythonCommand)
+		self.py_cb.current(0)
+
 		self.frame1.grid(row=0,column=0,sticky='nwse')
 
 		self.label1.grid(row=0,column=0,sticky='e')
@@ -110,40 +127,50 @@ class GUI:
 		for child in self.frame1.winfo_children():
 			child.grid_configure(padx=5, pady=5)
 		
+		self.ser = Sender.Sender()
+		self.ser.openSerial("COM"+str(self.comPort.get()))
+
 		self.camera = CAMERA()
 		self.openCamera()
 		self.root.after(100, self.doProcess)
-		self.commands = [Command.Sync('sync')]
-	
+
 	def openCamera(self):
 		self.camera.openCamera(self.cameraID.get())
 	
 	def startPlay(self):
-		# if self.autoPlayer is None:
-		# 	self.autoPlayer = auto.AutoPlayer()
-		# 	self.autoPlayer.cap.openCamera(self.cameraID.get())
-		# 	self.autoPlayer.ser.openSerial("COM"+str(self.comPort.get()))
-		# 	self.autoPlayer.start()
-		# else:
-		# 	self.autoPlayer.resume()
-		print("Hello")
+		print(self.startButton["text"] + ' ' + self.cur_command.getName())
+		self.cur_command.start(self.ser)
 		
 		self.startButton["text"] = "Pause"
 		self.startButton["command"] = self.pausePlay
 	
 	def pausePlay(self):
-		# self.autoPlayer.pause()
-		
+		print(self.startButton["text"] + ' ' + self.cur_command.getName())
+		self.cur_command.end(self.ser)
+
 		self.startButton["text"] = "Start"
 		self.startButton["command"] = self.startPlay
 		
 	def stopPlay(self):
-		# self.autoPlayer.stop()
-		exit()
+		print("serial disconnected")
+		self.ser.closeSerial()
+
+		# MEMO: I don't know why but it gets shut down in some environment
+		#self.root.quit()
+		#exit()
+
 	
 	def saveCapture(self):
 		self.camera.saveCapture()
+
+	def assignMcuCommand(self, event):
+		self.cur_command = self.mcu_commands[self.mcu_cb.current()]
+		print('changed to mcu command: ' + self.cur_command.getName())
 	
+	def assignPythonCommand(self, event):
+		self.cur_command = self.py_commands[self.py_cb.current()]
+		print('changed to python command: ' + self.cur_command.getName())
+
 	def doProcess(self):
 		image_bgr = self.camera.readFrame()
 		if self.showPreview.get() and image_bgr is not None:

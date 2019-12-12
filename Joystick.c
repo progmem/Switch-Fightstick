@@ -23,6 +23,12 @@ these buttons for our use.
 
 // Main entry point.
 int main(void) {
+	Serial_Init(9600, false);
+	Serial_CreateStream(NULL);
+
+	sei();
+	UCSR1B |= (1 << RXCIE1);
+
 	// We'll start by performing hardware and peripheral setup.
 	SetupHardware();
 	// We'll then enable global interrupts for our use.
@@ -85,8 +91,41 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
 // Process control requests sent to the device from the USB host.
 void EVENT_USB_Device_ControlRequest(void) {
 	// We can handle two control requests: a GetReport and a SetReport.
+	switch (USB_ControlRequest.bRequest) {
 
-	// Not used here, it looks like we don't receive control request from the Switch.
+	// GetReport is a request for data from the device.
+	case HID_REQ_GetReport:
+
+		if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE)) {
+			// We'll create an empty report.
+			USB_JoystickReport_Input_t JoystickInputData;
+			// We'll then populate this report with what we want to send to the host.
+			GetNextReport(&JoystickInputData);
+			// Since this is a control endpoint, we need to clear up the SETUP packet on this endpoint.
+			Endpoint_ClearSETUP();
+			// Once populated, we can output this data to the host. We do this by first writing the data to the control stream.
+			Endpoint_Write_Control_Stream_LE(&JoystickInputData, sizeof(JoystickInputData));
+			// We then acknowledge an OUT packet on this endpoint.
+			Endpoint_ClearOUT();
+		}
+
+		break;
+
+	case HID_REQ_SetReport:
+
+		if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE)) {
+			// We'll create a place to store our data received from the host.
+			USB_JoystickReport_Output_t JoystickOutputData;
+			// Since this is a control endpoint, we need to clear up the SETUP packet on this endpoint.
+			Endpoint_ClearSETUP();
+			// With our report available, we read data from the control stream.
+			Endpoint_Read_Control_Stream_LE(&JoystickOutputData, sizeof(JoystickOutputData));
+			// We then send an IN packet on this endpoint.
+			Endpoint_ClearIN();
+		}
+
+		break;
+	}
 }
 
 // Process and deliver data from IN and OUT endpoints.
@@ -139,53 +178,6 @@ USB_JoystickReport_Input_t pc_report;
 const uint8_t pc_rep_duration_max = 5;
 uint8_t pc_rep_duration = 0;
 
-void ParseLine(char* line)
-{
-	char btns[16];
-
-	// format [button LeftStickX LeftStickY RightStickX RightStickY HAT] 
-	// button: A | B | X | Y | L | R | ZL | ZR | MINUS | PLUS | LCLICK | RCLICK | HOME | CAP
-	// LeftStick : 0 to 255
-	// RightStick: 0 to 255
-	// HAT : 0(TOP) to 7(TOP_LEFT) in clockwise | 8(CENTER)
-	sscanf(line, "%s %hhu %hhu %hhu %hhu %hhu", btns,
-		&pc_report.LX, &pc_report.LY, &pc_report.RX, &pc_report.RY, &pc_report.HAT);
-
-	if (btns[0] == '1')		pc_report.Button |= SWITCH_A;
-	if (btns[1] == '1')		pc_report.Button |= SWITCH_B;
-	if (btns[2] == '1')		pc_report.Button |= SWITCH_X;
-	if (btns[3] == '1')		pc_report.Button |= SWITCH_Y;
-	if (btns[4] == '1')		pc_report.Button |= SWITCH_L;
-	if (btns[5] == '1')		pc_report.Button |= SWITCH_R;
-	if (btns[6] == '1')		pc_report.Button |= SWITCH_ZL;
-	if (btns[7] == '1')		pc_report.Button |= SWITCH_ZR;
-	if (btns[8] == '1')		pc_report.Button |= SWITCH_MINUS;
-	if (btns[9] == '1')		pc_report.Button |= SWITCH_PLUS;
-	if (btns[10] == '1')	pc_report.Button |= SWITCH_LCLICK;
-	if (btns[11] == '1')	pc_report.Button |= SWITCH_RCLICK;
-	if (btns[12] == '1')	pc_report.Button |= SWITCH_HOME;
-	if (btns[13] == '1')	pc_report.Button |= SWITCH_CAPTURE;	
-
-	pc_rep_duration = 0;
-}
-
-ISR(USART1_RX_vect) 
-{
-	// one character comes at a time
-	char c = fgetc(stdin);
-	if (Serial_IsSendReady()) 
-		printf("%c", c);
-
-	if (c == '\r') 
-	{
-		ParseLine(pc_report_str);
-		idx = 0;
-		memset(pc_report_str, 0, sizeof(pc_report_str));
-	} 
-	else if (c != '\n' && idx < MAX_BUFFER)
-		pc_report_str[idx++] = c;
-}
-
 typedef enum {
 	INIT,
 	SYNC,
@@ -207,7 +199,13 @@ typedef enum {
 	// From PC
 	PC_CALL,
 } Proc_State_t;
-Proc_State_t proc_state = MASH_A;
+Proc_State_t proc_state = NONE;
+
+char* cmd_name[MAX_BUFFER] = {
+	"mash_a",
+	"inf_watt",
+	"inf_id",
+};
 
 USB_JoystickReport_Input_t last_report;
 
@@ -220,6 +218,80 @@ int step_size_buf;
 
 const int echo_ratio = 3; // for compatiblity
 bool is_use_sync = true;
+
+
+void ParseLine(char* line)
+{
+	char btns[16];
+
+	// format [button LeftStickX LeftStickY RightStickX RightStickY HAT] 
+	// button: A | B | X | Y | L | R | ZL | ZR | MINUS | PLUS | LCLICK | RCLICK | HOME | CAP
+	// LeftStick : 0 to 255
+	// RightStick: 0 to 255
+	// HAT : 0(TOP) to 7(TOP_LEFT) in clockwise | 8(CENTER)
+	// sscanf(line, "%s %hhu %hhu %hhu %hhu %hhu", btns,
+	// 	&pc_report.LX, &pc_report.LY, &pc_report.RX, &pc_report.RY, &pc_report.HAT);
+
+	sscanf(line, "%s", btns);
+
+	// TODO: refactoring
+	if (strstr(btns, "end") != NULL) {
+		proc_state = NONE;
+		printf("end");
+	}
+	else if (strstr(btns, cmd_name[0]) != NULL) {
+		step_index = 0;
+		step_size_buf = INT8_MAX;
+		duration_buf = 0;
+		proc_state = MASH_A;
+		printf(cmd_name[0]);
+	} else if (strstr(btns, cmd_name[1]) != NULL) {
+		step_index = 0;
+		step_size_buf = INT8_MAX;
+		duration_buf = 0;
+		proc_state = INF_WATT;
+	} else if (strstr(btns, cmd_name[2]) != NULL) {
+		step_index = 0;
+		step_size_buf = INT8_MAX;
+		duration_buf = 0;
+		proc_state = INF_ID_WATT;
+	} else {
+		proc_state = MASH_A;
+		// if (btns[0] == '1')		pc_report.Button |= SWITCH_A;
+		// if (btns[1] == '1')		pc_report.Button |= SWITCH_B;
+		// if (btns[2] == '1')		pc_report.Button |= SWITCH_X;
+		// if (btns[3] == '1')		pc_report.Button |= SWITCH_Y;
+		// if (btns[4] == '1')		pc_report.Button |= SWITCH_L;
+		// if (btns[5] == '1')		pc_report.Button |= SWITCH_R;
+		// if (btns[6] == '1')		pc_report.Button |= SWITCH_ZL;
+		// if (btns[7] == '1')		pc_report.Button |= SWITCH_ZR;
+		// if (btns[8] == '1')		pc_report.Button |= SWITCH_MINUS;
+		// if (btns[9] == '1')		pc_report.Button |= SWITCH_PLUS;
+		// if (btns[10] == '1')	pc_report.Button |= SWITCH_LCLICK;
+		// if (btns[11] == '1')	pc_report.Button |= SWITCH_RCLICK;
+		// if (btns[12] == '1')	pc_report.Button |= SWITCH_HOME;
+		// if (btns[13] == '1')	pc_report.Button |= SWITCH_CAPTURE;	
+	}
+
+	pc_rep_duration = 0;
+}
+
+ISR(USART1_RX_vect) 
+{
+	// one character comes at a time
+	char c = fgetc(stdin);
+	if (Serial_IsSendReady()) 
+		printf("%c", c);
+
+	if (c == '\r') 
+	{
+		ParseLine(pc_report_str);
+		idx = 0;
+		memset(pc_report_str, 0, sizeof(pc_report_str));
+	} 
+	else if (c != '\n' && idx < MAX_BUFFER)
+		pc_report_str[idx++] = c;
+}
 
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
@@ -249,8 +321,6 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 			break;
 
 		case PROCESS:
-			echo_ratio = 1;
-
 			// Get a next command from flash memory
 			switch (proc_state)
 			{
