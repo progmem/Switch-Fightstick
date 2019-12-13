@@ -51,7 +51,7 @@ class GUI:
 		self.autoPlayer = None
 		
 		self.root = tk.Tk()
-		self.root.title('Pokemon Sword and Shield Auto Playing')
+		self.root.title('Pokemon Controller')
 		self.frame1 = ttk.Frame(
 			self.root,
 			height=720,
@@ -79,10 +79,12 @@ class GUI:
 		self.comPort = tk.IntVar()
 		self.comPort.set(DEFAULT_COM_PORT)
 		self.entry2 = ttk.Entry(self.frame1, width=5, textvariable=self.comPort)
+		#self.label3 = ttk.Label(self.frame1, text='Set right COM Port to activate Commands')
 
 		self.preview = ttk.Label(self.frame1) 
 
-		self.reloadButton = ttk.Button(self.frame1, text='Reload Camera', command=self.openCamera)
+		self.reloadButton = ttk.Button(self.frame1, text='Reload Cam', command=self.openCamera)
+		self.reloadComPort = ttk.Button(self.frame1, text='Reload Port', command=self.activateSerial)
 		self.startButton = ttk.Button(self.frame1, text='Start', command=self.startPlay)
 		self.stopButton = ttk.Button(self.frame1, text='Stop & Exit', command=self.stopPlay)
 		self.captureButton = ttk.Button(self.frame1, text='Capture', command=self.saveCapture)
@@ -91,10 +93,17 @@ class GUI:
 		self.logArea.write = self.write
 		sys.stdout = self.logArea
 
+		# command radio button
+		self.lf = ttk.Labelframe(self.frame1, text='Command Option', padding=5)
+
+		self.v1 = tk.StringVar(value='Mcu')
+		self.rb1 = ttk.Radiobutton(self.lf, text='Mcu', value='Mcu', variable=self.v1, command=self.selectCommandCmbbox)
+		self.rb2 = ttk.Radiobutton(self.lf, text='Python', value='Python', variable=self.v1, command=self.selectCommandCmbbox)			
+
 		# commands registration
-		self.cur_command = McuCommand.Mash_A('A連打')
 		self.mcu_commands = [McuCommand.Mash_A('A連打'), McuCommand.InfinityWatt('無限ワット'), McuCommand.InfinityId('無限IDくじ')]
 		self.py_commands = [PythonCommand.Sync('sync')]
+		self.cur_command = self.mcu_commands[0] # attach a top of mcu commands first
 
 		self.mcu_cb = ttk.Combobox(self.frame1)
 		self.mcu_cb['values'] = [c.getName() for c in self.mcu_commands]
@@ -105,30 +114,40 @@ class GUI:
 		self.py_cb['values'] = [c.getName() for c in self.py_commands]
 		self.py_cb.bind('<<ComboboxSelected>>', self.assignPythonCommand)
 		self.py_cb.current(0)
+		self.py_cb['state'] = 'disabled'
 
 		self.frame1.grid(row=0,column=0,sticky='nwse')
-
-		self.label1.grid(row=0,column=0,sticky='e')
-		self.entry1.grid(row=0,column=1,sticky='w')
-		self.reloadButton.grid(row=0,column=2)
-		self.captureButton.grid(row=0,column=3)
-		self.cb1.grid(row=0,column=5,sticky='e')
 		
+		self.preview.grid(row=0,column=0,columnspan=7, sticky='nw')
 		self.logArea.grid(row=0,column=7,rowspan=3, sticky='nwse')
+
+		# camera & com port
+		self.label1.grid(row=1,column=0, sticky='w')
+		self.entry1.grid(row=1,column=1, sticky='w')
+		self.reloadButton.grid(row=1,column=2, sticky='w')
+		self.label2.grid(row=2,column=0, sticky='w')
+		self.entry2.grid(row=2,column=1, sticky='w')
+		self.reloadComPort.grid(row=2,column=2, sticky='w')
+
+		self.cb1.grid(row=1,column=3, sticky='w')
+		self.captureButton.grid(row=2,column=3)
+
+		# commands selection
+		self.lf.grid(row=3,column=5, rowspan=2)
+		self.rb1.grid(row=2,column=5, sticky='nwse')
+		self.rb2.grid(row=3,column=5, sticky='nwse')
+		self.mcu_cb.grid(row=3, column=6)
+		self.py_cb.grid(row=4, column=6)
 		
-		self.label2.grid(row=1,column=0,sticky='e')
-		self.entry2.grid(row=1,column=1,sticky='w')
-		
-		self.startButton.grid(row=1,column=5)
 		self.stopButton.grid(row=1,column=6)
-		
-		self.preview.grid(row=2,column=0,columnspan=7, sticky='nw')
+		self.startButton.grid(row=2,column=6)
 
 		for child in self.frame1.winfo_children():
 			child.grid_configure(padx=5, pady=5)
-		
+
+		# activate serial communication
 		self.ser = Sender.Sender()
-		self.ser.openSerial("COM"+str(self.comPort.get()))
+		self.activateSerial()
 
 		self.camera = CAMERA()
 		self.openCamera()
@@ -170,6 +189,22 @@ class GUI:
 	def assignPythonCommand(self, event):
 		self.cur_command = self.py_commands[self.py_cb.current()]
 		print('changed to python command: ' + self.cur_command.getName())
+
+	def selectCommandCmbbox(self):
+		if self.v1.get() == 'Mcu':
+			self.mcu_cb['state'] = 'normal'
+			self.py_cb['state'] = 'disabled'
+			self.assignMcuCommand(None)
+		elif self.v1.get() == 'Python':
+			self.mcu_cb['state'] = 'disabled'
+			self.py_cb['state'] = 'normal'
+			self.assignPythonCommand(None)
+	
+	def activateSerial(self):
+		try:
+			self.ser.openSerial("COM"+str(self.comPort.get()))
+		except:
+			print('COM Port: can\'t be established')
 
 	def doProcess(self):
 		image_bgr = self.camera.readFrame()
