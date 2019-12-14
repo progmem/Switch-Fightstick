@@ -30,10 +30,10 @@ class PythonCommand(Command.Command):
 		sleep(wait_time)
 
 	# press syntax sugars
-	def pressButton(self, btn, duration, wait_time=0.1):
+	def pressButton(self, btn, duration=0.1, wait_time=0.1):
 		self.press(btn, '', duration, wait_time)
 
-	def pressDirection(self, dir, button, duration, wait_time=0.1):
+	def pressDirection(self, dir, duration, wait_time=0.1):
 		self.press('', dir, duration, wait_time)
 
 	def pressButtonWithDirection(self, btn, dir, duration, wait_time=0.1):
@@ -59,4 +59,27 @@ class Unsync(PythonCommand):
 		super(Unsync, self).__init__(name)
 	
 	def start(self, ser):
-		super().start(self, ser)
+		super().start(ser)
+
+		self.wait(1)
+		self.pressButton('HOME', 0.1, 0.5)
+		self.pressDirection('L DOWN', 0.1, 0.1)
+		self.pressDirection('L RIGHT', 0.1, 0.1)
+		self.pressDirection('L RIGHT', 0.1, 0.1)
+		self.pressDirection('L RIGHT', 0.1, 0.1)
+		self.pressButton('A', 0.1, 1.5)
+		self.pressButton('A', 0.1, 0.5)
+		self.pressButton('A', 0.1, 0.3)
+
+
+# sample initial code
+# Copy and paste this class and write codes in start method.
+# After you write the codes, don't forget to add commands list in Window.py.
+# このクラスをコピぺしてstartメソッドの続きにコードを書いてください
+# コードを書き終わったら, Window.pyのコマンド(self.py_command)に追加するのを忘れないように
+class Sample(PythonCommand):
+	def __init__(self, name):
+		super(Sample, self).__init__(name)
+	
+	def start(self, ser):
+		super().start(ser)

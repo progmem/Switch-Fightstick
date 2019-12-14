@@ -34,7 +34,7 @@ class SendFormat:
 
 class Buttons:
 	def __init__(self, btn_str):
-		self.btn_array = btn_str.split()
+		self.btn_array = btn_str.upper().split()
 		self.bit_btn_array = ''
 
 	def getBitArray(self):
@@ -65,17 +65,42 @@ class Buttons:
 		else:
 			self.bit_btn_array += '0'
 
+# direction value definitions
+min = 0
+center = 128
+max = 255
+
 # as of now, we don't handle HAT button
 class Directions:
 	def __init__(self, dir_str):
-		self.dir_array = dir_str.split()
-		self.dir_dic = { 'lx':128, 'ly':128, 'rx':128, 'ry':128 } # 128 means center
+		self.dir_array = dir_str.upper().split()
+		self.dir_dic = { 'lx':center, 'ly':center, 'rx':center, 'ry':center }
 
 	def getDirectDict(self):
+		self.createDirectionDict()
 		return self.dir_dic
 
 	def createDirectionDict(self):
-		pass
+		if (not self.dir_array):
+			pass
+		elif (self.dir_array[0] == 'L'):
+			if ('LEFT' in self.dir_array):
+				self.dir_dic['lx'] = min
+			elif ('RIGHT' in self.dir_array):
+				self.dir_dic['lx'] = max
+			elif ('UP' in self.dir_array):
+				self.dir_dic['ly'] = min # note that y-axis is downward
+			elif ('DOWN' in self.dir_array):
+				self.dir_dic['ly'] = max
+		elif (self.dir_array[0] == 'R'):
+			if ('LEFT' in self.dir_array):
+				self.dir_dic['rx'] = min
+			elif ('RIGHT' in self.dir_array):
+				self.dir_dic['rx'] = max
+			elif ('UP' in self.dir_array):
+				self.dir_dic['ry'] = min # note that y-axis is downward
+			elif ('DOWN' in self.dir_array):
+				self.dir_dic['ry'] = max
 
 # handles serial input to Joystick.c
 class KeyPress:
