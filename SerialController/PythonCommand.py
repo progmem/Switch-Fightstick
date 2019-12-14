@@ -14,31 +14,43 @@ class PythonCommand(Command.Command):
 		print('init Python command: ' + name)
 		self.keys = None
 		self.thread = None
+		self.started = threading.Event()
+		self.alive = True
 	
 	@abstractclassmethod
 	def do(self):
 		pass
+
+	def do_safe(self, ser):
+		try:
+			if (self.alive):
+				self.do()
+				self.started.wait()
+		except:
+			if (not self.keys):
+				self.keys = Keys.KeyPress(ser)
+			print('interuppt')
+			self.end(ser)
 	
 	def start(self, ser):
 		if not self.thread:
-			self.thread = threading.Thread(target=self.do)
+			self.thread = threading.Thread(target=self.do_safe, args=([ser]))
 			self.thread.start()
+			self.started.set()
 		self.keys = Keys.KeyPress(ser)
 
 	def end(self, ser):
 		ser.writeRow('end')
 		self.keys = None
-		self.thread.join()
+		self.started.clear()
+		#self.thread.join()
 		self.thread = None
 
 	# press button at duration times(s)
 	def press(self, button, direction, duration, wait_time=0.1):
-		try:
-			self.keys.press(Keys.Buttons(button), Keys.Directions(direction))
-			self.keys.end()
-			self.wait(wait_time)
-		except:
-			pass # TODO: handle properly
+		self.keys.press(Keys.Buttons(button), Keys.Directions(direction))
+		self.keys.end()
+		self.wait(wait_time)
 
 	# do nothing at wait time(s)
 	def wait(self, wait_time):
