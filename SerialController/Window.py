@@ -48,8 +48,6 @@ class CAMERA:
 
 class GUI:
 	def __init__(self):
-		self.autoPlayer = None
-		
 		self.root = tk.Tk()
 		self.root.title('Pokemon Controller')
 		self.frame1 = ttk.Frame(
@@ -79,8 +77,6 @@ class GUI:
 		self.comPort = tk.IntVar()
 		self.comPort.set(DEFAULT_COM_PORT)
 		self.entry2 = ttk.Entry(self.frame1, width=5, textvariable=self.comPort)
-		#self.label3 = ttk.Label(self.frame1, text='Set right COM Port to activate Commands')
-
 		self.preview = ttk.Label(self.frame1) 
 
 		self.reloadButton = ttk.Button(self.frame1, text='Reload Cam', command=self.openCamera)
@@ -101,7 +97,8 @@ class GUI:
 		self.rb2 = ttk.Radiobutton(self.lf, text='Python', value='Python', variable=self.v1, command=self.selectCommandCmbbox)			
 
 		# commands registration
-		self.mcu_commands = [McuCommand.Mash_A('A連打'), McuCommand.InfinityWatt('無限ワット'), McuCommand.InfinityId('無限IDくじ')]
+		self.mcu_commands = [McuCommand.Mash_A('A連打'), McuCommand.InfinityWatt('無限ワット'), McuCommand.InfinityId('無限IDくじ'),
+		McuCommand.Sync('同期'), McuCommand.Unsync('同期解除')]
 		self.py_commands = [PythonCommand.Sync('sync')]
 		self.cur_command = self.mcu_commands[0] # attach a top of mcu commands first
 

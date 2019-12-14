@@ -193,7 +193,9 @@ typedef enum {
 	// On MCU
 	MASH_A,		// mash button A
 	INF_WATT, 	// infinity watt
-	INF_ID_WATT,// infinity id lottery & watt (not recommended now)
+	INF_ID_WATT,// infinity id lottery & watt
+	P_SYNC,
+	P_UNSYNC,
 	DEBUG,
 
 	// From PC
@@ -205,9 +207,9 @@ char* cmd_name[MAX_BUFFER] = {
 	"mash_a",
 	"inf_watt",
 	"inf_id",
+	"sync",
+	"unsync"
 };
-
-USB_JoystickReport_Input_t last_report;
 
 int step_index;
 int duration_count;
@@ -215,10 +217,6 @@ int duration_count;
 Command cur_command;
 int duration_buf;
 int step_size_buf;
-
-const int echo_ratio = 3; // for compatiblity
-bool is_use_sync = true;
-
 
 void ParseLine(char* line)
 {
@@ -235,26 +233,37 @@ void ParseLine(char* line)
 	sscanf(line, "%s", btns);
 
 	// TODO: refactoring
-	if (strstr(btns, "end") != NULL) {
+	if (strcmp(btns, "end") == 0) {
 		proc_state = NONE;
 		printf("end");
 	}
-	else if (strstr(btns, cmd_name[0]) != NULL) {
+	// TODO: refactoring later
+	else if (strcmp(btns, cmd_name[0]) == 0) {
 		step_index = 0;
 		step_size_buf = INT8_MAX;
 		duration_buf = 0;
 		proc_state = MASH_A;
 		printf(cmd_name[0]);
-	} else if (strstr(btns, cmd_name[1]) != NULL) {
+	} else if (strcmp(btns, cmd_name[1]) == 0) {
 		step_index = 0;
 		step_size_buf = INT8_MAX;
 		duration_buf = 0;
 		proc_state = INF_WATT;
-	} else if (strstr(btns, cmd_name[2]) != NULL) {
+	} else if (strcmp(btns, cmd_name[2]) == 0) {
 		step_index = 0;
 		step_size_buf = INT8_MAX;
 		duration_buf = 0;
 		proc_state = INF_ID_WATT;
+	} else if (strcmp(btns, cmd_name[3]) == 0) {
+		step_index = 0;
+		step_size_buf = INT8_MAX;
+		duration_buf = 0;
+		proc_state = P_SYNC;
+	} else if (strcmp(btns, cmd_name[4]) == 0) {
+		step_index = 0;
+		step_size_buf = INT8_MAX;
+		duration_buf = 0;
+		proc_state = P_UNSYNC;
 	} else {
 		proc_state = MASH_A;
 		// if (btns[0] == '1')		pc_report.Button |= SWITCH_A;
@@ -292,6 +301,11 @@ ISR(USART1_RX_vect)
 	else if (c != '\n' && idx < MAX_BUFFER)
 		pc_report_str[idx++] = c;
 }
+
+
+USB_JoystickReport_Input_t last_report;
+const int echo_ratio = 3; // for compatiblity
+bool is_use_sync = false;
 
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
@@ -339,6 +353,16 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 					GetNextReportFromCommands(inf_id_watt_commands, inf_id_watt_size, ReportData);
 					break;
 				
+				case P_SYNC:
+					if (!GetNextReportFromCommands(sync, sync_size, ReportData))
+						proc_state = NONE;
+					break;
+
+				case P_UNSYNC:
+					if (!GetNextReportFromCommands(unsync, unsync_size, ReportData))
+						proc_state = NONE;
+					break;
+
 				case PC_CALL:
 					if (pc_rep_duration++ < pc_rep_duration_max)
 					{

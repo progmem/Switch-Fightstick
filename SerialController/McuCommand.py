@@ -28,3 +28,11 @@ class InfinityWatt(McuCommand):
 class InfinityId(McuCommand):
 	def __init__(self, name, sync_name = 'inf_id'):
 		super(InfinityId, self).__init__(name, sync_name)
+
+class Sync(McuCommand):
+	def __init__(self, name, sync_name = 'sync'):
+		super(Sync, self).__init__(name, sync_name)
+
+class Unsync(McuCommand):
+	def __init__(self, name, sync_name = 'unsync'):
+		super(Unsync, self).__init__(name, sync_name)

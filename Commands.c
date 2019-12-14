@@ -1,5 +1,6 @@
 #include "Commands.h"
 
+// sync controller with Switch
 const Command sync[] PROGMEM = {
 	{ NOP,      50 },
 	{ A,        2 },
@@ -11,12 +12,37 @@ const Command sync[] PROGMEM = {
 };
 const int sync_size = (int)(sizeof(sync) / sizeof(Command));
 
+// unsync controller from Switch
+const Command unsync[] PROGMEM = {
+	{ NOP,      50 },
+	{ HOME,     2 },
+	{ NOP,      20 },
+	{ DOWN,		5 },
+    { NOP, 		2 },
+    { RIGHT, 	2 },
+    { NOP, 		5 },
+    { RIGHT, 	2 },
+    { NOP,  	5 },
+    { RIGHT,  	2 },
+	{ NOP, 		5 },
+	{ A,        5 },
+    { NOP, 		60 },
+	{ A,        2 },
+	{ NOP,      30 },
+	{ A,        2 },
+	{ NOP,      30 },
+};
+const int unsync_size = (int)(sizeof(unsync) / sizeof(Command));
+
+// Mashing button A
 const Command mash_a_commands[] PROGMEM = {
 	{ NOP,      20 },
 	{ A,        5 },
 };
 const int mash_a_size = (int)(sizeof(mash_a_commands) / sizeof(Command));
 
+// infinity watt earning
+// from: https://medaka.5ch.net/test/read.cgi/poke/1574816324/ >>25
 const Command inf_watt_commands[] PROGMEM = {
     { NOP,  	70 },
 	{ A,		5 }, // レイドを始める
@@ -124,7 +150,8 @@ const Command inf_watt_commands[] PROGMEM = {
     { HOME,		5 }, // ゲームへ
 };
 
-// not recommended now
+// infinity watt earning and id_lottery
+// from: https://medaka.5ch.net/test/read.cgi/poke/1574816324/ >>325
 const Command inf_id_watt_commands[] PROGMEM = {
 // ワットの回収
 	{ A,          5 }, // 巣を選択
@@ -272,7 +299,6 @@ const Command inf_id_watt_commands[] PROGMEM = {
 	{ UP,       170 }, // 巣への移動
 	{ UPLEFT,    65 },
 	{ UP,         5 },
-
 };
 
 const int inf_watt_size = (int)(sizeof(inf_watt_commands) / sizeof(Command));
