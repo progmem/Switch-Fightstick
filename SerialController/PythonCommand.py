@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from abc import ABCMeta, abstractclassmethod
 from time import sleep
+import threading
 import Command
 import Keys
 
@@ -11,19 +13,32 @@ class PythonCommand(Command.Command):
 		super(PythonCommand, self).__init__(name)
 		print('init Python command: ' + name)
 		self.keys = None
+		self.thread = None
+	
+	@abstractclassmethod
+	def do(self):
+		pass
 	
 	def start(self, ser):
+		if not self.thread:
+			self.thread = threading.Thread(target=self.do)
+			self.thread.start()
 		self.keys = Keys.KeyPress(ser)
 
 	def end(self, ser):
 		ser.writeRow('end')
 		self.keys = None
+		self.thread.join()
+		self.thread = None
 
 	# press button at duration times(s)
 	def press(self, button, direction, duration, wait_time=0.1):
-		self.keys.press(Keys.Buttons(button), Keys.Directions(direction))
-		self.keys.end()
-		self.wait(wait_time)
+		try:
+			self.keys.press(Keys.Buttons(button), Keys.Directions(direction))
+			self.keys.end()
+			self.wait(wait_time)
+		except:
+			pass # TODO: handle properly
 
 	# do nothing at wait time(s)
 	def wait(self, wait_time):
@@ -47,7 +62,8 @@ class Sync(PythonCommand):
 	
 	def start(self, ser):
 		super().start(ser)
-
+	
+	def do(self):
 		self.wait(1)
 		self.pressButton('A', 0.1, 0.5)
 		self.pressButton('HOME', 0.1, 0.5)
@@ -58,9 +74,7 @@ class Unsync(PythonCommand):
 	def __init__(self, name):
 		super(Unsync, self).__init__(name)
 	
-	def start(self, ser):
-		super().start(ser)
-
+	def do(self):
 		self.wait(1)
 		self.pressButton('HOME', 0.1, 0.5)
 		self.pressDirection('L DOWN', 0.1, 0.1)
@@ -80,6 +94,6 @@ class Unsync(PythonCommand):
 class Sample(PythonCommand):
 	def __init__(self, name):
 		super(Sample, self).__init__(name)
-	
-	def start(self, ser):
-		super().start(ser)
+
+	def do(self):
+		self.wait(1)
