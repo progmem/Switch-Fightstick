@@ -171,7 +171,7 @@ void HID_Task(void) {
 }
 
 // Serial communication
-#define MAX_BUFFER 32
+#define MAX_BUFFER 64
 char pc_report_str[MAX_BUFFER];
 uint8_t idx = 0;
 USB_JoystickReport_Input_t pc_report;
@@ -220,69 +220,55 @@ int step_size_buf;
 
 void ParseLine(char* line)
 {
-	char btns[16];
+	char cmd[16];
+	char p_btns[32];
 
 	// format [button LeftStickX LeftStickY RightStickX RightStickY HAT] 
 	// button: A | B | X | Y | L | R | ZL | ZR | MINUS | PLUS | LCLICK | RCLICK | HOME | CAP
 	// LeftStick : 0 to 255
 	// RightStick: 0 to 255
 	// HAT : 0(TOP) to 7(TOP_LEFT) in clockwise | 8(CENTER)
-	// sscanf(line, "%s %hhu %hhu %hhu %hhu %hhu", btns,
-	// 	&pc_report.LX, &pc_report.LY, &pc_report.RX, &pc_report.RY, &pc_report.HAT);
-
-	sscanf(line, "%s", btns);
+	sscanf(line, "%s %s %hhu %hhu %hhu %hhu %hhu", cmd, p_btns,
+		&pc_report.LX, &pc_report.LY, &pc_report.RX, &pc_report.RY, &pc_report.HAT);
 
 	// TODO: refactoring
-	if (strcmp(btns, "end") == 0) {
+	if (strcmp(cmd, "end") == 0) {
+		memcpy(&pc_report, 0, sizeof(USB_JoystickReport_Input_t));
 		proc_state = NONE;
-		printf("end");
-	}
-	// TODO: refactoring later
-	else if (strcmp(btns, cmd_name[0]) == 0) {
-		step_index = 0;
-		step_size_buf = INT8_MAX;
-		duration_buf = 0;
+	} else if (strcmp(cmd, cmd_name[0]) == 0) {
 		proc_state = MASH_A;
-		printf(cmd_name[0]);
-	} else if (strcmp(btns, cmd_name[1]) == 0) {
-		step_index = 0;
-		step_size_buf = INT8_MAX;
-		duration_buf = 0;
+	} else if (strcmp(cmd, cmd_name[1]) == 0) {
 		proc_state = INF_WATT;
-	} else if (strcmp(btns, cmd_name[2]) == 0) {
-		step_index = 0;
-		step_size_buf = INT8_MAX;
-		duration_buf = 0;
+	} else if (strcmp(cmd, cmd_name[2]) == 0) {
 		proc_state = INF_ID_WATT;
-	} else if (strcmp(btns, cmd_name[3]) == 0) {
-		step_index = 0;
-		step_size_buf = INT8_MAX;
-		duration_buf = 0;
+	} else if (strcmp(cmd, cmd_name[3]) == 0) {
 		proc_state = P_SYNC;
-	} else if (strcmp(btns, cmd_name[4]) == 0) {
-		step_index = 0;
-		step_size_buf = INT8_MAX;
-		duration_buf = 0;
+	} else if (strcmp(cmd, cmd_name[4]) == 0) {
 		proc_state = P_UNSYNC;
+	} else if (cmd[0] == 'p') {
+		if (p_btns[0] == '1')	pc_report.Button |= SWITCH_A;
+		if (p_btns[1] == '1')	pc_report.Button |= SWITCH_B;
+		if (p_btns[2] == '1')	pc_report.Button |= SWITCH_X;
+		if (p_btns[3] == '1')	pc_report.Button |= SWITCH_Y;
+		if (p_btns[4] == '1')	pc_report.Button |= SWITCH_L;
+		if (p_btns[5] == '1')	pc_report.Button |= SWITCH_R;
+		if (p_btns[6] == '1')	pc_report.Button |= SWITCH_ZL;
+		if (p_btns[7] == '1')	pc_report.Button |= SWITCH_ZR;
+		if (p_btns[8] == '1')	pc_report.Button |= SWITCH_MINUS;
+		if (p_btns[9] == '1')	pc_report.Button |= SWITCH_PLUS;
+		if (p_btns[10] == '1')	pc_report.Button |= SWITCH_LCLICK;
+		if (p_btns[11] == '1')	pc_report.Button |= SWITCH_RCLICK;
+		if (p_btns[12] == '1')	pc_report.Button |= SWITCH_HOME;
+		if (p_btns[13] == '1')	pc_report.Button |= SWITCH_CAPTURE;	
+		proc_state = PC_CALL;
 	} else {
-		proc_state = MASH_A;
-		// if (btns[0] == '1')		pc_report.Button |= SWITCH_A;
-		// if (btns[1] == '1')		pc_report.Button |= SWITCH_B;
-		// if (btns[2] == '1')		pc_report.Button |= SWITCH_X;
-		// if (btns[3] == '1')		pc_report.Button |= SWITCH_Y;
-		// if (btns[4] == '1')		pc_report.Button |= SWITCH_L;
-		// if (btns[5] == '1')		pc_report.Button |= SWITCH_R;
-		// if (btns[6] == '1')		pc_report.Button |= SWITCH_ZL;
-		// if (btns[7] == '1')		pc_report.Button |= SWITCH_ZR;
-		// if (btns[8] == '1')		pc_report.Button |= SWITCH_MINUS;
-		// if (btns[9] == '1')		pc_report.Button |= SWITCH_PLUS;
-		// if (btns[10] == '1')	pc_report.Button |= SWITCH_LCLICK;
-		// if (btns[11] == '1')	pc_report.Button |= SWITCH_RCLICK;
-		// if (btns[12] == '1')	pc_report.Button |= SWITCH_HOME;
-		// if (btns[13] == '1')	pc_report.Button |= SWITCH_CAPTURE;	
+		memcpy(&pc_report, 0, sizeof(USB_JoystickReport_Input_t));
+		proc_state = NONE;
 	}
 
-	pc_rep_duration = 0;
+	step_index = 0;
+	step_size_buf = INT8_MAX;
+	duration_buf = 0;
 }
 
 ISR(USART1_RX_vect) 
@@ -364,14 +350,8 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 					break;
 
 				case PC_CALL:
-					if (pc_rep_duration++ < pc_rep_duration_max)
-					{
-						// copy a report that was sent from PC
-						memcpy(ReportData, &pc_report, sizeof(USB_JoystickReport_Input_t));
-					}
-					else
-						pc_rep_duration = 0;
-					
+					// copy a report that was sent from PC
+					memcpy(ReportData, &pc_report, sizeof(USB_JoystickReport_Input_t));
 					break;
 
 				default:

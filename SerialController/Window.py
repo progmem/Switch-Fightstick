@@ -82,12 +82,16 @@ class GUI:
 		self.reloadButton = ttk.Button(self.frame1, text='Reload Cam', command=self.openCamera)
 		self.reloadComPort = ttk.Button(self.frame1, text='Reload Port', command=self.activateSerial)
 		self.startButton = ttk.Button(self.frame1, text='Start', command=self.startPlay)
-		self.stopButton = ttk.Button(self.frame1, text='Stop & Exit', command=self.stopPlay)
+		self.stopButton = ttk.Button(self.frame1, text='Exit', command=self.stopPlay)
 		self.captureButton = ttk.Button(self.frame1, text='Capture', command=self.saveCapture)
 
 		self.logArea = MyScrolledText(self.frame1, width=70)
 		self.logArea.write = self.write
 		sys.stdout = self.logArea
+
+		# activate serial communication
+		self.ser = Sender.Sender()
+		self.activateSerial()
 
 		# command radio button
 		self.lf = ttk.Labelframe(self.frame1, text='Command Option', padding=5)
@@ -97,9 +101,17 @@ class GUI:
 		self.rb2 = ttk.Radiobutton(self.lf, text='Python', value='Python', variable=self.v1, command=self.selectCommandCmbbox)			
 
 		# commands registration
-		self.mcu_commands = [McuCommand.Mash_A('A連打'), McuCommand.InfinityWatt('無限ワット'), McuCommand.InfinityId('無限IDくじ'),
-		McuCommand.Sync('同期'), McuCommand.Unsync('同期解除')]
-		self.py_commands = [PythonCommand.Sync('sync')]
+		self.mcu_commands = [
+			McuCommand.Mash_A('A連打'), 
+			McuCommand.InfinityWatt('無限ワット'),
+			McuCommand.InfinityId('無限IDくじ'),
+			McuCommand.Sync('同期'),
+			McuCommand.Unsync('同期解除'),
+		]
+		self.py_commands = [
+			PythonCommand.Sync('同期'),
+			PythonCommand.Unsync('同期解除'),
+		]
 		self.cur_command = self.mcu_commands[0] # attach a top of mcu commands first
 
 		self.mcu_cb = ttk.Combobox(self.frame1)
@@ -142,10 +154,6 @@ class GUI:
 		for child in self.frame1.winfo_children():
 			child.grid_configure(padx=5, pady=5)
 
-		# activate serial communication
-		self.ser = Sender.Sender()
-		self.activateSerial()
-
 		self.camera = CAMERA()
 		self.openCamera()
 		self.root.after(100, self.doProcess)
@@ -157,7 +165,7 @@ class GUI:
 		print(self.startButton["text"] + ' ' + self.cur_command.getName())
 		self.cur_command.start(self.ser)
 		
-		self.startButton["text"] = "Pause"
+		self.startButton["text"] = "Stop"
 		self.startButton["command"] = self.pausePlay
 	
 	def pausePlay(self):

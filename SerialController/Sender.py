@@ -18,4 +18,5 @@ class Sender:
 	
 	def writeRow(self, row):
 		self.ser.write((row+'\r\n').encode('utf-8'))
+		print(row)
 		time.sleep(0.1)
