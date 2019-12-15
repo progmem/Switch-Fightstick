@@ -54,41 +54,12 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
 現在これらコマンドはすべてReferenceの配布スレから拝借  
   
 ## What you need
-- ハードウェア
-  - ATMega16U2 / ATMega32U4 Board
-  - USBシリアル変換アダプタ
-  - ジャンパワイヤー
-  - キャプチャボード
-- ソフトウェア
-  - WinAVR
-  - dfu-programmer
-  
-足りない分は順次載せていきます  
-自分のハードウェア環境は次のようになってます  
-- ELEGOO Arduino Uno R3  
-リンクは完コピ製品らしいので気にする方はオリジナルを購入してください  
-https://www.amazon.co.jp/gp/product/B06Y5TBNQX
-
-- FTDI USBシリアル変換アダプター Rev.2  
-https://www.amazon.co.jp/gp/product/B01LVXGT04
-
-- WayinTop ブレボ/ジャンパワイヤーキット  
-dfuモードに入るのに1本, マイコンとUSBシリアル変換に4本使います  
-なのでこんなに必要ないですが, ついでにArduino触りたかったのでこれ買ってます  
-https://www.amazon.co.jp/gp/product/B07WYYLS82
-
-- I-O DATA USB-HDMI UVCキャプチャボード GV-HUCV
-https://www.amazon.co.jp/gp/product/B07CZRHX2V
+[こちら](https://github.com/KawaSwitch/Poke-Controller/wiki)に載せています  
 
 ## How it works
-PC-Arduino-Switchでの通信ができたので初回リリースを出したタイミングで詳しい説明を更新予定です  
-マイコン-Switchでの自動化はReferencesに乗せてる配布スレを参照のこと  
+[こちら](https://github.com/KawaSwitch/Poke-Controller/wiki)の下の方に順番で載せています  
 
-繋ぎ方は次のようになります（画像横向いちゃってるので後で直しときます）  
-左: Arduino Uno R3  右: USBシリアル変換アダプタ  
-白ワイヤ: dfuモード用  
-それ以外: Arduino-変換アダプタ接続用  
-  
+上の記事にも同じ画像がありますが実際の接続部分は次のようになります  
 ![シリアル変換接続](https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/arduino_serial_connection.JPG)  
   
 接続状態  
