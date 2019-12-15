@@ -82,6 +82,8 @@ class Sync(PythonCommand):
 		self.pressBtn('HOME', 0.1, 0.5)
 		self.pressBtn('A', 0.1, 0.5)
 
+		self.end()
+
 # Unsync controller
 class Unsync(PythonCommand):
 	def __init__(self, name):
@@ -97,6 +99,8 @@ class Unsync(PythonCommand):
 		self.pressBtn('A', 0.1, 1.5)
 		self.pressBtn('A', 0.1, 0.5)
 		self.pressBtn('A', 0.1, 0.3)
+
+		self.end()
 
 # Get watt automatically using the glitch
 # source: MCU Command 'InifinityWatt'

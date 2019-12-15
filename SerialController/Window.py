@@ -105,11 +105,11 @@ class GUI:
 			McuCommand.Mash_A('A連打'), 
 			McuCommand.InfinityWatt('無限ワット'),
 			McuCommand.InfinityId('無限IDくじ'),
-			McuCommand.Sync('同期'),
-			McuCommand.Unsync('同期解除'),
 		]
 		self.py_commands = [
 			PythonCommand.InfinityWatt('無限ワット'),
+		]
+		self.hid_commands = [ # not visible
 			PythonCommand.Sync('同期'),
 			PythonCommand.Unsync('同期解除'),
 		]
@@ -125,6 +125,9 @@ class GUI:
 		self.py_cb['values'] = [c.getName() for c in self.py_commands]
 		self.py_cb.bind('<<ComboboxSelected>>', self.assignPythonCommand)
 		self.py_cb.current(0)
+
+		self.sync_btn = ttk.Button(self.frame1, text='Sync', command=lambda: self.hid_commands[0].start(self.ser))
+		self.unsync_btn = ttk.Button(self.frame1, text='Unsync', command=lambda: self.hid_commands[1].start(self.ser))
 
 		self.frame1.grid(row=0,column=0,sticky='nwse')
 		
@@ -148,7 +151,9 @@ class GUI:
 		self.rb2.grid(row=3,column=5, sticky='nwse')
 		self.mcu_cb.grid(row=3, column=6)
 		self.py_cb.grid(row=4, column=6)
-		
+		self.sync_btn.grid(row=4, column=3)
+		self.unsync_btn.grid(row=4, column=4)
+
 		self.stopButton.grid(row=1,column=6)
 		self.startButton.grid(row=2,column=6)
 
