@@ -47,24 +47,25 @@ class PythonCommand(Command.Command):
 		self.thread = None
 
 	# press button at duration times(s)
-	def press(self, button, direction, duration, wait_time=0.1):
-		self.keys.press(Keys.Buttons(button), Keys.Directions(direction))
+	def press(self, button='', direction='', duration=0.1, wait=0.1):
+		self.keys.press(Keys.Button(button), Keys.Direction(direction))
+		self.wait(duration)
 		self.keys.end()
-		self.wait(wait_time)
+		self.wait(wait)
 
 	# do nothing at wait time(s)
-	def wait(self, wait_time):
-		sleep(wait_time)
+	def wait(self, wait):
+		sleep(wait)
 
 	# press syntax sugars
-	def pressButton(self, btn, duration=0.1, wait_time=0.1):
-		self.press(btn, '', duration, wait_time)
+	def pressBtn(self, btn, duration=0.1, wait=0.1):
+		self.press(btn, '', duration, wait)
 
-	def pressDirection(self, dir, duration, wait_time=0.1):
-		self.press('', dir, duration, wait_time)
+	def pressDir(self, dir, duration=0.1, wait=0.1):
+		self.press('', dir, duration, wait)
 
-	def pressButtonWithDirection(self, btn, dir, duration, wait_time=0.1):
-		self.press(btn, dir, duration, wait_time)
+	def pressBtnAndDir(self, btn, dir, duration=0.1, wait=0.1):
+		self.press(btn, dir, duration, wait)
 	
 
 # Sync as controller
@@ -77,9 +78,9 @@ class Sync(PythonCommand):
 	
 	def do(self):
 		self.wait(1)
-		self.pressButton('A', 0.1, 0.5)
-		self.pressButton('HOME', 0.1, 0.5)
-		self.pressButton('A', 0.1, 0.5)
+		self.pressBtn('A', 0.1, 0.5)
+		self.pressBtn('HOME', 0.1, 0.5)
+		self.pressBtn('A', 0.1, 0.5)
 
 # Unsync controller
 class Unsync(PythonCommand):
@@ -88,14 +89,81 @@ class Unsync(PythonCommand):
 	
 	def do(self):
 		self.wait(1)
-		self.pressButton('HOME', 0.1, 0.5)
-		self.pressDirection('L DOWN', 0.1, 0.1)
-		self.pressDirection('L RIGHT', 0.1, 0.1)
-		self.pressDirection('L RIGHT', 0.1, 0.1)
-		self.pressDirection('L RIGHT', 0.1, 0.1)
-		self.pressButton('A', 0.1, 1.5)
-		self.pressButton('A', 0.1, 0.5)
-		self.pressButton('A', 0.1, 0.3)
+		self.pressBtn('HOME', 0.1, 0.5)
+		self.pressDir('LS DOWN', 0.1, 0.1)
+		self.pressDir('LS RIGHT', 0.1, 0.1)
+		self.pressDir('LS RIGHT', 0.1, 0.1)
+		self.pressDir('LS RIGHT', 0.1, 0.1)
+		self.pressBtn('A', 0.1, 1.5)
+		self.pressBtn('A', 0.1, 0.5)
+		self.pressBtn('A', 0.1, 0.3)
+
+# Get watt automatically using the glitch
+# source: MCU Command 'InifinityWatt'
+class InfinityWatt(PythonCommand):
+	def __init__(self, name):
+		super(InfinityWatt, self).__init__(name)
+
+	def do(self):
+		while True:
+			self.wait(1)
+
+			self.pressBtn('A', wait=1)
+			self.pressBtn('A', wait=3)	# レイド開始
+
+			self.pressBtn('HOME', wait=1)
+			self.pressDir('LS DOWN')
+			self.pressDir('LS RIGHT')
+			self.pressDir('LS RIGHT')
+			self.pressDir('LS RIGHT')
+			self.pressDir('LS RIGHT')
+			self.pressBtn('A', wait=1.5) # 設定選択
+			self.pressDir('LS DOWN', duration=2, wait=0.5)
+			
+			self.pressBtn('A', wait=0.3) # 設定 > 本体
+			self.pressDir('LS DOWN')
+			self.pressDir('LS DOWN')
+			self.pressDir('LS DOWN')
+			self.pressDir('LS DOWN')
+			self.pressBtn('A') # 日付と時刻 選択
+			self.pressBtn('A')
+
+			self.pressDir('LS DOWN')
+			self.pressDir('LS DOWN')
+			self.pressBtn('A', wait=0.3)
+			self.pressDir('LS UP', wait=0.3)
+			self.pressDir('LS RIGHT', duration=1, wait=0.3)
+			self.pressBtn('A')
+			self.pressBtn('HOME', wait=0.3) # ゲームに戻る
+			self.pressBtn('HOME', wait=0.3)
+			
+			self.pressBtn('B', wait=0.5)
+			self.pressBtn('A', wait=3) # レイドをやめる
+
+			self.pressBtn('A')
+			self.pressBtn('A')
+			self.pressBtn('B')
+			self.pressBtn('B')
+
+			self.pressBtn('HOME', wait=1)
+			self.pressDir('LS DOWN')
+			self.pressDir('LS RIGHT')
+			self.pressDir('LS RIGHT')
+			self.pressDir('LS RIGHT')
+			self.pressDir('LS RIGHT')
+			self.pressBtn('A', wait=1.5) # 設定選択
+			self.pressDir('LS DOWN', duration=2, wait=0.5)
+			
+			self.pressBtn('A', wait=0.3) # 設定 > 本体
+			self.pressDir('LS DOWN')
+			self.pressDir('LS DOWN')
+			self.pressDir('LS DOWN')
+			self.pressDir('LS DOWN')
+			self.pressBtn('A') # 日付と時刻 選択
+			self.pressBtn('A')
+
+			self.pressBtn('HOME', wait=0.3) # ゲームに戻る
+			self.pressBtn('HOME', wait=0.3)
 
 
 # sample initial code

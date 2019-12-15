@@ -32,7 +32,7 @@ class SendFormat:
 		return str_format[:-1] # the last space is not needed
 
 
-class Buttons:
+class Button:
 	def __init__(self, btn_str):
 		self.btn_array = btn_str.upper().split()
 		self.bit_btn_array = ''
@@ -71,7 +71,7 @@ center = 128
 max = 255
 
 # as of now, we don't handle HAT button
-class Directions:
+class Direction:
 	def __init__(self, dir_str):
 		self.dir_array = dir_str.upper().split()
 		self.dir_dic = { 'lx':center, 'ly':center, 'rx':center, 'ry':center }
@@ -83,7 +83,7 @@ class Directions:
 	def createDirectionDict(self):
 		if (not self.dir_array):
 			pass
-		elif (self.dir_array[0] == 'L'):
+		elif (self.dir_array[0] == 'LS'):
 			if ('LEFT' in self.dir_array):
 				self.dir_dic['lx'] = min
 			elif ('RIGHT' in self.dir_array):
@@ -92,7 +92,7 @@ class Directions:
 				self.dir_dic['ly'] = min # note that y-axis is downward
 			elif ('DOWN' in self.dir_array):
 				self.dir_dic['ly'] = max
-		elif (self.dir_array[0] == 'R'):
+		elif (self.dir_array[0] == 'RS'):
 			if ('LEFT' in self.dir_array):
 				self.dir_dic['rx'] = min
 			elif ('RIGHT' in self.dir_array):
@@ -101,6 +101,8 @@ class Directions:
 				self.dir_dic['ry'] = min # note that y-axis is downward
 			elif ('DOWN' in self.dir_array):
 				self.dir_dic['ry'] = max
+		else:
+			print('a direction command has been aborted')
 
 # handles serial input to Joystick.c
 class KeyPress:

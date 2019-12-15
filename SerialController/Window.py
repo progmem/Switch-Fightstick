@@ -96,7 +96,7 @@ class GUI:
 		# command radio button
 		self.lf = ttk.Labelframe(self.frame1, text='Command Option', padding=5)
 
-		self.v1 = tk.StringVar(value='Mcu')
+		self.v1 = tk.StringVar(value='Python')
 		self.rb1 = ttk.Radiobutton(self.lf, text='Mcu', value='Mcu', variable=self.v1, command=self.selectCommandCmbbox)
 		self.rb2 = ttk.Radiobutton(self.lf, text='Python', value='Python', variable=self.v1, command=self.selectCommandCmbbox)			
 
@@ -109,21 +109,22 @@ class GUI:
 			McuCommand.Unsync('同期解除'),
 		]
 		self.py_commands = [
+			PythonCommand.InfinityWatt('無限ワット'),
 			PythonCommand.Sync('同期'),
 			PythonCommand.Unsync('同期解除'),
 		]
-		self.cur_command = self.mcu_commands[0] # attach a top of mcu commands first
+		self.cur_command = self.py_commands[0] # attach a top of python commands first
 
 		self.mcu_cb = ttk.Combobox(self.frame1)
 		self.mcu_cb['values'] = [c.getName() for c in self.mcu_commands]
 		self.mcu_cb.bind('<<ComboboxSelected>>', self.assignMcuCommand)
 		self.mcu_cb.current(0)
+		self.mcu_cb['state'] = 'disabled'
 
 		self.py_cb = ttk.Combobox(self.frame1)
 		self.py_cb['values'] = [c.getName() for c in self.py_commands]
 		self.py_cb.bind('<<ComboboxSelected>>', self.assignPythonCommand)
 		self.py_cb.current(0)
-		self.py_cb['state'] = 'disabled'
 
 		self.frame1.grid(row=0,column=0,sticky='nwse')
 		
