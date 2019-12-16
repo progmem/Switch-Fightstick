@@ -78,8 +78,8 @@ class Sync(PythonCommand):
 	
 	def do(self):
 		self.wait(1)
-		self.pressBtn('A', 0.1, 0.5)
-		self.pressBtn('HOME', 0.1, 0.5)
+		self.pressBtn('A', 0.1, 2)
+		self.pressBtn('HOME', 0.1, 1)
 		self.pressBtn('A', 0.1, 0.5)
 
 		self.end()
@@ -129,25 +129,25 @@ class InfinityWatt(PythonCommand):
 			self.pressDir('LS DOWN')
 			self.pressDir('LS DOWN')
 			self.pressDir('LS DOWN')
-			self.pressBtn('A') # 日付と時刻 選択
-			self.pressBtn('A')
+			self.pressBtn('A', wait=0.2) # 日付と時刻 選択
+			self.pressBtn('A', wait=0.2)
 
 			self.pressDir('LS DOWN')
 			self.pressDir('LS DOWN')
-			self.pressBtn('A', wait=0.3)
-			self.pressDir('LS UP', wait=0.3)
+			self.pressBtn('A', wait=0.2)
+			self.pressDir('LS UP', wait=0.2)
 			self.pressDir('LS RIGHT', duration=1, wait=0.3)
-			self.pressBtn('A')
-			self.pressBtn('HOME', wait=0.3) # ゲームに戻る
-			self.pressBtn('HOME', wait=0.3)
+			self.pressBtn('A', wait=0.5)
+			self.pressBtn('HOME', wait=0.8) # ゲームに戻る
+			self.pressBtn('HOME', wait=2)
 			
-			self.pressBtn('B', wait=0.5)
-			self.pressBtn('A', wait=3) # レイドをやめる
+			self.pressBtn('B', wait=1)
+			self.pressBtn('A', wait=4) # レイドをやめる
 
-			self.pressBtn('A')
-			self.pressBtn('A')
-			self.pressBtn('B')
-			self.pressBtn('B')
+			self.pressBtn('A', wait=1)
+			self.pressBtn('A', wait=1) # 2000W
+			self.pressBtn('A', wait=1)
+			self.pressBtn('B', wait=1.5)
 
 			self.pressBtn('HOME', wait=1)
 			self.pressDir('LS DOWN')
@@ -166,8 +166,8 @@ class InfinityWatt(PythonCommand):
 			self.pressBtn('A') # 日付と時刻 選択
 			self.pressBtn('A')
 
-			self.pressBtn('HOME', wait=0.3) # ゲームに戻る
-			self.pressBtn('HOME', wait=0.3)
+			self.pressBtn('HOME', wait=0.8) # ゲームに戻る
+			self.pressBtn('HOME', wait=1)
 
 
 # sample initial code
