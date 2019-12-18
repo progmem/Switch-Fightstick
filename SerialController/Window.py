@@ -108,6 +108,7 @@ class GUI:
 		]
 		self.py_commands = [
 			PythonCommand.InfinityWatt('無限ワット'),
+			PythonCommand.HoldTest('Hold Test')
 		]
 		self.hid_commands = [ # not visible
 			PythonCommand.Sync('同期'),
@@ -182,8 +183,8 @@ class GUI:
 		self.startButton["command"] = self.startPlay
 		
 	def stopPlay(self):
-		print("serial disconnected")
 		self.ser.closeSerial()
+		print("serial disconnected")
 
 		# MEMO: I don't know why but it gets shut down in some environment
 		#self.root.quit()

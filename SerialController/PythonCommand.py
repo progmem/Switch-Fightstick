@@ -6,6 +6,7 @@ from time import sleep
 import threading
 import Command
 import Keys
+from Keys import Button
 
 # Python command
 class PythonCommand(Command.Command):
@@ -30,7 +31,9 @@ class PythonCommand(Command.Command):
 			if (not self.keys):
 				self.keys = Keys.KeyPress(ser)
 			print('interuppt')
-			self.end(ser)
+			import traceback
+			traceback.print_exc()
+			self.keys.end()
 	
 	def start(self, ser):
 		if not self.thread:
@@ -39,33 +42,36 @@ class PythonCommand(Command.Command):
 			self.started.set()
 		self.keys = Keys.KeyPress(ser)
 
+	# do not use this func. in commands
+	# TODO: refactoring
 	def end(self, ser):
-		ser.writeRow('end')
+		self.keys.end()
 		self.keys = None
 		self.started.clear()
 		#self.thread.join()
 		self.thread = None
 
+	def endCommand(self):
+		self.end('')
+
 	# press button at duration times(s)
-	def press(self, button='', direction='', duration=0.1, wait=0.1):
-		self.keys.press(Keys.Button(button), Keys.Direction(direction))
+	def press(self, buttons, duration=0.1, wait=0.1):
+		self.keys.input(buttons)
 		self.wait(duration)
-		self.keys.end()
+		self.keys.inputEnd(buttons)
 		self.wait(wait)
+	
+	# add hold buttons
+	def hold(self, buttons):
+		self.keys.hold(buttons)
+	
+	# release holding buttons
+	def endHold(self, buttons):
+		self.keys.holdEnd(buttons)
 
 	# do nothing at wait time(s)
 	def wait(self, wait):
 		sleep(wait)
-
-	# press syntax sugars
-	def pressBtn(self, btn, duration=0.1, wait=0.1):
-		self.press(btn, '', duration, wait)
-
-	def pressDir(self, dir, duration=0.1, wait=0.1):
-		self.press('', dir, duration, wait)
-
-	def pressBtnAndDir(self, btn, dir, duration=0.1, wait=0.1):
-		self.press(btn, dir, duration, wait)
 	
 
 # Sync as controller
@@ -78,11 +84,13 @@ class Sync(PythonCommand):
 	
 	def do(self):
 		self.wait(1)
-		self.pressBtn('A', 0.1, 2)
-		self.pressBtn('HOME', 0.1, 1)
-		self.pressBtn('A', 0.1, 0.5)
 
-		self.end()
+		self.press(Button.A, 0.1, 2)
+		self.press(Button.HOME, 0.1, 1)
+		self.press(Button.A, 0.1, 0.5)
+				
+
+		self.endCommand()
 
 # Unsync controller
 class Unsync(PythonCommand):
@@ -91,16 +99,17 @@ class Unsync(PythonCommand):
 	
 	def do(self):
 		self.wait(1)
-		self.pressBtn('HOME', 0.1, 0.5)
-		self.pressDir('LS DOWN', 0.1, 0.1)
-		self.pressDir('LS RIGHT', 0.1, 0.1)
-		self.pressDir('LS RIGHT', 0.1, 0.1)
-		self.pressDir('LS RIGHT', 0.1, 0.1)
-		self.pressBtn('A', 0.1, 1.5)
-		self.pressBtn('A', 0.1, 0.5)
-		self.pressBtn('A', 0.1, 0.3)
+		self.press(Button.HOME, 0.1, 0.5)
+		self.press(Button.DOWN, 0.1, 0.1)
+		self.press(Button.RIGHT, 0.1, 0.1)
+		self.press(Button.RIGHT, 0.1, 0.1)
+		self.press(Button.RIGHT, 0.1, 0.1)
+		self.press(Button.A, 0.1, 1.5)
+		self.press(Button.A, 0.1, 0.5)
+		self.press(Button.A, 0.1, 0.3)
 
-		self.end()
+		self.endCommand()
+
 
 # Get watt automatically using the glitch
 # source: MCU Command 'InifinityWatt'
@@ -112,62 +121,83 @@ class InfinityWatt(PythonCommand):
 		while True:
 			self.wait(1)
 
-			self.pressBtn('A', wait=1)
-			self.pressBtn('A', wait=3)	# レイド開始
+			self.press(Button.A, wait=1)
+			self.press(Button.A, wait=3)	# レイド開始
 
-			self.pressBtn('HOME', wait=1)
-			self.pressDir('LS DOWN')
-			self.pressDir('LS RIGHT')
-			self.pressDir('LS RIGHT')
-			self.pressDir('LS RIGHT')
-			self.pressDir('LS RIGHT')
-			self.pressBtn('A', wait=1.5) # 設定選択
-			self.pressDir('LS DOWN', duration=2, wait=0.5)
+			self.press(Button.HOME, wait=1)
+			self.press(Button.DOWN)
+			self.press(Button.RIGHT)
+			self.press(Button.RIGHT)
+			self.press(Button.RIGHT)
+			self.press(Button.RIGHT)
+			self.press(Button.A, wait=1.5) # 設定選択
+			self.press(Button.DOWN, duration=2, wait=0.5)
 			
-			self.pressBtn('A', wait=0.3) # 設定 > 本体
-			self.pressDir('LS DOWN')
-			self.pressDir('LS DOWN')
-			self.pressDir('LS DOWN')
-			self.pressDir('LS DOWN')
-			self.pressBtn('A', wait=0.2) # 日付と時刻 選択
-			self.pressBtn('A', wait=0.2)
+			self.press(Button.A, wait=0.3) # 設定 > 本体
+			self.press(Button.DOWN)
+			self.press(Button.DOWN)
+			self.press(Button.DOWN)
+			self.press(Button.DOWN, wait=0.3)
+			self.press(Button.A, wait=0.2) # 日付と時刻 選択
+			self.press(Button.A, wait=0.4)
 
-			self.pressDir('LS DOWN')
-			self.pressDir('LS DOWN')
-			self.pressBtn('A', wait=0.2)
-			self.pressDir('LS UP', wait=0.2)
-			self.pressDir('LS RIGHT', duration=1, wait=0.3)
-			self.pressBtn('A', wait=0.5)
-			self.pressBtn('HOME', wait=0.8) # ゲームに戻る
-			self.pressBtn('HOME', wait=2)
+			self.press(Button.DOWN, wait=0.2)
+			self.press(Button.DOWN, wait=0.2)
+			self.press(Button.A, wait=0.2)
+			self.press(Button.UP, wait=0.2)
+			self.press(Button.RIGHT, duration=1, wait=0.3)
+			self.press(Button.A, wait=0.5)
+			self.press(Button.HOME, wait=1) # ゲームに戻る
+			self.press(Button.HOME, wait=2)
 			
-			self.pressBtn('B', wait=1)
-			self.pressBtn('A', wait=4) # レイドをやめる
+			self.press(Button.B, wait=1)
+			self.press(Button.A, wait=6) # レイドをやめる
 
-			self.pressBtn('A', wait=1)
-			self.pressBtn('A', wait=1) # 2000W
-			self.pressBtn('A', wait=1)
-			self.pressBtn('B', wait=1.5)
+			self.press(Button.A, wait=1)
+			self.press(Button.A, wait=1) # 2000W
+			self.press(Button.A, wait=1.8)
+			self.press(Button.B, wait=1.5)
 
-			self.pressBtn('HOME', wait=1)
-			self.pressDir('LS DOWN')
-			self.pressDir('LS RIGHT')
-			self.pressDir('LS RIGHT')
-			self.pressDir('LS RIGHT')
-			self.pressDir('LS RIGHT')
-			self.pressBtn('A', wait=1.5) # 設定選択
-			self.pressDir('LS DOWN', duration=2, wait=0.5)
+			self.press(Button.HOME, wait=1)
+			self.press(Button.DOWN)
+			self.press(Button.RIGHT)
+			self.press(Button.RIGHT)
+			self.press(Button.RIGHT)
+			self.press(Button.RIGHT)
+			self.press(Button.A, wait=1.5) # 設定選択
+			self.press(Button.DOWN, duration=2, wait=0.5)
 			
-			self.pressBtn('A', wait=0.3) # 設定 > 本体
-			self.pressDir('LS DOWN')
-			self.pressDir('LS DOWN')
-			self.pressDir('LS DOWN')
-			self.pressDir('LS DOWN')
-			self.pressBtn('A') # 日付と時刻 選択
-			self.pressBtn('A')
+			self.press(Button.A, wait=0.3) # 設定 > 本体
+			self.press(Button.DOWN)
+			self.press(Button.DOWN)
+			self.press(Button.DOWN)
+			self.press(Button.DOWN)
+			self.press(Button.A) # 日付と時刻 選択
+			self.press(Button.A, wait=0.5)
 
-			self.pressBtn('HOME', wait=0.8) # ゲームに戻る
-			self.pressBtn('HOME', wait=1)
+			self.press(Button.HOME, wait=1) # ゲームに戻る
+			self.press(Button.HOME, wait=1)
+
+class HoldTest(PythonCommand):
+	def __init__(self, name):
+		super(HoldTest, self).__init__(name)
+
+	def do(self):
+		self.wait(1)
+
+		while True:
+			self.hold(Button.DOWN)
+			self.wait(0.5)
+			self.press(Button.X, wait=2)
+			self.endHold(Button.DOWN)
+
+			self.wait(1)
+
+			self.hold(Button.UP)
+			self.wait(2)
+
+			self.endHold(Button.UP)
+			self.wait(2)
 
 
 # sample initial code

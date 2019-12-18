@@ -223,6 +223,8 @@ void ParseLine(char* line)
 	char cmd[16];
 	char p_btns[32];
 
+	memcpy(&pc_report, 0, sizeof(USB_JoystickReport_Input_t));
+
 	// format [button LeftStickX LeftStickY RightStickX RightStickY HAT] 
 	// button: A | B | X | Y | L | R | ZL | ZR | MINUS | PLUS | LCLICK | RCLICK | HOME | CAP
 	// LeftStick : 0 to 255
@@ -233,7 +235,6 @@ void ParseLine(char* line)
 
 	// TODO: refactoring
 	if (strcmp(cmd, "end") == 0) {
-		memcpy(&pc_report, 0, sizeof(USB_JoystickReport_Input_t));
 		proc_state = NONE;
 	} else if (strcmp(cmd, cmd_name[0]) == 0) {
 		proc_state = MASH_A;
@@ -262,7 +263,6 @@ void ParseLine(char* line)
 		if (p_btns[13] == '1')	pc_report.Button |= SWITCH_CAPTURE;	
 		proc_state = PC_CALL;
 	} else {
-		memcpy(&pc_report, 0, sizeof(USB_JoystickReport_Input_t));
 		proc_state = NONE;
 	}
 
