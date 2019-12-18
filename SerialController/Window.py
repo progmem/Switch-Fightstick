@@ -186,9 +186,7 @@ class GUI:
 		self.ser.closeSerial()
 		print("serial disconnected")
 
-		# MEMO: I don't know why but it gets shut down in some environment
-		#self.root.quit()
-		#exit()
+		self.root.destroy()
 
 	
 	def saveCapture(self):
