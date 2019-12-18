@@ -57,21 +57,21 @@ class SendFormat:
 	def setDirection(self, dirs):
 		if (Button.UP in dirs):
 			self.format['ly'] = min
-		elif (Button.RIGHT in dirs):
+		if (Button.RIGHT in dirs):
 			self.format['lx'] = max
-		elif (Button.DOWN in dirs):
+		if (Button.DOWN in dirs):
 			self.format['ly'] = max
-		elif (Button.LEFT in dirs):
+		if (Button.LEFT in dirs):
 			self.format['lx'] = min
 
 	def unsetDirection(self, dirs):
 		if (Button.UP in dirs):
 			self.format['ly'] = center
-		elif (Button.RIGHT in dirs):
+		if (Button.RIGHT in dirs):
 			self.format['lx'] = center
-		elif (Button.DOWN in dirs):
+		if (Button.DOWN in dirs):
 			self.format['ly'] = center
-		elif (Button.LEFT in dirs):
+		if (Button.LEFT in dirs):
 			self.format['lx'] = center
 
 	def replacePartStr(self, str, add_str, index):
@@ -93,11 +93,12 @@ class KeyPress:
 		self.holdButton = []
 	
 	def input(self, btns):
-		if (not isinstance(btns, list)):
+		if not isinstance(btns, list):
 			btns = [btns]
 		
 		for btn in self.holdButton:
-			btns.append(btn)
+			if not btn in self.holdButton:
+				btns.append(btn)
 
 		print(btns)
 
@@ -106,7 +107,7 @@ class KeyPress:
 		self.ser.writeRow(self.format.convert2str())
 
 	def inputEnd(self, btns):
-		if (not isinstance(btns, list)):
+		if not isinstance(btns, list):
 			btns = [btns]
 
 		self.format.unsetButton(btns)
@@ -115,11 +116,11 @@ class KeyPress:
 		self.ser.writeRow(self.format.convert2str())
 
 	def hold(self, btns):
-		if (not isinstance(btns, list)):
+		if not isinstance(btns, list):
 			btns = [btns]
 
 		for btn in btns:
-			if (btn in self.holdButton):
+			if btn in self.holdButton:
 				print('Warning: ' + btn.name + ' is already in holding state')
 				return
 			
@@ -128,7 +129,7 @@ class KeyPress:
 		self.input(btns)
 		
 	def holdEnd(self, btns):
-		if (not isinstance(btns, list)):
+		if not isinstance(btns, list):
 			btns = [btns]
 		
 		for btn in btns:

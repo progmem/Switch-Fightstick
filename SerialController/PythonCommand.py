@@ -202,10 +202,10 @@ class HoldTest(PythonCommand):
 		self.wait(1)
 
 		while self.checkIfAlive():
-			self.hold(Button.DOWN)
+			self.hold([Button.LEFT, Button.DOWN])
 			self.wait(0.5)
 			self.press(Button.X, wait=2)
-			self.holdEnd(Button.DOWN)
+			self.holdEnd([Button.LEFT, Button.DOWN])
 
 			self.wait(1)
 
