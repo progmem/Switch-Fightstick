@@ -15,7 +15,6 @@ class PythonCommand(Command.Command):
 		print('init Python command: ' + name)
 		self.keys = None
 		self.thread = None
-		self.started = threading.Event()
 		self.alive = True
 	
 	@abstractclassmethod
@@ -26,7 +25,6 @@ class PythonCommand(Command.Command):
 		try:
 			if (self.alive):
 				self.do()
-				self.started.wait()
 		except:
 			if (not self.keys):
 				self.keys = Keys.KeyPress(ser)
@@ -36,23 +34,24 @@ class PythonCommand(Command.Command):
 			self.keys.end()
 	
 	def start(self, ser):
+		self.alive = True
 		if not self.thread:
 			self.thread = threading.Thread(target=self.do_safe, args=([ser]))
 			self.thread.start()
-			self.started.set()
 		self.keys = Keys.KeyPress(ser)
 
-	# do not use this func. in commands
-	# TODO: refactoring
 	def end(self, ser):
-		self.keys.end()
-		self.keys = None
-		self.started.clear()
-		#self.thread.join()
-		self.thread = None
+		self.sendStopRequest()
 
-	def endCommand(self):
-		self.end('')
+	def sendStopRequest(self):
+		self.checkIfAlive() # try if we can stop now
+		self.alive = False
+		print (self.name + ': we\'ve sent a stop request.')
+	
+	# NOTE: Use this function if you want to get out from a command loop by yourself 
+	def finish(self):
+		self.alive = False
+		self.end(self.keys.ser)
 
 	# press button at duration times(s)
 	def press(self, buttons, duration=0.1, wait=0.1):
@@ -73,6 +72,16 @@ class PythonCommand(Command.Command):
 	def wait(self, wait):
 		sleep(wait)
 	
+	def checkIfAlive(self):
+		if (not self.alive):
+			self.keys.end()
+			self.keys = None
+			self.thread = None
+			print(self.name + ' has reached an alive check and exited succucesfully.')
+			return False
+		else:
+			return True
+	
 
 # Sync as controller
 class Sync(PythonCommand):
@@ -89,8 +98,7 @@ class Sync(PythonCommand):
 		self.press(Button.HOME, 0.1, 1)
 		self.press(Button.A, 0.1, 0.5)
 				
-
-		self.endCommand()
+		self.finish()
 
 # Unsync controller
 class Unsync(PythonCommand):
@@ -108,7 +116,7 @@ class Unsync(PythonCommand):
 		self.press(Button.A, 0.1, 0.5)
 		self.press(Button.A, 0.1, 0.3)
 
-		self.endCommand()
+		self.finish()
 
 
 # Get watt automatically using the glitch
@@ -118,7 +126,7 @@ class InfinityWatt(PythonCommand):
 		super(InfinityWatt, self).__init__(name)
 
 	def do(self):
-		while True:
+		while self.checkIfAlive():
 			self.wait(1)
 
 			self.press(Button.A, wait=1)
@@ -185,7 +193,7 @@ class HoldTest(PythonCommand):
 	def do(self):
 		self.wait(1)
 
-		while True:
+		while self.checkIfAlive():
 			self.hold(Button.DOWN)
 			self.wait(0.5)
 			self.press(Button.X, wait=2)
