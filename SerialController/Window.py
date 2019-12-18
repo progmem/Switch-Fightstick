@@ -16,6 +16,7 @@ import Sender
 
 DEFAULT_CAMERA_ID = 0
 DEFAULT_COM_PORT = 3
+FPS = 30
 
 # To avoid the error says 'ScrolledText' object has no attribute 'flush'
 class MyScrolledText(ScrolledText):
@@ -98,6 +99,14 @@ class GUI:
 		# activate serial communication
 		self.ser = Sender.Sender()
 		self.activateSerial()
+
+		# fps
+		self.fps = tk.StringVar()
+		self.fps.set(str(FPS))
+		# self.fps_cb = ttk.Combobox(self.frame1, textvariable=self.fps)
+		# self.fps_cb['values'] = [30, 15]
+		# self.fps_cb.bind('<<ComboboxSelected>>', self.applyFps)
+		# self.fps_cb.current(0)
 
 		# command radio button
 		self.lf = ttk.Labelframe(self.frame1, text='Command Option', padding=5)
@@ -205,6 +214,9 @@ class GUI:
 	
 	def saveCapture(self):
 		self.camera.saveCapture()
+	
+	def applyFps(self, event):
+		print('changed FPS to: ' + self.fps.get() + ' [fps]')
 
 	def assignMcuCommand(self, event):
 		self.cur_command = self.mcu_commands[self.mcu_cb.current()]
@@ -271,8 +283,8 @@ class GUI:
 			
 			self.preview.im = image_tk
 			self.preview['image']=image_tk
-		
-		self.root.after(100, self.doProcess)
+
+		self.root.after((int)(16 * (60 / int(self.fps.get()))), self.doProcess)
 	
 	def write(self, str):
 		self.logArea.insert(tk.END, str)
