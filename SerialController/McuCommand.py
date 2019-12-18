@@ -12,9 +12,13 @@ class McuCommand(Command.Command):
 	
 	def start(self, ser):
 		ser.writeRow(self.sync_name)
+		self.isRunning = True
 
-	def end(self, ser):
+	def end(self, ser, postProcess=None):
 		ser.writeRow('end')
+		self.isRunning = False
+		if not postProcess is None:
+			postProcess()
 
 # If you want to add extra commands, command enums in Joystick.c should also be rewritten.
 class Mash_A(McuCommand):

@@ -9,14 +9,15 @@ class Command:
 
 	def __init__(self, name):
 		self.name = name
+		self.isRunning = False
 
 	def getName(self):
 		return self.name
-	
+
 	@abstractclassmethod
 	def start(self, ser):
 		pass
 
 	@abstractclassmethod
-	def end(self, ser):
+	def end(self, ser, postProcess=None):
 		pass

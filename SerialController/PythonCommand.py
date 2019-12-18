@@ -16,6 +16,7 @@ class PythonCommand(Command.Command):
 		self.keys = None
 		self.thread = None
 		self.alive = True
+		self.postProcess = None
 	
 	@abstractclassmethod
 	def do(self):
@@ -23,10 +24,10 @@ class PythonCommand(Command.Command):
 
 	def do_safe(self, ser):
 		try:
-			if (self.alive):
+			if self.alive:
 				self.do()
 		except:
-			if (not self.keys):
+			if not self.keys:
 				self.keys = Keys.KeyPress(ser)
 			print('interuppt')
 			import traceback
@@ -38,15 +39,17 @@ class PythonCommand(Command.Command):
 		if not self.thread:
 			self.thread = threading.Thread(target=self.do_safe, args=([ser]))
 			self.thread.start()
+		self.isRunning = True
 		self.keys = Keys.KeyPress(ser)
 
-	def end(self, ser):
+	def end(self, ser, postProcess=None):
+		self.postProcess = postProcess
 		self.sendStopRequest()
 
 	def sendStopRequest(self):
-		self.checkIfAlive() # try if we can stop now
-		self.alive = False
-		print (self.name + ': we\'ve sent a stop request.')
+		if (self.checkIfAlive()): # try if we can stop now
+			self.alive = False
+			print (self.name + ': we\'ve sent a stop request.')
 	
 	# NOTE: Use this function if you want to get out from a command loop by yourself 
 	def finish(self):
@@ -65,7 +68,7 @@ class PythonCommand(Command.Command):
 		self.keys.hold(buttons)
 	
 	# release holding buttons
-	def endHold(self, buttons):
+	def holdEnd(self, buttons):
 		self.keys.holdEnd(buttons)
 
 	# do nothing at wait time(s)
@@ -77,7 +80,12 @@ class PythonCommand(Command.Command):
 			self.keys.end()
 			self.keys = None
 			self.thread = None
+			self.isRunning = False
 			print(self.name + ' has reached an alive check and exited succucesfully.')
+
+			if not self.postProcess is None:
+				self.postProcess()
+				self.postProcess = None
 			return False
 		else:
 			return True
@@ -197,14 +205,14 @@ class HoldTest(PythonCommand):
 			self.hold(Button.DOWN)
 			self.wait(0.5)
 			self.press(Button.X, wait=2)
-			self.endHold(Button.DOWN)
+			self.holdEnd(Button.DOWN)
 
 			self.wait(1)
 
 			self.hold(Button.UP)
 			self.wait(2)
 
-			self.endHold(Button.UP)
+			self.holdEnd(Button.UP)
 			self.wait(2)
 
 

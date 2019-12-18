@@ -82,7 +82,7 @@ class GUI:
 		self.reloadButton = ttk.Button(self.frame1, text='Reload Cam', command=self.openCamera)
 		self.reloadComPort = ttk.Button(self.frame1, text='Reload Port', command=self.activateSerial)
 		self.startButton = ttk.Button(self.frame1, text='Start', command=self.startPlay)
-		self.stopButton = ttk.Button(self.frame1, text='Exit', command=self.stopPlay)
+		self.stopButton = ttk.Button(self.frame1, text='Exit', command=self.exit)
 		self.captureButton = ttk.Button(self.frame1, text='Capture', command=self.saveCapture)
 
 		self.logArea = MyScrolledText(self.frame1, width=70)
@@ -173,21 +173,22 @@ class GUI:
 		self.cur_command.start(self.ser)
 		
 		self.startButton["text"] = "Stop"
-		self.startButton["command"] = self.pausePlay
+		self.startButton["command"] = self.stopPlay
 	
-	def pausePlay(self):
+	def stopPlay(self):
 		print(self.startButton["text"] + ' ' + self.cur_command.getName())
-		self.cur_command.end(self.ser)
-
+		self.startButton["state"] = "disabled"
+		self.cur_command.end(self.ser, self.stopPlayPost)
+	
+	def stopPlayPost(self):
 		self.startButton["text"] = "Start"
 		self.startButton["command"] = self.startPlay
+		self.startButton["state"] = "normal"
 		
-	def stopPlay(self):
+	def exit(self):
 		self.ser.closeSerial()
 		print("serial disconnected")
-
 		self.root.destroy()
-
 	
 	def saveCapture(self):
 		self.camera.saveCapture()
