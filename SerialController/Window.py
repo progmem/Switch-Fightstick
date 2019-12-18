@@ -11,6 +11,7 @@ import time
 import datetime
 import McuCommand
 import PythonCommand
+import UnitCommand
 import Sender
 
 DEFAULT_CAMERA_ID = 0
@@ -48,6 +49,8 @@ class CAMERA:
 
 class GUI:
 	def __init__(self):
+		# NOTE: I'm gonna rewrite this function because this is not a good coding style
+
 		self.root = tk.Tk()
 		self.root.title('Pokemon Controller')
 		self.frame1 = ttk.Frame(
@@ -84,6 +87,9 @@ class GUI:
 		self.startButton = ttk.Button(self.frame1, text='Start', command=self.startPlay)
 		self.stopButton = ttk.Button(self.frame1, text='Exit', command=self.exit)
 		self.captureButton = ttk.Button(self.frame1, text='Capture', command=self.saveCapture)
+
+		# simple controller
+		self.simpleConButton = ttk.Button(self.frame1, text='Controller', command=self.createControllerWindow)
 
 		self.logArea = MyScrolledText(self.frame1, width=70)
 		self.logArea.write = self.write
@@ -157,6 +163,7 @@ class GUI:
 
 		self.stopButton.grid(row=1,column=6)
 		self.startButton.grid(row=2,column=6)
+		self.simpleConButton.grid(row=4, column=2)
 
 		for child in self.frame1.winfo_children():
 			child.grid_configure(padx=5, pady=5)
@@ -216,6 +223,29 @@ class GUI:
 			self.ser.openSerial("COM"+str(self.comPort.get()))
 		except:
 			print('COM Port: can\'t be established')
+
+	def createControllerWindow(self):
+		window = tk.Toplevel(self.root)
+		window.title('Simple Switch Controller')
+
+		ttk.Button(window, text='A', command=lambda: UnitCommand.A().start(self.ser)).grid()
+		ttk.Button(window, text='B', command=lambda: UnitCommand.B().start(self.ser)).grid()
+		ttk.Button(window, text='X', command=lambda: UnitCommand.X().start(self.ser)).grid()
+		ttk.Button(window, text='Y', command=lambda: UnitCommand.Y().start(self.ser)).grid()
+		ttk.Button(window, text='L', command=lambda: UnitCommand.L().start(self.ser)).grid()
+		ttk.Button(window, text='R', command=lambda: UnitCommand.R().start(self.ser)).grid()
+		ttk.Button(window, text='ZL', command=lambda: UnitCommand.ZL().start(self.ser)).grid()
+		ttk.Button(window, text='ZR', command=lambda: UnitCommand.ZR().start(self.ser)).grid()
+		ttk.Button(window, text='MINUS', command=lambda: UnitCommand.MINUS().start(self.ser)).grid()
+		ttk.Button(window, text='PLUS', command=lambda: UnitCommand.PLUS().start(self.ser)).grid()
+		ttk.Button(window, text='LCLICK', command=lambda: UnitCommand.LCLICK().start(self.ser)).grid()
+		ttk.Button(window, text='RCLICK', command=lambda: UnitCommand.RCLICK().start(self.ser)).grid()
+		ttk.Button(window, text='HOME', command=lambda: UnitCommand.HOME().start(self.ser)).grid()
+		ttk.Button(window, text='CAPTURE', command=lambda: UnitCommand.CAPTURE().start(self.ser)).grid()
+		ttk.Button(window, text='UP', command=lambda: UnitCommand.UP().start(self.ser)).grid()
+		ttk.Button(window, text='RIGHT', command=lambda: UnitCommand.RIGHT().start(self.ser)).grid()
+		ttk.Button(window, text='DOWN', command=lambda: UnitCommand.DOWN().start(self.ser)).grid()
+		ttk.Button(window, text='LEFT', command=lambda: UnitCommand.LEFT().start(self.ser)).grid()
 
 	def doProcess(self):
 		image_bgr = self.camera.readFrame()
