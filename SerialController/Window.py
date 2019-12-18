@@ -120,6 +120,12 @@ class GUI:
 			PythonCommand.Sync('同期'),
 			PythonCommand.Unsync('同期解除'),
 		]
+		self.unit_dir_commands = [
+			UnitCommand.UP(),
+			UnitCommand.RIGHT(),
+			UnitCommand.DOWN(),
+			UnitCommand.LEFT(),
+		]
 		self.cur_command = self.py_commands[0] # attach a top of python commands first
 
 		self.mcu_cb = ttk.Combobox(self.frame1)
@@ -227,7 +233,7 @@ class GUI:
 	def createControllerWindow(self):
 		window = tk.Toplevel(self.root)
 		window.title('Simple Switch Controller')
-		window.geometry("%dx%d%+d%+d" % (800, 200, 250, 125))
+		window.geometry("%dx%d%+d%+d" % (600, 300, 250, 125))
 
 		ttk.Button(window, text='A', command=lambda: UnitCommand.A().start(self.ser)).grid(row=5, column=11)
 		ttk.Button(window, text='B', command=lambda: UnitCommand.B().start(self.ser)).grid(row=6, column=10)
@@ -243,13 +249,17 @@ class GUI:
 		ttk.Button(window, text='RCLICK', command=lambda: UnitCommand.RCLICK().start(self.ser)).grid(row=8, column=10)
 		ttk.Button(window, text='HOME', command=lambda: UnitCommand.HOME().start(self.ser)).grid(row=4, column=6)
 		ttk.Button(window, text='CAP', command=lambda: UnitCommand.CAPTURE().start(self.ser)).grid(row=4, column=4)
-		ttk.Button(window, text='UP', command=lambda: UnitCommand.UP().start(self.ser)).grid(row=6, column=1)
-		ttk.Button(window, text='RIGHT', command=lambda: UnitCommand.RIGHT().start(self.ser)).grid(row=7, column=2)
-		ttk.Button(window, text='DOWN', command=lambda: UnitCommand.DOWN().start(self.ser)).grid(row=8, column=1)
-		ttk.Button(window, text='LEFT', command=lambda: UnitCommand.LEFT().start(self.ser)).grid(row=7, column=0)
+		ttk.Button(window, text='UP', command=lambda: self.unit_dir_commands[0].start(self.ser)).grid(row=6, column=1)
+		ttk.Button(window, text='RIGHT', command=lambda: self.unit_dir_commands[1].start(self.ser)).grid(row=7, column=2)
+		ttk.Button(window, text='DOWN', command=lambda: self.unit_dir_commands[2].start(self.ser)).grid(row=8, column=1)
+		ttk.Button(window, text='LEFT', command=lambda: self.unit_dir_commands[3].start(self.ser)).grid(row=7, column=0)
 
 		for child in window.winfo_children():
 			child['width'] = 8
+
+		ttk.Label(window, text='NOTE:').grid(row=9, column=0, columnspan=8, sticky='w', padx=10, pady=(20, 0))
+		ttk.Label(window, text='Direction buttons are toggle switch.').grid(row=10, column=0, columnspan=8, sticky='w', padx=10, pady=3)
+		ttk.Label(window, text='Key Arrangements are based on Switch Pro. Controller.').grid(row=11, column=0, columnspan=8, sticky='w', padx=10, pady=3)
 
 	def doProcess(self):
 		image_bgr = self.camera.readFrame()
