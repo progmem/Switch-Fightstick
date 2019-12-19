@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys
+import sys, os
 from tkinter.scrolledtext import ScrolledText
 import tkinter as tk
 from tkinter import ttk
 import cv2
+import json
 from PIL import Image,ImageTk
 import time
 import datetime
@@ -14,9 +15,7 @@ import PythonCommand
 import UnitCommand
 import Sender
 
-DEFAULT_CAMERA_ID = 0
-DEFAULT_COM_PORT = 3
-FPS = 30
+SETTING_PATH = "./settings.json"
 
 # To avoid the error says 'ScrolledText' object has no attribute 'flush'
 class MyScrolledText(ScrolledText):
@@ -60,10 +59,13 @@ class GUI:
 			width=1280,
 			relief='flat',
 			borderwidth=5)
+
+		# load settings file
+		self.loadSettings()
 			
 		self.label1 = ttk.Label(self.frame1, text='Camera ID:')
 		self.cameraID = tk.IntVar()
-		self.cameraID.set(DEFAULT_CAMERA_ID)
+		self.cameraID.set(int(self.settings['camera_id']))
 		self.entry1 = ttk.Entry(self.frame1, width=5, textvariable=self.cameraID)
 
 		self.showPreview = tk.BooleanVar()
@@ -79,7 +81,7 @@ class GUI:
 		
 		self.label2 = ttk.Label(self.frame1, text='COM Port:')
 		self.comPort = tk.IntVar()
-		self.comPort.set(DEFAULT_COM_PORT)
+		self.comPort.set(int(self.settings['com_port']))
 		self.entry2 = ttk.Entry(self.frame1, width=5, textvariable=self.comPort)
 		self.preview = ttk.Label(self.frame1) 
 
@@ -102,7 +104,7 @@ class GUI:
 
 		# fps
 		self.fps = tk.StringVar()
-		self.fps.set(str(FPS))
+		self.fps.set(str(self.settings['fps']))
 		# self.fps_cb = ttk.Combobox(self.frame1, textvariable=self.fps)
 		# self.fps_cb['values'] = [30, 15]
 		# self.fps_cb.bind('<<ComboboxSelected>>', self.applyFps)
@@ -185,10 +187,20 @@ class GUI:
 
 		self.camera = CAMERA()
 		self.openCamera()
+
+		self.root.protocol("WM_DELETE_WINDOW", self.exit)
 		self.root.after(100, self.doProcess)
 
 	def openCamera(self):
 		self.camera.openCamera(self.cameraID.get())
+		self.settings['camera_id'] = self.cameraID.get()
+	
+	def loadSettings(self):
+		self.settings = None
+		if os.path.isfile(SETTING_PATH):
+			self.settings = json.load(open(SETTING_PATH, 'r'))
+		else:
+			print('could not read settings file')
 	
 	def startPlay(self):
 		print(self.startButton["text"] + ' ' + self.cur_command.getName())
@@ -208,8 +220,13 @@ class GUI:
 		self.startButton["state"] = "normal"
 		
 	def exit(self):
-		self.ser.closeSerial()
-		print("serial disconnected")
+		if self.ser.isOpened():
+			self.ser.closeSerial()
+			print("serial disconnected")
+
+		# save settings
+		json.dump(self.settings, open(SETTING_PATH, 'w'), indent=4)
+
 		self.root.destroy()
 	
 	def saveCapture(self):
@@ -217,6 +234,7 @@ class GUI:
 	
 	def applyFps(self, event):
 		print('changed FPS to: ' + self.fps.get() + ' [fps]')
+		self.settings['fps'] = self.fps.get()
 
 	def assignMcuCommand(self, event):
 		self.cur_command = self.mcu_commands[self.mcu_cb.current()]
@@ -238,8 +256,15 @@ class GUI:
 	
 	def activateSerial(self):
 		try:
-			self.ser.openSerial("COM"+str(self.comPort.get()))
-		except:
+			if self.ser.isOpened():
+				print('Port is already opened and being closed.')
+				self.ser.closeSerial()
+				self.activateSerial()
+			else:
+				self.ser.openSerial("COM"+str(self.comPort.get()))
+				self.settings['com_port'] = self.comPort.get()
+				print('COM Port ' + str(self.comPort.get()) + ' connected successfully')
+		except IOError:
 			print('COM Port: can\'t be established')
 
 	def createControllerWindow(self):
