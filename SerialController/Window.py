@@ -34,7 +34,7 @@ class CAMERA:
 		if not self.camera.isOpened():
 			print("Camera ID: " + str(cameraId) + " can't open.")
 			return
-		self.camera.set(cv2.CAP_PROP_FPS, 30)
+		self.camera.set(cv2.CAP_PROP_FPS, 60)
 		self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 		self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 	
@@ -103,12 +103,13 @@ class GUI:
 		self.activateSerial()
 
 		# fps
+		self.label3 = ttk.Label(self.frame1, text='FPS:')
 		self.fps = tk.StringVar()
 		self.fps.set(str(self.settings['fps']))
-		# self.fps_cb = ttk.Combobox(self.frame1, textvariable=self.fps)
-		# self.fps_cb['values'] = [30, 15]
-		# self.fps_cb.bind('<<ComboboxSelected>>', self.applyFps)
-		# self.fps_cb.current(0)
+		self.fps_cb = ttk.Combobox(self.frame1, textvariable=self.fps, width=2)
+		self.fps_cb['values'] = [45, 30, 15]
+		self.fps_cb.bind('<<ComboboxSelected>>', self.applyFps)
+		self.fps_cb.current(0)
 
 		# command radio button
 		self.lf = ttk.Labelframe(self.frame1, text='Command Option', padding=5)
@@ -124,8 +125,9 @@ class GUI:
 			McuCommand.InfinityId('無限IDくじ'),
 		]
 		self.py_commands = [
+			PythonCommand.Mash_A('A連打'),
+			PythonCommand.InfinityLottery('無限IDくじ(ランクマ)'),
 			PythonCommand.InfinityWatt('無限ワット'),
-			PythonCommand.HoldTest('Hold Test')
 		]
 		self.hid_commands = [ # not visible
 			PythonCommand.Sync('同期'),
@@ -158,13 +160,15 @@ class GUI:
 		self.preview.grid(row=0,column=0,columnspan=7, sticky='nw')
 		self.logArea.grid(row=0,column=7,rowspan=3, sticky='nwse')
 
-		# camera & com port
+		# camera & com port & FPS
 		self.label1.grid(row=1,column=0, sticky='w')
 		self.entry1.grid(row=1,column=1, sticky='w')
 		self.reloadButton.grid(row=1,column=2, sticky='w')
 		self.label2.grid(row=2,column=0, sticky='w')
 		self.entry2.grid(row=2,column=1, sticky='w')
 		self.reloadComPort.grid(row=2,column=2, sticky='w')
+		self.label3.grid(row=3,column=0, sticky='w')
+		self.fps_cb.grid(row=3,column=1, sticky='w')
 
 		self.cb1.grid(row=1,column=3, sticky='w')
 		self.captureButton.grid(row=2,column=3)

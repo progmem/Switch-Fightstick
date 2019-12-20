@@ -33,14 +33,15 @@ class PythonCommand(Command.Command):
 			import traceback
 			traceback.print_exc()
 			self.keys.end()
+			self.alive = False
 	
 	def start(self, ser):
 		self.alive = True
+		self.keys = Keys.KeyPress(ser)
 		if not self.thread:
 			self.thread = threading.Thread(target=self.do_safe, args=([ser]))
 			self.thread.start()
 		self.isRunning = True
-		self.keys = Keys.KeyPress(ser)
 
 	def end(self, ser, postProcess=None):
 		self.postProcess = postProcess
@@ -54,7 +55,7 @@ class PythonCommand(Command.Command):
 	# NOTE: Use this function if you want to get out from a command loop by yourself 
 	def finish(self):
 		self.alive = False
-		self.end(self.keys.ser)
+		self.end(self.keys.ser, self.postProcess)
 
 	# press button at duration times(s)
 	def press(self, buttons, duration=0.1, wait=0.1):
@@ -74,6 +75,45 @@ class PythonCommand(Command.Command):
 	# do nothing at wait time(s)
 	def wait(self, wait):
 		sleep(wait)
+
+	# Syntax sugars
+	# Use time glitch (controls the system time and get every-other-day bonus without any punishments)
+	def timeLeap(self, use_rank=True):
+		if (use_rank):
+			self.press(Button.HOME, wait=1)
+			self.press(Button.DOWN)
+			self.press(Button.RIGHT)
+			self.press(Button.RIGHT)
+			self.press(Button.RIGHT)
+			self.press(Button.RIGHT)
+			self.press(Button.A, wait=1.5) # System Settings
+			self.press(Button.DOWN, duration=2, wait=0.5)
+			if not self.checkIfAlive(): return
+			
+			self.press(Button.A, wait=0.3) # System Settings > System
+			self.press(Button.DOWN)
+			self.press(Button.DOWN)
+			self.press(Button.DOWN)
+			self.press(Button.DOWN, wait=0.3)
+			self.press(Button.A, wait=0.2) # Date and Time
+			self.press(Button.DOWN, duration=0.7, wait=0.2)
+			if not self.checkIfAlive(): return
+
+			self.press(Button.A, wait=0.2)
+			self.press(Button.UP, wait=0.2) # Increment a year
+			self.press(Button.RIGHT, duration=1.5)
+			self.press(Button.A, wait=0.5)
+			if not self.checkIfAlive(): return
+
+			self.press(Button.A, wait=0.2)
+			self.press(Button.LEFT, duration=1.5)
+			self.press(Button.DOWN, wait=0.2) # Decrement a year
+			self.press(Button.RIGHT, duration=1.5)
+			self.press(Button.A, wait=0.5)
+			if not self.checkIfAlive(): return
+
+			self.press(Button.HOME, wait=1)
+			self.press(Button.HOME, wait=1)
 	
 	def checkIfAlive(self):
 		if (not self.alive):
@@ -92,6 +132,7 @@ class PythonCommand(Command.Command):
 	
 
 # Sync as controller
+# 同期
 class Sync(PythonCommand):
 	def __init__(self, name):
 		super(Sync, self).__init__(name)
@@ -109,6 +150,7 @@ class Sync(PythonCommand):
 		self.finish()
 
 # Unsync controller
+# 同期解除
 class Unsync(PythonCommand):
 	def __init__(self, name):
 		super(Unsync, self).__init__(name)
@@ -125,6 +167,53 @@ class Unsync(PythonCommand):
 		self.press(Button.A, 0.1, 0.3)
 
 		self.finish()
+
+# Mash a button A
+# A連打
+class Mash_A(PythonCommand):
+	def __init__(self, name):
+		super(Mash_A, self).__init__(name)
+
+	def do(self):
+		while self.checkIfAlive():
+			self.wait(0.5)
+			self.press(Button.A)
+
+# using Rank Battle glitch
+# Infinity ID lottery
+# 無限IDくじ(ランクマッチ使用)
+class InfinityLottery(PythonCommand):
+	def __init__(self, name):
+		super(InfinityLottery, self).__init__(name)
+
+	def do(self):
+		while self.checkIfAlive():
+			self.press(Button.A, wait=0.5)
+			self.press(Button.B, wait=0.5)
+			self.press(Button.DOWN, wait=0.5)
+
+			for _ in range(0, 10):	# A loop
+				self.press(Button.A, wait=0.5)
+				if not self.checkIfAlive(): return
+
+			for _ in range(0, 20):  # B loop
+				self.press(Button.B, wait=0.5)
+				if not self.checkIfAlive(): return
+
+			# Time glitch
+			self.timeLeap()
+
+# using Rank Battle glitch
+# Infinity Bargen in Stow-on-Side
+# 無限掘り出し物(ランクマッチ使用)
+class InfinityBargen(PythonCommand):
+	def __init__(self, name):
+		super(InfinityBargen, self).__init__(name)
+
+	def do(self):
+		while self.checkIfAlive():
+			self.wait(1)
+
 
 
 # Get watt automatically using the glitch
