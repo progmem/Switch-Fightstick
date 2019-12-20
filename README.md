@@ -61,17 +61,28 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
 - Python  
   <画像認識なし>  
   - A連打  
-    Startを押す  
+    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/mash_a.PNG" width="720">
   
   - ワット自動化  
     MCU版の移植  
     MCU版との違いは手順2で代わりにStartを押す.  
+    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/inifinity_watt_automation.PNG" width="720">
 
-  - IDくじ自動化  
+  - IDくじ自動化(ランクマッチバグ使用)  
+    ランクマッチに一戦潜る(シングルorダブル)  
     Switch側の本体設定で「インターネットで時間を合わせる」を**OFF**にしておく.  
     
     1: ポケモンセンターの機械(ロトミ)の話しかける位置に立つ  
     2: Startを押す  
+    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/auto_idLottery.PNG" width="720">
+    
+  - きのみ自動化(ランクマッチバグ使用)  
+    ランクマッチに一戦潜る(シングルorダブル)  
+    Switch側の本体設定で「インターネットで時間を合わせる」を**OFF**にしておく.  
+    
+    1: きのみを収穫したい木の話しかける位置に立つ  
+    2: Startを押す  
+    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/auto_berry_rankBattle_noImageRecog.PNG" width="720">
     
   <画像認識あり>  
   まだ  
