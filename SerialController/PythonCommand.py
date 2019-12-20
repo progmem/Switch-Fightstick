@@ -203,18 +203,38 @@ class InfinityLottery(PythonCommand):
 			# Time glitch
 			self.timeLeap()
 
-# using Rank Battle glitch
-# Infinity Bargen in Stow-on-Side
-# 無限掘り出し物(ランクマッチ使用)
-class InfinityBargen(PythonCommand):
+# using RankBattle glitch
+# Infinity getting berries
+# 無限きのみ(ランクマッチ使用)
+class InfinityBerry(PythonCommand):
 	def __init__(self, name):
-		super(InfinityBargen, self).__init__(name)
+		super(InfinityBerry, self).__init__(name)
+	
+	def do(self):
+		# As of now, we pick one berry every other day since excecuting without image recognition
+		# 現在は画像認識使ってないので1回だけ取って終了
+		while self.checkIfAlive():
+			self.press(Button.A, wait=0.5)
+			self.press(Button.B, wait=0.5)
+			self.press(Button.A, wait=0.5) # yes
+
+			for _ in range(0, 15):  # B loop
+				self.press(Button.B, wait=0.5)
+				if not self.checkIfAlive(): return
+
+			# Time glitch
+			self.timeLeap()
+
+
+# auto egg hatching using image recognition
+# 自動卵孵化(キャプボあり)
+class AutoHatching(PythonCommand):
+	def __init__(self, name):
+		super(AutoHatching, self).__init__(name)
 
 	def do(self):
 		while self.checkIfAlive():
 			self.wait(1)
-
-
 
 # Get watt automatically using the glitch
 # source: MCU Command 'InifinityWatt'

@@ -126,8 +126,9 @@ class GUI:
 		]
 		self.py_commands = [
 			PythonCommand.Mash_A('A連打'),
-			PythonCommand.InfinityLottery('無限IDくじ(ランクマ)'),
 			PythonCommand.InfinityWatt('無限ワット'),
+			PythonCommand.InfinityLottery('無限IDくじ(ランクマ)'),
+			PythonCommand.InfinityBerry('無限きのみ(ランクマ)')
 		]
 		self.hid_commands = [ # not visible
 			PythonCommand.Sync('同期'),
