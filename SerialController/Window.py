@@ -125,7 +125,6 @@ class GUI:
 			McuCommand.InfinityId('無限IDくじ'),
 		]
 		self.py_commands = [
-			PythonCommand.Move('移動'),
 			PythonCommand.Mash_A('A連打'),
 			PythonCommand.InfinityWatt('無限ワット', False),
 			PythonCommand.InfinityWatt('無限ワット(ランクマ)', True),
@@ -196,6 +195,7 @@ class GUI:
 		self.camera = CAMERA()
 		self.openCamera()
 
+		self.root.iconbitmap('../infinite.ico')
 		self.root.protocol("WM_DELETE_WINDOW", self.exit)
 		self.root.after(100, self.doProcess)
 

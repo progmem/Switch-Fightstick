@@ -278,7 +278,6 @@ class InfinityCafe(RankGlitchPythonCommand):
 	def __init__(self, name):
 		super(InfinityCafe, self).__init__(name)
 		self.pp_max = 10
-		#self.leppa_num = 3	# a number of leppa berries/ヒメリのみの数
 
 	def do(self):
 		while self.checkIfAlive():
@@ -325,23 +324,6 @@ class InfinityCafe(RankGlitchPythonCommand):
 			if not self.checkIfAlive(): return
 
 			self.press(Button.UP, duration=2, wait=1)
-			
-			# # restore PP of the move (use leppa berry version)
-			# self.press(Button.X, wait=1)
-			# self.press(Button.A, wait=2)
-			# self.press(Button.A, wait=0.2)
-			# self.press(Button.DOWN, wait=0.2)
-			# self.press(Button.DOWN, wait=0.2)
-			# self.press(Button.A, wait=2.5)	# Restore/かいふくする
-			# self.press(Button.A, wait=0.5)
-			# self.press(Button.A, wait=1.5)	# Use/つかう
-			# self.press(Button.A, wait=0.5)
-			# self.press(Button.A, wait=0.5)	# パワーポイントが回復した
-			# self.press(Button.A, wait=1)
-
-			# self.press(Button.B, wait=1.5)
-			# self.press(Button.B, wait=1.5)
-			# self.press(Button.B, wait=1.5)
 
 
 # auto egg hatching using image recognition
