@@ -15,9 +15,9 @@ class Command:
 		return self.name
 
 	@abstractclassmethod
-	def start(self, ser):
+	def start(self, ser, postProcess=None):
 		pass
 
 	@abstractclassmethod
-	def end(self, ser, postProcess=None):
+	def end(self, ser):
 		pass

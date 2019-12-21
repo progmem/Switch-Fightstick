@@ -125,11 +125,13 @@ class GUI:
 			McuCommand.InfinityId('無限IDくじ'),
 		]
 		self.py_commands = [
+			PythonCommand.Move('移動'),
 			PythonCommand.Mash_A('A連打'),
 			PythonCommand.InfinityWatt('無限ワット', False),
 			PythonCommand.InfinityWatt('無限ワット(ランクマ)', True),
 			PythonCommand.InfinityLottery('無限IDくじ(ランクマ)'),
-			PythonCommand.InfinityBerry('無限きのみ(ランクマ)')
+			PythonCommand.InfinityBerry('無限きのみ(ランクマ)'),
+			PythonCommand.InfinityCafe('無限カフェ(ランクマ)'),
 		]
 		self.hid_commands = [ # not visible
 			PythonCommand.Sync('同期'),
@@ -210,7 +212,7 @@ class GUI:
 	
 	def startPlay(self):
 		print(self.startButton["text"] + ' ' + self.cur_command.getName())
-		self.cur_command.start(self.ser)
+		self.cur_command.start(self.ser, self.stopPlayPost)
 		
 		self.startButton["text"] = "Stop"
 		self.startButton["command"] = self.stopPlay
@@ -218,7 +220,7 @@ class GUI:
 	def stopPlay(self):
 		print(self.startButton["text"] + ' ' + self.cur_command.getName())
 		self.startButton["state"] = "disabled"
-		self.cur_command.end(self.ser, self.stopPlayPost)
+		self.cur_command.end(self.ser)
 	
 	def stopPlayPost(self):
 		self.startButton["text"] = "Start"

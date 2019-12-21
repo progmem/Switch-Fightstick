@@ -35,16 +35,16 @@ class PythonCommand(Command.Command):
 			self.keys.end()
 			self.alive = False
 	
-	def start(self, ser):
+	def start(self, ser, postProcess=None):
 		self.alive = True
+		self.postProcess = postProcess
 		self.keys = Keys.KeyPress(ser)
 		if not self.thread:
 			self.thread = threading.Thread(target=self.do_safe, args=([ser]))
 			self.thread.start()
 		self.isRunning = True
 
-	def end(self, ser, postProcess=None):
-		self.postProcess = postProcess
+	def end(self, ser):
 		self.sendStopRequest()
 
 	def sendStopRequest(self):
@@ -55,7 +55,7 @@ class PythonCommand(Command.Command):
 	# NOTE: Use this function if you want to get out from a command loop by yourself 
 	def finish(self):
 		self.alive = False
-		self.end(self.keys.ser, self.postProcess)
+		self.end(self.keys.ser)
 
 	# press button at duration times(s)
 	def press(self, buttons, duration=0.1, wait=0.1):
@@ -95,6 +95,7 @@ class PythonCommand(Command.Command):
 class RankGlitchPythonCommand(PythonCommand):
 	def __init__(self, name):
 		super(RankGlitchPythonCommand, self).__init__(name)
+		self.day = 0
 	
 	# Use time glitch 
 	# Controls the system time and get every-other-day bonus without any punishments
@@ -239,6 +240,108 @@ class InfinityBerry(RankGlitchPythonCommand):
 
 			# Time glitch
 			self.timeLeap()
+
+# for debug
+class Move(PythonCommand):
+	def __init__(self, name):
+		super(Move, self).__init__(name)
+	
+	def do(self):
+		while self.checkIfAlive():
+			self.wait(1)
+
+			# self.press(Button.PLUS, wait=1)
+			# self.press(Button.DOWN, duration=0.3)
+			# self.press(Button.LEFT, duration=2)
+			# self.press(Button.UP, duration=2.1)
+			# self.press(Button.RIGHT, duration=1, wait=2)
+
+			self.press(Button.LEFT, duration=3)
+			self.press(Button.UP, duration=4)
+			self.press(Button.RIGHT, duration=1 ,wait=2)
+
+			self.press(Button.DOWN, duration=1, wait=2)
+
+			self.press(Button.X, wait=1)
+			self.press(Button.A, wait=3) # open up a map
+			self.press(Button.A, wait=1)
+			self.press(Button.A, wait=4)
+			self.press(Button.UP, duration=0.2)
+			self.press([Button.UP, Button.LEFT], duration=1, wait=2)
+
+			self.press(Button.DOWN, duration=1, wait=2)
+
+# using RankBattle glitch
+# Auto cafe battles
+# 無限カフェ(ランクマッチ使用)
+class InfinityCafe(RankGlitchPythonCommand):
+	def __init__(self, name):
+		super(InfinityCafe, self).__init__(name)
+		self.pp_max = 2
+		#self.leppa_num = 3	# a number of leppa berries/ヒメリのみの数
+
+	def do(self):
+		while self.checkIfAlive():
+			# battle agaist a master at PP times
+			for __ in range(0, self.pp_max):
+				self.wait(1)
+
+				for _ in range(0, 35):	# A loop
+					self.press(Button.A, wait=0.5)
+					if not self.checkIfAlive(): return
+				self.wait(5)
+
+				for _ in range(0, 45):  # B loop
+					self.press(Button.B, wait=0.5)
+					if not self.checkIfAlive(): return
+				
+				self.timeLeap()
+				if not self.checkIfAlive(): return
+			
+			# go to pokemon center to restore PP
+			self.press(Button.DOWN, duration=3.5)
+			self.press(Button.X, wait=1)
+			self.press(Button.A, wait=3) # open up a map
+			self.press(Button.A, wait=1)
+			self.press(Button.A, wait=4)
+			self.press(Button.UP, duration=0.2)
+			self.press([Button.UP, Button.LEFT], duration=1, wait=2)
+
+			# in pokemon center
+			self.press(Button.UP, duration=2)
+			for _ in range(0, 10):	# A loop
+				self.press(Button.A, wait=0.5)
+				if not self.checkIfAlive(): return
+			for _ in range(0, 15):	# B loop
+				self.press(Button.B, wait=0.5)
+				if not self.checkIfAlive(): return
+			self.press(Button.DOWN, duration=2, wait=2)
+			if not self.checkIfAlive(): return
+
+			# move to cafe in Wyndon (Shoot City)
+			self.press(Button.LEFT, duration=3)
+			self.press(Button.UP, duration=4)
+			self.press(Button.RIGHT, duration=1 ,wait=2)
+			if not self.checkIfAlive(): return
+
+			self.press(Button.UP, duration=2, wait=1)
+			
+			# # restore PP of the move (use leppa berry version)
+			# self.press(Button.X, wait=1)
+			# self.press(Button.A, wait=2)
+			# self.press(Button.A, wait=0.2)
+			# self.press(Button.DOWN, wait=0.2)
+			# self.press(Button.DOWN, wait=0.2)
+			# self.press(Button.A, wait=2.5)	# Restore/かいふくする
+			# self.press(Button.A, wait=0.5)
+			# self.press(Button.A, wait=1.5)	# Use/つかう
+			# self.press(Button.A, wait=0.5)
+			# self.press(Button.A, wait=0.5)	# パワーポイントが回復した
+			# self.press(Button.A, wait=1)
+
+			# self.press(Button.B, wait=1.5)
+			# self.press(Button.B, wait=1.5)
+			# self.press(Button.B, wait=1.5)
 
 
 # auto egg hatching using image recognition

@@ -13,11 +13,11 @@ class UnitCommand(Command.Command):
 			name = self.__class__.__name__
 		super(UnitCommand, self).__init__(name)
 	
-	def start(self, ser):
+	def start(self, ser, postProcess=None):
 		self.isRunning = True
 		self.key = Keys.KeyPress(ser)
 
-	def end(self, ser, postProcess=None):
+	def end(self, ser):
 		pass
 	
 	def press(self, btn):
