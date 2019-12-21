@@ -6,7 +6,9 @@ from time import sleep
 import threading
 import Command
 import Keys
+import cv2
 from Keys import Button
+from Window import Camera
 
 # Python command
 class PythonCommand(Command.Command):
@@ -146,6 +148,40 @@ class RankGlitchPythonCommand(PythonCommand):
 		if not self.checkIfAlive(): return
 		self.press(Button.HOME, wait=1)
 		self.press(Button.HOME, wait=1)
+
+
+TEMPLATE_PATH = "./Template/"
+class ImageProcPythonCommand(PythonCommand):
+	def __init__(self, name, cam):
+		super(ImageProcPythonCommand, self).__init__(name)
+		self.camera = cam
+	
+	# Judge if current screenshot contains an image using template matching
+	# It's recommended that you use gray_scale option unless the template color wouldn't be cared for performace
+	# 現在のスクリーンショットと指定した画像のテンプレートマッチングを行います
+	# 色の違いを考慮しないのであればパフォーマンスの点からuse_grayをTrueにしてグレースケール画像を使うことを推奨します
+	def isContainTemplate(self, template_path, threshold=0.7, use_gray=True):
+		src = self.camera.readFrame()
+		src = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY) if use_gray else src
+
+		template = cv2.imread(TEMPLATE_PATH+template_path, cv2.IMREAD_GRAYSCALE if use_gray else cv2.IMREAD_COLOR)
+		w, h = template.shape[1], template.shape[0]
+		
+		method = cv2.TM_CCOEFF_NORMED
+		res = cv2.matchTemplate(src, template, method)
+		_, max_val, _, max_loc = cv2.minMaxLoc(res)
+
+		if max_val > threshold:
+			if use_gray:
+				src = cv2.cvtColor(src, cv2.COLOR_GRAY2BGR)
+
+			top_left = max_loc
+			bottom_right = (top_left[0] + w, top_left[1] + h)
+			cv2.rectangle(src, top_left, bottom_right, (255, 0, 255), 2)
+			return True
+		else:
+			return False
+
 
 # Sync as controller
 # 同期

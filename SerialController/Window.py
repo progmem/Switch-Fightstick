@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import ttk
 import cv2
 import json
-from PIL import Image,ImageTk
+from PIL import Image, ImageTk
 import time
 import datetime
 import McuCommand
@@ -22,9 +22,9 @@ class MyScrolledText(ScrolledText):
 	def flush(self):
 		pass
 
-class CAMERA:
+class Camera:
 	def __init__(self):
-		self.camera=None
+		self.camera = None
 		
 	def openCamera(self, cameraId):
 		if self.camera is not None and self.camera.isOpened():
@@ -60,6 +60,11 @@ class GUI:
 			relief='flat',
 			borderwidth=5)
 
+		# log area
+		self.logArea = MyScrolledText(self.frame1, width=70)
+		self.logArea.write = self.write
+		sys.stdout = self.logArea
+
 		# load settings file
 		self.loadSettings()
 			
@@ -67,6 +72,10 @@ class GUI:
 		self.cameraID = tk.IntVar()
 		self.cameraID.set(int(self.settings['camera_id']))
 		self.entry1 = ttk.Entry(self.frame1, width=5, textvariable=self.cameraID)
+
+		# open up a camera
+		self.camera = Camera()
+		self.openCamera()
 
 		self.showPreview = tk.BooleanVar()
 		self.showPreview.set(False)
@@ -85,22 +94,17 @@ class GUI:
 		self.entry2 = ttk.Entry(self.frame1, width=5, textvariable=self.comPort)
 		self.preview = ttk.Label(self.frame1) 
 
+		# activate serial communication
+		self.ser = Sender.Sender()
+		self.activateSerial()
+
 		self.reloadButton = ttk.Button(self.frame1, text='Reload Cam', command=self.openCamera)
 		self.reloadComPort = ttk.Button(self.frame1, text='Reload Port', command=self.activateSerial)
 		self.startButton = ttk.Button(self.frame1, text='Start', command=self.startPlay)
-		self.stopButton = ttk.Button(self.frame1, text='Exit', command=self.exit)
 		self.captureButton = ttk.Button(self.frame1, text='Capture', command=self.saveCapture)
 
 		# simple controller
 		self.simpleConButton = ttk.Button(self.frame1, text='Controller', command=self.createControllerWindow)
-
-		self.logArea = MyScrolledText(self.frame1, width=70)
-		self.logArea.write = self.write
-		sys.stdout = self.logArea
-
-		# activate serial communication
-		self.ser = Sender.Sender()
-		self.activateSerial()
 
 		# fps
 		self.label3 = ttk.Label(self.frame1, text='FPS:')
@@ -161,7 +165,7 @@ class GUI:
 		self.frame1.grid(row=0,column=0,sticky='nwse')
 		
 		self.preview.grid(row=0,column=0,columnspan=7, sticky='nw')
-		self.logArea.grid(row=0,column=7,rowspan=3, sticky='nwse')
+		self.logArea.grid(row=0,column=7,rowspan=5, sticky='nwse')
 
 		# camera & com port & FPS
 		self.label1.grid(row=1,column=0, sticky='w')
@@ -182,18 +186,14 @@ class GUI:
 		self.rb2.grid(row=3,column=5, sticky='nwse')
 		self.mcu_cb.grid(row=3, column=6)
 		self.py_cb.grid(row=4, column=6)
-		self.sync_btn.grid(row=4, column=3)
-		self.unsync_btn.grid(row=4, column=4)
+		self.sync_btn.grid(row=1, column=5)
+		self.unsync_btn.grid(row=2, column=5)
 
-		self.stopButton.grid(row=1,column=6)
 		self.startButton.grid(row=2,column=6)
-		self.simpleConButton.grid(row=4, column=2)
+		self.simpleConButton.grid(row=4, column=4)
 
 		for child in self.frame1.winfo_children():
 			child.grid_configure(padx=5, pady=5)
-
-		self.camera = CAMERA()
-		self.openCamera()
 
 		self.root.iconbitmap('../infinite.ico')
 		self.root.protocol("WM_DELETE_WINDOW", self.exit)
