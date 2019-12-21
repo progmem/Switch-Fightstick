@@ -277,7 +277,7 @@ class Move(PythonCommand):
 class InfinityCafe(RankGlitchPythonCommand):
 	def __init__(self, name):
 		super(InfinityCafe, self).__init__(name)
-		self.pp_max = 2
+		self.pp_max = 10
 		#self.leppa_num = 3	# a number of leppa berries/ヒメリのみの数
 
 	def do(self):
