@@ -75,45 +75,6 @@ class PythonCommand(Command.Command):
 	# do nothing at wait time(s)
 	def wait(self, wait):
 		sleep(wait)
-
-	# Syntax sugars
-	# Use time glitch (controls the system time and get every-other-day bonus without any punishments)
-	def timeLeap(self, use_rank=True):
-		if (use_rank):
-			self.press(Button.HOME, wait=1)
-			self.press(Button.DOWN)
-			self.press(Button.RIGHT)
-			self.press(Button.RIGHT)
-			self.press(Button.RIGHT)
-			self.press(Button.RIGHT)
-			self.press(Button.A, wait=1.5) # System Settings
-			self.press(Button.DOWN, duration=2, wait=0.5)
-			if not self.checkIfAlive(): return
-			
-			self.press(Button.A, wait=0.3) # System Settings > System
-			self.press(Button.DOWN)
-			self.press(Button.DOWN)
-			self.press(Button.DOWN)
-			self.press(Button.DOWN, wait=0.3)
-			self.press(Button.A, wait=0.2) # Date and Time
-			self.press(Button.DOWN, duration=0.7, wait=0.2)
-			if not self.checkIfAlive(): return
-
-			self.press(Button.A, wait=0.2)
-			self.press(Button.UP, wait=0.2) # Increment a year
-			self.press(Button.RIGHT, duration=1.5)
-			self.press(Button.A, wait=0.5)
-			if not self.checkIfAlive(): return
-
-			self.press(Button.A, wait=0.2)
-			self.press(Button.LEFT, duration=1.5)
-			self.press(Button.DOWN, wait=0.2) # Decrement a year
-			self.press(Button.RIGHT, duration=1.5)
-			self.press(Button.A, wait=0.5)
-			if not self.checkIfAlive(): return
-
-			self.press(Button.HOME, wait=1)
-			self.press(Button.HOME, wait=1)
 	
 	def checkIfAlive(self):
 		if (not self.alive):
@@ -129,7 +90,61 @@ class PythonCommand(Command.Command):
 			return False
 		else:
 			return True
+
+# Python command using rank match glitch
+class RankGlitchPythonCommand(PythonCommand):
+	def __init__(self, name):
+		super(RankGlitchPythonCommand, self).__init__(name)
 	
+	# Use time glitch 
+	# Controls the system time and get every-other-day bonus without any punishments
+	def timeLeap(self, is_go_back=True):
+		self.press(Button.HOME, wait=1)
+		self.press(Button.DOWN)
+		self.press(Button.RIGHT)
+		self.press(Button.RIGHT)
+		self.press(Button.RIGHT)
+		self.press(Button.RIGHT)
+		self.press(Button.A, wait=1.5) # System Settings
+		self.press(Button.DOWN, duration=2, wait=0.5)
+		if not self.checkIfAlive(): return
+		
+		self.press(Button.A, wait=0.3) # System Settings > System
+		self.press(Button.DOWN)
+		self.press(Button.DOWN)
+		self.press(Button.DOWN)
+		self.press(Button.DOWN, wait=0.3)
+		self.press(Button.A, wait=0.2) # Date and Time
+		self.press(Button.DOWN, duration=0.7, wait=0.2)
+		if not self.checkIfAlive(): return
+
+		# increment and decrement
+		if is_go_back:
+			self.press(Button.A, wait=0.2)
+			self.press(Button.UP, wait=0.2) # Increment a year
+			self.press(Button.RIGHT, duration=1.5)
+			self.press(Button.A, wait=0.5)
+			if not self.checkIfAlive(): return
+
+			self.press(Button.A, wait=0.2)
+			self.press(Button.LEFT, duration=1.5)
+			self.press(Button.DOWN, wait=0.2) # Decrement a year
+			self.press(Button.RIGHT, duration=1.5)
+			self.press(Button.A, wait=0.5)
+
+		# use only increment
+		# for use of faster time leap
+		else:
+			self.press(Button.A, wait=0.2)
+			self.press(Button.RIGHT)
+			self.press(Button.RIGHT)
+			self.press(Button.UP, wait=0.2) # increment a day
+			self.press(Button.RIGHT, duration=1)
+			self.press(Button.A, wait=0.5)
+
+		if not self.checkIfAlive(): return
+		self.press(Button.HOME, wait=1)
+		self.press(Button.HOME, wait=1)
 
 # Sync as controller
 # 同期
@@ -182,7 +197,7 @@ class Mash_A(PythonCommand):
 # using Rank Battle glitch
 # Infinity ID lottery
 # 無限IDくじ(ランクマッチ使用)
-class InfinityLottery(PythonCommand):
+class InfinityLottery(RankGlitchPythonCommand):
 	def __init__(self, name):
 		super(InfinityLottery, self).__init__(name)
 
@@ -206,7 +221,7 @@ class InfinityLottery(PythonCommand):
 # using RankBattle glitch
 # Infinity getting berries
 # 無限きのみ(ランクマッチ使用)
-class InfinityBerry(PythonCommand):
+class InfinityBerry(RankGlitchPythonCommand):
 	def __init__(self, name):
 		super(InfinityBerry, self).__init__(name)
 	
@@ -238,70 +253,80 @@ class AutoHatching(PythonCommand):
 
 # Get watt automatically using the glitch
 # source: MCU Command 'InifinityWatt'
-class InfinityWatt(PythonCommand):
-	def __init__(self, name):
+class InfinityWatt(RankGlitchPythonCommand):
+	def __init__(self, name, is_use_rank):
 		super(InfinityWatt, self).__init__(name)
+		self.use_rank = is_use_rank
 
 	def do(self):
 		while self.checkIfAlive():
 			self.wait(1)
 
-			self.press(Button.A, wait=1)
-			self.press(Button.A, wait=3)	# レイド開始
+			if self.use_rank:
+				self.timeLeap()
 
-			self.press(Button.HOME, wait=1)
-			self.press(Button.DOWN)
-			self.press(Button.RIGHT)
-			self.press(Button.RIGHT)
-			self.press(Button.RIGHT)
-			self.press(Button.RIGHT)
-			self.press(Button.A, wait=1.5) # 設定選択
-			self.press(Button.DOWN, duration=2, wait=0.5)
-			
-			self.press(Button.A, wait=0.3) # 設定 > 本体
-			self.press(Button.DOWN)
-			self.press(Button.DOWN)
-			self.press(Button.DOWN)
-			self.press(Button.DOWN, wait=0.3)
-			self.press(Button.A, wait=0.2) # 日付と時刻 選択
-			self.press(Button.A, wait=0.4)
+				self.press(Button.A, wait=1)
+				self.press(Button.A, wait=1) # 2000W
+				self.press(Button.A, wait=1.8)
+				self.press(Button.B, wait=1.5)
 
-			self.press(Button.DOWN, wait=0.2)
-			self.press(Button.DOWN, wait=0.2)
-			self.press(Button.A, wait=0.2)
-			self.press(Button.UP, wait=0.2)
-			self.press(Button.RIGHT, duration=1, wait=0.3)
-			self.press(Button.A, wait=0.5)
-			self.press(Button.HOME, wait=1) # ゲームに戻る
-			self.press(Button.HOME, wait=2)
-			
-			self.press(Button.B, wait=1)
-			self.press(Button.A, wait=6) # レイドをやめる
+			else:
+				self.press(Button.A, wait=1)
+				self.press(Button.A, wait=3)	# レイド開始
 
-			self.press(Button.A, wait=1)
-			self.press(Button.A, wait=1) # 2000W
-			self.press(Button.A, wait=1.8)
-			self.press(Button.B, wait=1.5)
+				self.press(Button.HOME, wait=1)
+				self.press(Button.DOWN)
+				self.press(Button.RIGHT)
+				self.press(Button.RIGHT)
+				self.press(Button.RIGHT)
+				self.press(Button.RIGHT)
+				self.press(Button.A, wait=1.5) # 設定選択
+				self.press(Button.DOWN, duration=2, wait=0.5)
+				
+				self.press(Button.A, wait=0.3) # 設定 > 本体
+				self.press(Button.DOWN)
+				self.press(Button.DOWN)
+				self.press(Button.DOWN)
+				self.press(Button.DOWN, wait=0.3)
+				self.press(Button.A, wait=0.2) # 日付と時刻 選択
+				self.press(Button.A, wait=0.4)
 
-			self.press(Button.HOME, wait=1)
-			self.press(Button.DOWN)
-			self.press(Button.RIGHT)
-			self.press(Button.RIGHT)
-			self.press(Button.RIGHT)
-			self.press(Button.RIGHT)
-			self.press(Button.A, wait=1.5) # 設定選択
-			self.press(Button.DOWN, duration=2, wait=0.5)
-			
-			self.press(Button.A, wait=0.3) # 設定 > 本体
-			self.press(Button.DOWN)
-			self.press(Button.DOWN)
-			self.press(Button.DOWN)
-			self.press(Button.DOWN)
-			self.press(Button.A) # 日付と時刻 選択
-			self.press(Button.A, wait=0.5)
+				self.press(Button.DOWN, wait=0.2)
+				self.press(Button.DOWN, wait=0.2)
+				self.press(Button.A, wait=0.2)
+				self.press(Button.UP, wait=0.2)
+				self.press(Button.RIGHT, duration=1, wait=0.3)
+				self.press(Button.A, wait=0.5)
+				self.press(Button.HOME, wait=1) # ゲームに戻る
+				self.press(Button.HOME, wait=2)
+				
+				self.press(Button.B, wait=1)
+				self.press(Button.A, wait=6) # レイドをやめる
 
-			self.press(Button.HOME, wait=1) # ゲームに戻る
-			self.press(Button.HOME, wait=1)
+				self.press(Button.A, wait=1)
+				self.press(Button.A, wait=1) # 2000W
+				self.press(Button.A, wait=1.8)
+				self.press(Button.B, wait=1.5)
+
+				self.press(Button.HOME, wait=1)
+				self.press(Button.DOWN)
+				self.press(Button.RIGHT)
+				self.press(Button.RIGHT)
+				self.press(Button.RIGHT)
+				self.press(Button.RIGHT)
+				self.press(Button.A, wait=1.5) # 設定選択
+				self.press(Button.DOWN, duration=2, wait=0.5)
+				
+				self.press(Button.A, wait=0.3) # 設定 > 本体
+				self.press(Button.DOWN)
+				self.press(Button.DOWN)
+				self.press(Button.DOWN)
+				self.press(Button.DOWN)
+				self.press(Button.A) # 日付と時刻 選択
+				self.press(Button.A, wait=0.5)
+
+				self.press(Button.HOME, wait=1) # ゲームに戻る
+				self.press(Button.HOME, wait=1)
 
 class HoldTest(PythonCommand):
 	def __init__(self, name):

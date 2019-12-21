@@ -126,7 +126,8 @@ class GUI:
 		]
 		self.py_commands = [
 			PythonCommand.Mash_A('A連打'),
-			PythonCommand.InfinityWatt('無限ワット'),
+			PythonCommand.InfinityWatt('無限ワット', False),
+			PythonCommand.InfinityWatt('無限ワット(ランクマ)', True),
 			PythonCommand.InfinityLottery('無限IDくじ(ランクマ)'),
 			PythonCommand.InfinityBerry('無限きのみ(ランクマ)')
 		]
