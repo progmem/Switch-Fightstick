@@ -66,6 +66,15 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
   - ワット自動化  
     MCU版の移植  
     MCU版との違いは手順2で代わりにStartを押す.  
+  
+  - ワット自動化 高速化版(ランクマッチバグ使用)  
+    無限ワット対象の巣の200W/2000Wの光は消しておく.   
+    レイドのある巣を選ぶ場合倒しておくかレイドの無い巣を選ぶ.  
+    ランクマッチに一戦潜る(シングルorダブル)  
+    Switch側の本体設定で「インターネットで時間を合わせる」を**OFF**にしておく.  
+    
+    1: 「ねがいのかたまり」を巣に投げてレポート書いた後, 話しかけずに待機  
+    2: Startを押す  
     <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/inifinity_watt_automation.PNG" width="720">
 
   - IDくじ自動化(ランクマッチバグ使用)  
@@ -84,6 +93,25 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
     2: Startを押す  
     <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/auto_berry_rankBattle_noImageRecog.PNG" width="720">
     
+  - シュートシティ カフェ自動化(ランクマッチバグ使用)  
+    ランクマッチに一戦潜る(シングルorダブル)  
+    Switch側の本体設定で「インターネットで時間を合わせる」を**OFF**にしておく.  
+    Xメニューのタウンマップを左上に移動させてカーソルを合わせておく(Yボタンで入れ替え可能)  
+    戦闘アニメーションを**OFF**にしておく  
+    
+    **必要なポケモン**  
+    マジカルシャインを覚えさせたブリムオン100レベルCS極振り  
+    ブリムオンよりSが低く戦闘開始時に特性が表示されないポケモン(レベルUP演出省略のため100レベル推奨)  
+    私はレイド用のHA極振りのニャイキングを使ってます  
+    PPを回復しておく  
+    
+    1: シュートシティのカフェで話しかける位置に立つ  
+    2: Startを押す  
+    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/infinity_cafe_v0.PNG" width="720">
+  
+  
+  <br>
+  
   <画像認識あり>  
   まだ  
 
