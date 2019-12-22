@@ -181,6 +181,21 @@ class ImageProcPythonCommand(PythonCommand):
 			return True
 		else:
 			return False
+	
+	# Get interframe difference binarized image
+	# フレーム間差分により2値化された画像を取得
+	def getInterframeDiff(self, frame1, frame2, frame3, threshold):
+		diff1 = cv2.absdiff(frame1, frame2)
+		diff2 = cv2.absdiff(frame2, frame3)
+
+		diff = cv2.bitwise_and(diff1, diff2)
+
+		# binarize
+		img_th = cv2.threshold(diff, threshold, 255, cv2.THRESH_BINARY)[1]
+
+		# remove noise
+		mask = cv2.medianBlur(img_th, 3)
+		return mask
 
 
 # Sync as controller
@@ -263,8 +278,7 @@ class InfinityBerry(RankGlitchPythonCommand):
 		super(InfinityBerry, self).__init__(name)
 	
 	def do(self):
-		# As of now, we pick one berry every other day since excecuting without image recognition
-		# 現在は画像認識使ってないので1回だけ取って終了
+		# 画像認識使わない場合, 1回だけ取って終了
 		while self.checkIfAlive():
 			self.press(Button.A, wait=0.5)
 			self.press(Button.B, wait=0.5)
@@ -276,6 +290,72 @@ class InfinityBerry(RankGlitchPythonCommand):
 
 			# Time glitch
 			self.timeLeap()
+
+# using RankBattle glitch
+# Infinity getting berries
+# 無限きのみ(ランクマッチ, 画像認識使用)
+class InfinityBerryIP(ImageProcPythonCommand, RankGlitchPythonCommand):
+	def __init__(self, name, cam):
+		super(InfinityBerryIP, self).__init__(name, cam)
+
+	def do(self):
+		while self.checkIfAlive():
+			self.press(Button.A, wait=0.5)
+			self.press(Button.B, wait=0.5)
+			self.press(Button.A, wait=0.5) # yes
+
+			while True:
+				self.press(Button.A, wait=0.5) # for press 'shake more'
+
+				while not self.isContainTemplate('fell_message.png'):
+					self.press(Button.B, wait=0.5)
+					if not self.checkIfAlive(): return
+				print('fell message!')
+				self.press(Button.A, wait=0.5)
+
+				# Judge continuity by tree shaking motion
+				if self.isContinue():
+					print('continue')
+					self.wait(0.5)
+					continue
+				else:
+					print('not continue')
+					break
+
+			for _ in range(0, 10):  # B loop
+				self.press(Button.B, wait=0.5)
+				if not self.checkIfAlive(): return
+
+			# Time glitch
+			self.timeLeap()
+	
+	def isContinue(self, check_interval=0.1, check_duration=2):
+		time = 0
+		zero_cnt = 0
+		height_half = int(self.camera.capture_size[1] / 2)
+
+		frame1 = cv2.cvtColor(self.camera.readFrame()[0:height_half-1, :], cv2.COLOR_BGR2GRAY)
+		sleep(check_interval / 3)
+		frame2 = cv2.cvtColor(self.camera.readFrame()[0:height_half-1, :], cv2.COLOR_BGR2GRAY)
+		sleep(check_interval / 3)
+		frame3 = cv2.cvtColor(self.camera.readFrame()[0:height_half-1, :], cv2.COLOR_BGR2GRAY)
+		
+		while time < check_duration:
+			mask = self.getInterframeDiff(frame1, frame2, frame3, 15)
+			zero_cnt += cv2.countNonZero(mask)
+
+			frame1 = frame2
+			frame2 = frame3
+			sleep(check_interval)
+			frame3 = cv2.cvtColor(self.camera.readFrame()[0:height_half-1, :], cv2.COLOR_BGR2GRAY)
+
+			time += check_interval
+		
+		print('diff cnt: ' + str(zero_cnt))
+
+		# zero count threshold is heuristic value... weather: sunny
+		return True if zero_cnt < 9000 else False
+
 
 # for debug
 class Move(PythonCommand):

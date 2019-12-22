@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+from copy import deepcopy
+import time
 
 TEMPLATE_PATH = "./Template/"
 # Detect image by template matching
@@ -32,5 +34,48 @@ def isContainTemplate(src_path, template_path, threshold=0.7, use_gray=True):
 		print('not Detected')
 		return False
 
+def getInterframeDiff(frame1, frame2, frame3, threshold):
+	diff1 = cv2.absdiff(frame1, frame2)
+	diff2 = cv2.absdiff(frame2, frame3)
+	diff = cv2.bitwise_and(diff1, diff2)
+
+	# binarize
+	img_th = cv2.threshold(diff, threshold, 255, cv2.THRESH_BINARY)[1]
+
+	# remove noises
+	mask = cv2.medianBlur(img_th, 3)
+	return mask
+
+def testInterframeDiff():
+	cap = cv2.VideoCapture(1 + cv2.CAP_DSHOW)
+
+	frame1 = cv2.cvtColor(cap.read()[1][0:239, :], cv2.COLOR_RGB2GRAY)
+	
+	print(type(frame1))
+	time.sleep(0.1)
+	frame2 = cv2.cvtColor(cap.read()[1][0:239, :], cv2.COLOR_RGB2GRAY)
+	time.sleep(0.1)
+	frame3 = cv2.cvtColor(cap.read()[1][0:239, :], cv2.COLOR_RGB2GRAY)
+
+	while cap.isOpened():
+		time.sleep(0.1)
+		mask = getInterframeDiff(frame1, frame2, frame3, 15)
+
+		cv2.imshow("Frame2", frame2)
+		cv2.imshow("Mask", mask)
+
+		frame1 = frame2
+		frame2 = frame3
+		frame3 = cv2.cvtColor(cap.read()[1][0:239, :], cv2.COLOR_RGB2GRAY)
+
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			break
+	
+	print("release")
+	cap.release()
+	cv2.destroyAllWindows()
+	
+
 if __name__ == "__main__":
-	res = isContainTemplate("sample_color_HLS.png", "dougu_to_bag.png", 0.7, False)
+	#res = isContainTemplate("sample.png", "dougu_to_bag.png", 0.7, True)
+	testInterframeDiff()

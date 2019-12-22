@@ -25,6 +25,7 @@ class MyScrolledText(ScrolledText):
 class Camera:
 	def __init__(self):
 		self.camera = None
+		self.capture_size = (1280, 720)
 		
 	def openCamera(self, cameraId):
 		if self.camera is not None and self.camera.isOpened():
@@ -35,8 +36,8 @@ class Camera:
 			print("Camera ID: " + str(cameraId) + " can't open.")
 			return
 		self.camera.set(cv2.CAP_PROP_FPS, 60)
-		self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-		self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+		self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.capture_size[0])
+		self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.capture_size[1])
 	
 	def readFrame(self):
 		_, self.image_bgr = self.camera.read()
@@ -135,6 +136,7 @@ class GUI:
 			PythonCommand.InfinityLottery('無限IDくじ(ランクマ)'),
 			PythonCommand.InfinityBerry('無限きのみ(ランクマ)'),
 			PythonCommand.InfinityCafe('無限カフェ(ランクマ)'),
+			PythonCommand.InfinityBerryIP('無限きのみ(ランクマ/画像認識)', self.camera),
 		]
 		self.hid_commands = [ # not visible
 			PythonCommand.Sync('同期'),
