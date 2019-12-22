@@ -7,7 +7,7 @@ import threading
 import Command
 import Keys
 import cv2
-from Keys import Button
+from Keys import Button, Direction
 from Window import Camera
 
 # Python command
@@ -283,29 +283,25 @@ class Move(PythonCommand):
 		super(Move, self).__init__(name)
 	
 	def do(self):
+		self.hold([Direction('L', 440), Direction('R', -60)])
+		count = 0
+
 		while self.checkIfAlive():
 			self.wait(1)
 
-			# self.press(Button.PLUS, wait=1)
-			# self.press(Button.DOWN, duration=0.3)
-			# self.press(Button.LEFT, duration=2)
-			# self.press(Button.UP, duration=2.1)
-			# self.press(Button.RIGHT, duration=1, wait=2)
+			# self.press([Direction('L', -60), Button.X], duration=1, wait=2)
+			# self.press([Direction('L', 275), Button.X], duration=1)
 
-			self.press(Button.LEFT, duration=3)
-			self.press(Button.UP, duration=4)
-			self.press(Button.RIGHT, duration=1 ,wait=2)
-
-			self.press(Button.DOWN, duration=1, wait=2)
-
+			#self.hold(Direction('L', 120))
 			self.press(Button.X, wait=1)
-			self.press(Button.A, wait=3) # open up a map
-			self.press(Button.A, wait=1)
-			self.press(Button.A, wait=4)
-			self.press(Button.UP, duration=0.2)
-			self.press([Button.UP, Button.LEFT], duration=1, wait=2)
 
-			self.press(Button.DOWN, duration=1, wait=2)
+			count += 1
+			if count > 1: 
+				if (count == 2):
+					self.holdEnd([Direction('L', 440), Direction('R', -60)])
+
+			#self.finish()
+
 
 # using RankBattle glitch
 # Auto cafe battles
