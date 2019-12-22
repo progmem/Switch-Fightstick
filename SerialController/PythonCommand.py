@@ -306,6 +306,8 @@ class InfinityBerryIP(ImageProcPythonCommand, RankGlitchPythonCommand):
 
 			while True:
 				self.press(Button.A, wait=0.5) # for press 'shake more'
+				self.press(Button.A, wait=0.5) # just in case
+				self.press(Button.A, wait=0.5)
 
 				while not self.isContainTemplate('fell_message.png'):
 					self.press(Button.B, wait=0.5)
