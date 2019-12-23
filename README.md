@@ -145,13 +145,26 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
 MCUとPythonの双方を選択可能ですがPythonを強く推奨します  
 + 実時間形式で秒を単位として書くことができます
 + ループや条件分岐を簡単に実装できます
-+ ホールドや画像認識(予定)を手軽に使用できます  
++ ホールドや画像認識を手軽に使用できます  
 
 [Pythonコマンドの作成](https://github.com/KawaSwitch/Poke-Controller/wiki/%E6%96%B0%E3%81%97%E3%81%84Python%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%81%AE%E4%BD%9C%E3%82%8A%E6%96%B9)
 
 `self.press(Button.A, 0.1, 1)`  
 `self.press(Button.UP, 5, 1)`  
 など  
+
+### 画像認識
+ポケモン剣盾において便利な画像認識用の機能をメソッドして提供しています  
+今後もユーティリティを含めて追加していく予定です  
+詳しくは[ここ](https://github.com/KawaSwitch/Poke-Controller/wiki/%E7%94%BB%E5%83%8F%E8%AA%8D%E8%AD%98%E3%81%A8%E3%81%AF)を参照してください  
+
+- 実装済み  
+  - テンプレートマッチング  
+  - フレーム間差分法(動体検知)  
+- 実装予定
+  - OCR(文字認識)  
+  - 特徴量マッチング  
+  - 動体認識  
   
 ## What you need
 [こちら](https://github.com/KawaSwitch/Poke-Controller/wiki)に載せています  
