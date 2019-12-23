@@ -192,11 +192,13 @@ typedef enum {
 
 	// On MCU
 	MASH_A,		// mash button A
+	AUTO_LEAGUE,// auto league
 	INF_WATT, 	// infinity watt
 	INF_ID_WATT,// infinity id lottery & watt
 	P_SYNC,
 	P_UNSYNC,
 	DEBUG,
+	DEBUG2,
 
 	// From PC
 	PC_CALL,
@@ -205,6 +207,7 @@ Proc_State_t proc_state = NONE;
 
 char* cmd_name[MAX_BUFFER] = {
 	"mash_a",
+	"auto_league",
 	"inf_watt",
 	"inf_id",
 	"sync",
@@ -223,29 +226,20 @@ void ParseLine(char* line)
 	char cmd[16];
 	char p_btns[32];
 
-	memcpy(&pc_report, 0, sizeof(USB_JoystickReport_Input_t));
+	memcpy(&pc_report, 0, sizeof(USB_JoystickReport_Input_t));	
 
 	// format [button LeftStickX LeftStickY RightStickX RightStickY HAT] 
 	// button: A | B | X | Y | L | R | ZL | ZR | MINUS | PLUS | LCLICK | RCLICK | HOME | CAP
 	// LeftStick : 0 to 255
 	// RightStick: 0 to 255
 	// HAT : 0(TOP) to 7(TOP_LEFT) in clockwise | 8(CENTER)
-	sscanf(line, "%s %s %hhu %hhu %hhu %hhu %hhu", cmd, p_btns,
+	int ret = sscanf(line, "%s %s %hhu %hhu %hhu %hhu %hhu", cmd, p_btns,
 		&pc_report.LX, &pc_report.LY, &pc_report.RX, &pc_report.RY, &pc_report.HAT);
 
-	// TODO: refactoring
-	if (strcmp(cmd, "end") == 0) {
+	if (ret == EOF) {
+		//proc_state = DEBUG;
+	} else if (strcmp(cmd, "end") == 0) {
 		proc_state = NONE;
-	} else if (strcmp(cmd, cmd_name[0]) == 0) {
-		proc_state = MASH_A;
-	} else if (strcmp(cmd, cmd_name[1]) == 0) {
-		proc_state = INF_WATT;
-	} else if (strcmp(cmd, cmd_name[2]) == 0) {
-		proc_state = INF_ID_WATT;
-	} else if (strcmp(cmd, cmd_name[3]) == 0) {
-		proc_state = P_SYNC;
-	} else if (strcmp(cmd, cmd_name[4]) == 0) {
-		proc_state = P_UNSYNC;
 	} else if (cmd[0] == 'p') {
 		if (p_btns[0] == '1')	pc_report.Button |= SWITCH_A;
 		if (p_btns[1] == '1')	pc_report.Button |= SWITCH_B;
@@ -262,6 +256,18 @@ void ParseLine(char* line)
 		if (p_btns[12] == '1')	pc_report.Button |= SWITCH_HOME;
 		if (p_btns[13] == '1')	pc_report.Button |= SWITCH_CAPTURE;	
 		proc_state = PC_CALL;
+	} else if (strcmp(cmd, cmd_name[0]) == 0) {
+		proc_state = MASH_A;
+	} else if (strcmp(cmd, cmd_name[1]) == 0) {
+		proc_state = AUTO_LEAGUE;
+	} else if (strcmp(cmd, cmd_name[2]) == 0) {
+		proc_state = INF_WATT;
+	} else if (strcmp(cmd, cmd_name[3]) == 0) {
+		proc_state = INF_ID_WATT;
+	} else if (strcmp(cmd, cmd_name[4]) == 0) {
+		proc_state = P_SYNC;
+	} else if (strcmp(cmd, cmd_name[5]) == 0) {
+		proc_state = P_UNSYNC;
 	} else {
 		proc_state = NONE;
 	}
@@ -330,6 +336,12 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 				case MASH_A:
 					GetNextReportFromCommands(mash_a_commands, mash_a_size, ReportData);
 					break;
+				
+				case AUTO_LEAGUE:
+					GetNextReportFromCommands(auto_league_commands, auto_league_size, ReportData);
+					ReportData->LX = 172;
+					ReportData->LY = 7;
+					break;
 
 				case INF_WATT:
 					GetNextReportFromCommands(inf_watt_commands, inf_watt_size, ReportData);
@@ -347,6 +359,14 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 				case P_UNSYNC:
 					if (!GetNextReportFromCommands(unsync, unsync_size, ReportData))
 						proc_state = NONE;
+					break;
+				
+				case DEBUG:
+					GetNextReportFromCommands(mash_x_commands, mash_x_size, ReportData);
+					break;
+
+				case DEBUG2:
+					GetNextReportFromCommands(mash_home_commands, mash_home_size, ReportData);
 					break;
 
 				case PC_CALL:

@@ -29,6 +29,18 @@ extern const int unsync_size;
 extern const Command mash_a_commands[];
 extern const int mash_a_size;
 
+// Mash X Button (for debug)
+extern const Command mash_x_commands[];
+extern const int mash_x_size;
+
+// Mash HOME Button (for debug)
+extern const Command mash_home_commands[];
+extern const int mash_home_size;
+
+// Auto League
+extern const Command auto_league_commands[];
+extern const int auto_league_size;
+
 // Infinity Watt
 extern const Command inf_watt_commands[];
 extern const int inf_watt_size;

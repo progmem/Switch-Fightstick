@@ -27,6 +27,10 @@ class Mash_A(McuCommand):
 	def __init__(self, name, sync_name = 'mash_a'):
 		super(Mash_A, self).__init__(name, sync_name)
 
+class AutoLeague(McuCommand):
+	def __init__(self, name, sync_name = 'auto_league'):
+		super(AutoLeague, self).__init__(name, sync_name)
+
 class InfinityWatt(McuCommand):
 	def __init__(self, name, sync_name = 'inf_watt'):
 		super(InfinityWatt, self).__init__(name, sync_name)

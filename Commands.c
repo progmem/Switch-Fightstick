@@ -41,6 +41,48 @@ const Command mash_a_commands[] PROGMEM = {
 };
 const int mash_a_size = (int)(sizeof(mash_a_commands) / sizeof(Command));
 
+// Mashing button X (for debug)
+const Command mash_x_commands[] PROGMEM = {
+	{ NOP,      20 },
+	{ X,        5 },
+};
+const int mash_x_size = (int)(sizeof(mash_x_commands) / sizeof(Command));
+
+// Mashing button X (for debug)
+const Command mash_home_commands[] PROGMEM = {
+	{ NOP,      20 },
+	{ HOME,        5 },
+};
+const int mash_home_size = (int)(sizeof(mash_home_commands) / sizeof(Command));
+
+// Auto League
+const Command auto_league_commands[] PROGMEM = {
+	{ NOP,      20 },
+	{ A,        5 },
+	{ NOP,      20 },
+	{ A,        5 },
+	{ NOP,      20 },
+	{ A,        5 },
+	{ NOP,      20 },
+	{ A,        5 },
+	{ NOP,      20 },
+	{ A,        5 },
+	{ NOP,      20 },
+	{ A,        5 },
+	{ NOP,      20 },
+	{ A,        5 },
+	{ NOP,      20 },
+	{ A,        5 },
+	{ NOP,      20 },
+	{ A,        5 },
+	{ NOP,      20 },
+	{ A,        5 },
+
+	{ NOP,      20 },
+	{ B,        5 },
+};
+const int auto_league_size = (int)(sizeof(auto_league_commands) / sizeof(Command));
+
 // infinity watt earning
 // from: https://medaka.5ch.net/test/read.cgi/poke/1574816324/ >>25
 const Command inf_watt_commands[] PROGMEM = {

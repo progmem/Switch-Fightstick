@@ -246,6 +246,22 @@ class Mash_A(PythonCommand):
 			self.wait(0.5)
 			self.press(Button.A)
 
+# Auto league
+# 自動リーグ周回(画像認識なし)
+class AutoLeague(PythonCommand):
+	def __init__(self, name):
+		super(AutoLeague, self).__init__(name)
+
+	def do(self):
+		self.hold(Direction('L', 70))
+		while self.checkIfAlive():
+			self.wait(0.5)
+
+			for _ in range(0, 10):
+				self.press(Button.A, wait=0.5)
+			
+			self.press(Button.B)
+
 # using Rank Battle glitch
 # Infinity ID lottery
 # 無限IDくじ(ランクマッチ使用)

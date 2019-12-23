@@ -126,11 +126,13 @@ class GUI:
 		# commands registration
 		self.mcu_commands = [
 			McuCommand.Mash_A('A連打'), 
+			McuCommand.AutoLeague('自動リーグ周回'),
 			McuCommand.InfinityWatt('無限ワット'),
 			McuCommand.InfinityId('無限IDくじ'),
 		]
 		self.py_commands = [
 			PythonCommand.Mash_A('A連打'),
+			PythonCommand.AutoLeague('自動リーグ周回'),
 			PythonCommand.InfinityWatt('無限ワット', False),
 			PythonCommand.InfinityWatt('無限ワット(ランクマ)', True),
 			PythonCommand.InfinityLottery('無限IDくじ(ランクマ)'),
