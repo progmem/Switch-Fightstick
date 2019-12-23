@@ -200,7 +200,7 @@ class KeyPress:
 			for tilt in tilts:
 				btns.append(tilt)
 
-		self.format.unsetButton(btns)
+		self.format.unsetButton([btn for btn in btns if int(btn) < BUTTON_NUM])
 		self.format.unsetDirection(btns)
 
 		self.ser.writeRow(self.format.convert2str())
