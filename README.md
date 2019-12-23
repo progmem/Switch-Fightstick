@@ -11,7 +11,7 @@
 ![リリース前GUI](https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/pokecon_gui_before_release.PNG)
 
 ## Releases
-未定ですが年内に画像認識を用いた自動化を書いた時点で1つリリースとして区切る予定です  
+未定ですが年内に画像認識を用いた卵孵化自動化を書いた時点で1つリリースとして区切る予定です  
 その後も下記目標までリリースを続けていきます  
 
 ## About this project
@@ -44,6 +44,9 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
 - MCU  
   - A連打  
     その名の通りです  
+  
+  - リーグ自動周回  
+    [発案元](http://niwaka-syndrome.blog.jp/archives/20509394.html) を要参照  
 
   - ワット自動化  
     無限ワット対象の巣の200W/2000Wの光は消しておく.   
@@ -61,10 +64,16 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
 - Python  
   <画像認識なし>  
   - A連打  
+    MCU版と同じ  
     <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/mash_a.PNG" width="720">
+    
+  - リーグ自動周回  
+    MCU版と同じ  
+    [発案元](http://niwaka-syndrome.blog.jp/archives/20509394.html) を要参照  
+    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/auto_league.PNG" width="720">
   
   - ワット自動化  
-    MCU版の移植  
+    MCU版と同じ  
     MCU版との違いは手順2で代わりにStartを押す.  
   
   - ワット自動化 高速化版(ランクマッチバグ使用)  
@@ -116,8 +125,17 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
   <br>
   
   <画像認識あり>  
-  まだ  
+  - きのみ自動化 改良版(ランクマッチバグ使用)  
+    画像認識を用いてゆれが強くなったら終了するようになっています  
+  
+    ランクマッチに一戦潜る(シングルorダブル)  
+    Switch側の本体設定で「インターネットで時間を合わせる」を**OFF**にしておく.  
+    
+    1: きのみを収穫したい木の話しかける位置に立つ  
+    2: Startを押す  
+    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/infinity_berry_image_recog.PNG" width="720">
 
+  <br>
 
 既存のコマンドは順次移植/追加予定で自作も上げていきます  
 [プルリクエスト](https://github.com/KawaSwitch/Poke-Controller/pulls)も受け付けています
