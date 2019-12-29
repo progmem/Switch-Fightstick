@@ -74,8 +74,57 @@ def testInterframeDiff():
 	print("release")
 	cap.release()
 	cv2.destroyAllWindows()
+
+def getRobustFeatures(img1, img2, matcher):
+	# create AKAZE detector and compute features
+	akaze = cv2.AKAZE_create()                                
+	kp1, des1 = akaze.detectAndCompute(img1, None)
+	kp2, des2 = akaze.detectAndCompute(img2, None)
+
+	# matching by des with Brute-Force & KNN
+	matches = matcher.knnMatch(des1, des2, k=2)
+
+	# leave only good matches
+	ratio = 0.5
+	good = []
+	for m, n in matches:
+		if m.distance < ratio * n.distance:
+			good.append([m])
 	
+	return kp1, des1, kp2, des2, good
+	
+def testAkaze(test_path):
+	cap = cv2.VideoCapture(1 + cv2.CAP_DSHOW)
+	cap.set(cv2.CAP_PROP_FPS, 30)
+	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
+
+	img1 = cv2.imread(TEMPLATE_PATH+test_path, cv2.IMREAD_COLOR)
+	img2 = None
+
+	# generate Brute-Force Matcher
+	bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=False)
+
+	while cap.isOpened():
+		img2 = cap.read()[1]
+
+		try:
+			kp1, _, kp2, _, good = getRobustFeatures(img1, img2, bf)
+			img3 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, good, None, flags=2)
+			cv2.imshow('img', img3)
+
+		except: # examine later
+			cv2.imshow('img', img2)
+
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			break
+	
+	print("release")
+	cap.release()
+	cv2.destroyAllWindows()
 
 if __name__ == "__main__":
 	#res = isContainTemplate("sample.png", "dougu_to_bag.png", 0.7, True)
-	testInterframeDiff()
+	#testInterframeDiff()
+
+	testAkaze('pannels.png')
