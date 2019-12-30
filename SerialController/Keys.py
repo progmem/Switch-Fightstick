@@ -1,14 +1,14 @@
 import math
 from collections import OrderedDict
-from enum import IntEnum, Enum, auto
+from enum import IntFlag, Enum, auto
 
 # Buttons and L stick directions
 # As of now, we don't support HAT buttons though Joystick.c does.
-class Button(IntEnum):
-	A = 0
-	B = auto()
-	X = auto()
+class Button(IntFlag):
 	Y = auto()
+	B = auto()
+	A = auto()
+	X = auto()
 	L = auto()
 	R = auto()
 	ZL = auto()
@@ -20,24 +20,19 @@ class Button(IntEnum):
 	HOME = auto()
 	CAPTURE = auto()
 
-	# for ease use of stick controls
-	# L stick (not HAT)
-	UP = 20
-	RIGHT = auto()
-	DOWN = auto()
-	LEFT = auto()
-
-	# R stick
-	R_UP = auto()
-	R_RIGHT = auto()
-	R_DOWN = auto()
-	R_LEFT = auto()
-
 class Stick(Enum):
 	LEFT = auto()
 	RIGHT = auto()
 
-BUTTON_NUM = int(Button.CAPTURE) + 1
+class Tilt(Enum):
+	UP = auto()
+	RIGHT = auto()
+	DOWN = auto()
+	LEFT = auto()
+	R_UP = auto()
+	R_RIGHT = auto()
+	R_DOWN = auto()
+	R_LEFT = auto()
 
 # direction value definitions
 min = 0
@@ -50,7 +45,7 @@ class SendFormat:
 		# This format structure needs to be the same as the one written in Joystick.c
 		self.format = OrderedDict([
 			('cmd', 'p'),
-			('btn', '00000000000000'),	# send bit array for buttons
+			('btn', 0),	# send bit array for buttons
 			('lx', center),
 			('ly', center),
 			('rx', center),
@@ -58,72 +53,85 @@ class SendFormat:
 			('hat', 8),
 		])
 
+		self.L_stick_changed = False
+		self.R_stick_changed = False
+
 	def setButton(self, btns):
 		for btn in btns:
-			self.format['btn'] = self.replacePartStr(self.format['btn'], '1', int(btn))
+			self.format['btn'] |= btn
 	
 	def unsetButton(self, btns):
 		for btn in btns:
-			self.format['btn'] = self.replacePartStr(self.format['btn'], '0', int(btn))
+			self.format['btn'] &= ~btn
 	
 	def resetAllButtons(self):
-		self.format['btn'] = '00000000000000'
-
-	def setDirection(self,  dirs):
-		if Button.UP in dirs:		self.format['ly'] = min
-		if Button.RIGHT in dirs:	self.format['lx'] = max
-		if Button.DOWN in dirs:		self.format['ly'] = max
-		if Button.LEFT in dirs:		self.format['lx'] = min
-		if Button.R_UP in dirs:		self.format['ry'] = min
-		if Button.R_RIGHT in dirs:	self.format['rx'] = max
-		if Button.R_DOWN in dirs:	self.format['ry'] = max
-		if Button.R_LEFT in dirs:	self.format['rx'] = min
+		self.format['btn'] = 0
 	
 	def setAnyDirection(self, dirs):
 		for dir in dirs:
 			if dir.stick == Stick.LEFT:
+				if self.format['lx'] != dir.x or self.format['ly'] != 255 - dir.y:
+					self.L_stick_changed = True
+
 				self.format['lx'] = dir.x
-				self.format['ly'] = 255 - dir.y # note that y axis direct under
+				self.format['ly'] = 255 - dir.y # y axis directs under
 			elif dir.stick == Stick.RIGHT:
+				if self.format['rx'] != dir.x or self.format['ry'] != 255 - dir.y:
+					self.R_stick_changed = True
+
 				self.format['rx'] = dir.x
 				self.format['ry'] = 255 - dir.y
 
 	def unsetDirection(self, dirs):
-		if Button.UP in dirs:		self.format['ly'] = center
-		if Button.RIGHT in dirs:	self.format['lx'] = center
-		if Button.DOWN in dirs:		self.format['ly'] = center
-		if Button.LEFT in dirs:		self.format['lx'] = center
-		if Button.R_UP in dirs:		self.format['ry'] = center
-		if Button.R_RIGHT in dirs:	self.format['rx'] = center
-		if Button.R_DOWN in dirs:	self.format['ry'] = center
-		if Button.R_LEFT in dirs:	self.format['rx'] = micentern
+		if Tilt.UP in dirs or Tilt.DOWN in dirs:
+			self.format['ly'] = center
+			self.L_stick_changed = True
+		if Tilt.RIGHT in dirs or Tilt.LEFT in dirs:
+			self.format['lx'] = center
+			self.L_stick_changed = True
+		if Tilt.R_UP in dirs or Tilt.R_DOWN in dirs:
+			self.format['ry'] = center
+			self.R_stick_changed = True
+		if Tilt.R_RIGHT in dirs or Tilt.R_LEFT in dirs:
+			self.format['rx'] = center
+			self.R_stick_changed = True
 	
 	def resetAllDirections(self):
 		self.format['lx'] = center
 		self.format['ly'] = center
 		self.format['rx'] = center
 		self.format['ry'] = center
-
-	def replacePartStr(self, str, add_str, index):
-		return str[:index] + add_str + str[index+len(add_str):]
+		self.L_stick_changed = True
+		self.R_stick_changed = True
 
 	def convert2str(self):
 		str_format = ''
-		for v in self.format.values():
-			str_format += str(v)
-			str_format += ' '
-		return str_format[:-1] # the last space is not needed
+		str_L = ''
+		str_R = ''
+		space = ' '
+
+		# set bits array with stick flags
+		send_btn = int(self.format['btn']) << 2
+		if self.L_stick_changed:
+			send_btn |= 0x2
+			str_L = format(self.format['lx'], 'x') + space + format(self.format['ly'], 'x')
+		if self.R_stick_changed:
+			send_btn |= 0x1
+			str_R = format(self.format['rx'], 'x') + space + format(self.format['ry'], 'x')
+
+		str_format = self.format['cmd'] + space + format(send_btn, 'x') +\
+			(space + str_L if self.L_stick_changed else '') +\
+			(space + str_R if self.R_stick_changed else '')
+
+		self.L_stick_changed = False
+		self.R_stick_changed = False
+
+		return str_format # the last space is not needed
 
 # This class handle L stick and R stick at any angles
 class Direction:
 	def __init__(self, stick, angle, isDegree=True):
-		stick_str = stick.upper()
-		self.stick = None
-		if stick_str == 'L':
-			self.stick = Stick.LEFT
-		elif stick_str == 'R':
-			self.stick = Stick.RIGHT
-		
+		self.stick = stick	
 		self.angle_for_show = angle
 		angle = math.radians(angle) if isDegree else angle
 
@@ -134,7 +142,7 @@ class Direction:
 		self.y = math.ceil(127.5 * math.sin(angle) + 127.5)
 
 	def __repr__(self):
-		return "Direction({}, {}[deg])".format(self.stick, self.angle_for_show)
+		return "<{}, {}[deg]>".format(self.stick, self.angle_for_show)
 
 	def __eq__(self, other):
 		if (not type(other) is Direction):
@@ -148,18 +156,29 @@ class Direction:
 	def getTilting(self):
 		tilting = []
 		if self.stick == Stick.LEFT:
-			if self.x < center:		tilting.append(Button.LEFT)
-			elif self.x > center:	tilting.append(Button.RIGHT)
+			if self.x < center:		tilting.append(Tilt.LEFT)
+			elif self.x > center:	tilting.append(Tilt.RIGHT)
 
-			if self.y < center:		tilting.append(Button.DOWN)
-			elif self.y > center:	tilting.append(Button.UP)
+			if self.y < center:		tilting.append(Tilt.DOWN)
+			elif self.y > center:	tilting.append(Tilt.UP)
 		elif self.stick == Stick.RIGHT:
-			if self.x < center:		tilting.append(Button.R_LEFT)
-			elif self.x > center:	tilting.append(Button.R_RIGHT)
+			if self.x < center:		tilting.append(Tilt.R_LEFT)
+			elif self.x > center:	tilting.append(Tilt.R_RIGHT)
 
-			if self.y < center:		tilting.append(Button.R_DOWN)
-			elif self.y > center:	tilting.append(Button.R_UP)
+			if self.y < center:		tilting.append(Tilt.R_DOWN)
+			elif self.y > center:	tilting.append(Tilt.R_UP)
 		return tilting
+
+# Left stick for ease of use
+Direction.UP = Direction(Stick.LEFT, 90)
+Direction.RIGHT = Direction(Stick.LEFT, 0)
+Direction.DOWN = Direction(Stick.LEFT, -90)
+Direction.LEFT = Direction(Stick.LEFT, -180)
+# Right stick for ease of use
+Direction.R_UP = Direction(Stick.RIGHT, 90)
+Direction.R_RIGHT = Direction(Stick.RIGHT, 0)
+Direction.R_DOWN = Direction(Stick.RIGHT, -90)
+Direction.R_LEFT = Direction(Stick.RIGHT, -180)
 
 # handles serial input to Joystick.c
 class KeyPress:
@@ -179,29 +198,23 @@ class KeyPress:
 		# print to log
 		print(btns)
 
-		dirs = [btn for btn in btns if type(btn) is Direction]
-		btns = [btn for btn in btns if type(btn) is Button]
-
-		self.format.setAnyDirection(dirs)
-		self.format.setButton([btn for btn in btns if int(btn) < BUTTON_NUM])
-		self.format.setDirection(btns)
+		self.format.setButton([btn for btn in btns if type(btn) is Button])
+		self.format.setAnyDirection([btn for btn in btns if type(btn) is Direction])
 		self.ser.writeRow(self.format.convert2str())
 
 	def inputEnd(self, btns):
 		if not isinstance(btns, list):
 			btns = [btns]
 
-		dirs = [btn for btn in btns if type(btn) is Direction]
-		btns = [btn for btn in btns if type(btn) is Button]
+		# get tilting direction from angles
+		tilts = []
+		for dir in [btn for btn in btns if type(btn) is Direction]:
+			tiltings = dir.getTilting()
+			for tilting in tiltings:
+				tilts.append(tilting)
 
-		# add direction from any angle
-		for dir in dirs:
-			tilts = dir.getTilting()
-			for tilt in tilts:
-				btns.append(tilt)
-
-		self.format.unsetButton([btn for btn in btns if int(btn) < BUTTON_NUM])
-		self.format.unsetDirection(btns)
+		self.format.unsetButton([btn for btn in btns if type(btn) is Button])
+		self.format.unsetDirection(tilts)
 
 		self.ser.writeRow(self.format.convert2str())
 

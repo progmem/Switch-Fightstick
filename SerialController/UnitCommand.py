@@ -4,7 +4,7 @@
 from time import sleep
 import Command
 import Keys
-from Keys import Button
+from Keys import Button, Direction
 
 # Sigle button command
 class UnitCommand(Command.Command):
@@ -19,9 +19,14 @@ class UnitCommand(Command.Command):
 
 	def end(self, ser):
 		pass
+
+	# do nothing at wait time(s)
+	def wait(self, wait):
+		sleep(wait)
 	
 	def press(self, btn):
 		self.key.input([btn])
+		self.wait(0.1)
 		self.key.inputEnd([btn])
 		self.isRunning = False
 		self.key = None
@@ -163,7 +168,7 @@ class UP(UnitDirectionCommand):
 
 	def start(self, ser):
 		super(UP, self).start(ser)
-		self.press(Button.UP)
+		self.press(Direction.UP)
 
 class RIGHT(UnitDirectionCommand):
 	def __init__(self, name=None):
@@ -171,7 +176,7 @@ class RIGHT(UnitDirectionCommand):
 
 	def start(self, ser):
 		super(RIGHT, self).start(ser)
-		self.press(Button.RIGHT)
+		self.press(Direction.RIGHT)
 
 class DOWN(UnitDirectionCommand):
 	def __init__(self, name=None):
@@ -179,7 +184,7 @@ class DOWN(UnitDirectionCommand):
 
 	def start(self, ser):
 		super(DOWN, self).start(ser)
-		self.press(Button.DOWN)
+		self.press(Direction.DOWN)
 
 class LEFT(UnitDirectionCommand):
 	def __init__(self, name=None):
@@ -187,4 +192,4 @@ class LEFT(UnitDirectionCommand):
 
 	def start(self, ser):
 		super(LEFT, self).start(ser)
-		self.press(Button.LEFT)
+		self.press(Direction.LEFT)

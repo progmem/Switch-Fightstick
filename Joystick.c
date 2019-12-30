@@ -21,6 +21,8 @@ these buttons for our use.
 #include <LUFA/Drivers/Peripheral/Serial.h>
 #include "Commands.h"
 
+USB_JoystickReport_Input_t pc_report;
+
 // Main entry point.
 int main(void) {
 	Serial_Init(9600, false);
@@ -28,6 +30,11 @@ int main(void) {
 
 	sei();
 	UCSR1B |= (1 << RXCIE1);
+
+	pc_report.LX = 128;
+	pc_report.LY = 128;
+	pc_report.RX = 128;
+	pc_report.RY = 128;
 
 	// We'll start by performing hardware and peripheral setup.
 	SetupHardware();
@@ -171,12 +178,9 @@ void HID_Task(void) {
 }
 
 // Serial communication
-#define MAX_BUFFER 64
+#define MAX_BUFFER 32
 char pc_report_str[MAX_BUFFER];
 uint8_t idx = 0;
-USB_JoystickReport_Input_t pc_report;
-const uint8_t pc_rep_duration_max = 5;
-uint8_t pc_rep_duration = 0;
 
 typedef enum {
 	INIT,
@@ -194,7 +198,6 @@ typedef enum {
 	MASH_A,		// mash button A
 	AUTO_LEAGUE,// auto league
 	INF_WATT, 	// infinity watt
-	INF_ID_WATT,// infinity id lottery & watt
 	P_SYNC,
 	P_UNSYNC,
 	DEBUG,
@@ -209,7 +212,6 @@ char* cmd_name[MAX_BUFFER] = {
 	"mash_a",
 	"auto_league",
 	"inf_watt",
-	"inf_id",
 	"sync",
 	"unsync"
 };
@@ -221,55 +223,61 @@ Command cur_command;
 int duration_buf;
 int step_size_buf;
 
+uint8_t pc_lx, pc_ly, pc_rx, pc_ry;
+
 void ParseLine(char* line)
 {
 	char cmd[16];
-	char p_btns[32];
-
-	memcpy(&pc_report, 0, sizeof(USB_JoystickReport_Input_t));	
-
-	// format [button LeftStickX LeftStickY RightStickX RightStickY HAT] 
-	// button: A | B | X | Y | L | R | ZL | ZR | MINUS | PLUS | LCLICK | RCLICK | HOME | CAP
-	// LeftStick : 0 to 255
-	// RightStick: 0 to 255
-	// HAT : 0(TOP) to 7(TOP_LEFT) in clockwise | 8(CENTER)
-	int ret = sscanf(line, "%s %s %hhu %hhu %hhu %hhu %hhu", cmd, p_btns,
-		&pc_report.LX, &pc_report.LY, &pc_report.RX, &pc_report.RY, &pc_report.HAT);
+	uint16_t p_btns;
+	int ret = sscanf(line, "%s %hx %hhx %hhx %hhx %hhx", cmd, &p_btns,
+				&pc_lx, &pc_ly, &pc_rx, &pc_ry);
 
 	if (ret == EOF) {
-		//proc_state = DEBUG;
-	} else if (strcmp(cmd, "end") == 0) {
+		proc_state = DEBUG;
+	} else if (strncmp(cmd, "end", 16) == 0) {
 		proc_state = NONE;
+		pc_report.LX = 128;
+		pc_report.LY = 128;
+		pc_report.RX = 128;
+		pc_report.RY = 128;
 	} else if (cmd[0] == 'p') {
-		if (p_btns[0] == '1')	pc_report.Button |= SWITCH_A;
-		if (p_btns[1] == '1')	pc_report.Button |= SWITCH_B;
-		if (p_btns[2] == '1')	pc_report.Button |= SWITCH_X;
-		if (p_btns[3] == '1')	pc_report.Button |= SWITCH_Y;
-		if (p_btns[4] == '1')	pc_report.Button |= SWITCH_L;
-		if (p_btns[5] == '1')	pc_report.Button |= SWITCH_R;
-		if (p_btns[6] == '1')	pc_report.Button |= SWITCH_ZL;
-		if (p_btns[7] == '1')	pc_report.Button |= SWITCH_ZR;
-		if (p_btns[8] == '1')	pc_report.Button |= SWITCH_MINUS;
-		if (p_btns[9] == '1')	pc_report.Button |= SWITCH_PLUS;
-		if (p_btns[10] == '1')	pc_report.Button |= SWITCH_LCLICK;
-		if (p_btns[11] == '1')	pc_report.Button |= SWITCH_RCLICK;
-		if (p_btns[12] == '1')	pc_report.Button |= SWITCH_HOME;
-		if (p_btns[13] == '1')	pc_report.Button |= SWITCH_CAPTURE;	
+		memset(&pc_report, 0, sizeof(uint16_t));
+
+		// format [button LeftStickX LeftStickY RightStickX RightStickY HAT] 
+		// button: Y | B | A | X | L | R | ZL | ZR | MINUS | PLUS | LCLICK | RCLICK | HOME | CAP
+		// LeftStick : 0 to 255
+		// RightStick: 0 to 255
+		// HAT : 0(TOP) to 7(TOP_LEFT) in clockwise | 8(CENTER)  currently disabled
+
+		// we use bit array for buttons(2 Bytes), which last 2 bits are flags of directions
+		bool use_right = p_btns & 0x1;
+		bool use_left = p_btns & 0x2;
+
+		if (use_left) {
+			pc_report.LX = pc_lx;
+			pc_report.LY = pc_ly;
+		}
+		if (use_right) {
+			pc_report.RX = pc_rx;
+			pc_report.RY = pc_ry;
+		}
+
+		p_btns >>= 2;
+		pc_report.Button |= p_btns;
+
 		proc_state = PC_CALL;
-	} else if (strcmp(cmd, cmd_name[0]) == 0) {
+	} else if (strncmp(cmd, cmd_name[0], 16) == 0) {
 		proc_state = MASH_A;
-	} else if (strcmp(cmd, cmd_name[1]) == 0) {
+	} else if (strncmp(cmd, cmd_name[1], 16) == 0) {
 		proc_state = AUTO_LEAGUE;
-	} else if (strcmp(cmd, cmd_name[2]) == 0) {
+	} else if (strncmp(cmd, cmd_name[2], 16) == 0) {
 		proc_state = INF_WATT;
-	} else if (strcmp(cmd, cmd_name[3]) == 0) {
-		proc_state = INF_ID_WATT;
-	} else if (strcmp(cmd, cmd_name[4]) == 0) {
+	} else if (strncmp(cmd, cmd_name[3], 16) == 0) {
 		proc_state = P_SYNC;
-	} else if (strcmp(cmd, cmd_name[5]) == 0) {
+	} else if (strncmp(cmd, cmd_name[4], 16) == 0) {
 		proc_state = P_UNSYNC;
 	} else {
-		proc_state = NONE;
+		proc_state = DEBUG2;
 	}
 
 	step_index = 0;
@@ -345,10 +353,6 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 
 				case INF_WATT:
 					GetNextReportFromCommands(inf_watt_commands, inf_watt_size, ReportData);
-					break;
-
-				case INF_ID_WATT:
-					GetNextReportFromCommands(inf_id_watt_commands, inf_id_watt_size, ReportData);
 					break;
 				
 				case P_SYNC:

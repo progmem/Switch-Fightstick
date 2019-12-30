@@ -44,7 +44,3 @@ extern const int auto_league_size;
 // Infinity Watt
 extern const Command inf_watt_commands[];
 extern const int inf_watt_size;
-
-// Inf ID lottery & Watt
-extern const Command inf_id_watt_commands[];
-extern const int inf_id_watt_size;

@@ -7,7 +7,7 @@ import threading
 import Command
 import Keys
 import cv2
-from Keys import Button, Direction
+from Keys import Button, Direction, Stick
 from Window import Camera
 
 # Python command
@@ -103,46 +103,46 @@ class RankGlitchPythonCommand(PythonCommand):
 	# Controls the system time and get every-other-day bonus without any punishments
 	def timeLeap(self, is_go_back=True):
 		self.press(Button.HOME, wait=1)
-		self.press(Button.DOWN)
-		self.press(Button.RIGHT)
-		self.press(Button.RIGHT)
-		self.press(Button.RIGHT)
-		self.press(Button.RIGHT)
+		self.press(Direction.DOWN)
+		self.press(Direction.RIGHT)
+		self.press(Direction.RIGHT)
+		self.press(Direction.RIGHT)
+		self.press(Direction.RIGHT)
 		self.press(Button.A, wait=1.5) # System Settings
-		self.press(Button.DOWN, duration=2, wait=0.5)
+		self.press(Direction.DOWN, duration=2, wait=0.5)
 		if not self.checkIfAlive(): return
 		
 		self.press(Button.A, wait=0.3) # System Settings > System
-		self.press(Button.DOWN)
-		self.press(Button.DOWN)
-		self.press(Button.DOWN)
-		self.press(Button.DOWN, wait=0.3)
+		self.press(Direction.DOWN)
+		self.press(Direction.DOWN)
+		self.press(Direction.DOWN)
+		self.press(Direction.DOWN, wait=0.3)
 		self.press(Button.A, wait=0.2) # Date and Time
-		self.press(Button.DOWN, duration=0.7, wait=0.2)
+		self.press(Direction.DOWN, duration=0.7, wait=0.2)
 		if not self.checkIfAlive(): return
 
 		# increment and decrement
 		if is_go_back:
 			self.press(Button.A, wait=0.2)
-			self.press(Button.UP, wait=0.2) # Increment a year
-			self.press(Button.RIGHT, duration=1.5)
+			self.press(Direction.UP, wait=0.2) # Increment a year
+			self.press(Direction.RIGHT, duration=1.5)
 			self.press(Button.A, wait=0.5)
 			if not self.checkIfAlive(): return
 
 			self.press(Button.A, wait=0.2)
-			self.press(Button.LEFT, duration=1.5)
-			self.press(Button.DOWN, wait=0.2) # Decrement a year
-			self.press(Button.RIGHT, duration=1.5)
+			self.press(Direction.LEFT, duration=1.5)
+			self.press(Direction.DOWN, wait=0.2) # Decrement a year
+			self.press(Direction.RIGHT, duration=1.5)
 			self.press(Button.A, wait=0.5)
 
 		# use only increment
 		# for use of faster time leap
 		else:
 			self.press(Button.A, wait=0.2)
-			self.press(Button.RIGHT)
-			self.press(Button.RIGHT)
-			self.press(Button.UP, wait=0.2) # increment a day
-			self.press(Button.RIGHT, duration=1)
+			self.press(Direction.RIGHT)
+			self.press(Direction.RIGHT)
+			self.press(Direction.UP, wait=0.2) # increment a day
+			self.press(Direction.RIGHT, duration=1)
 			self.press(Button.A, wait=0.5)
 
 		if not self.checkIfAlive(): return
@@ -225,10 +225,10 @@ class Unsync(PythonCommand):
 	def do(self):
 		self.wait(1)
 		self.press(Button.HOME, 0.1, 0.5)
-		self.press(Button.DOWN, 0.1, 0.1)
-		self.press(Button.RIGHT, 0.1, 0.1)
-		self.press(Button.RIGHT, 0.1, 0.1)
-		self.press(Button.RIGHT, 0.1, 0.1)
+		self.press(Direction.DOWN, 0.1, 0.1)
+		self.press(Direction.RIGHT, 0.1, 0.1)
+		self.press(Direction.RIGHT, 0.1, 0.1)
+		self.press(Direction.RIGHT, 0.1, 0.1)
 		self.press(Button.A, 0.1, 1.5)
 		self.press(Button.A, 0.1, 0.5)
 		self.press(Button.A, 0.1, 0.3)
@@ -253,7 +253,7 @@ class AutoLeague(PythonCommand):
 		super(AutoLeague, self).__init__(name)
 
 	def do(self):
-		self.hold(Direction('L', 70))
+		self.hold(Direction(Stick.LEFT, 70))
 		while self.checkIfAlive():
 			self.wait(0.5)
 
@@ -273,7 +273,7 @@ class InfinityLottery(RankGlitchPythonCommand):
 		while self.checkIfAlive():
 			self.press(Button.A, wait=0.5)
 			self.press(Button.B, wait=0.5)
-			self.press(Button.DOWN, wait=0.5)
+			self.press(Direction.DOWN, wait=0.5)
 
 			for _ in range(0, 10):	# A loop
 				self.press(Button.A, wait=0.5)
@@ -381,22 +381,22 @@ class Move(PythonCommand):
 		super(Move, self).__init__(name)
 	
 	def do(self):
-		self.hold([Direction('L', 440), Direction('R', -60)])
+		self.hold([Direction(Stick.LEFT, 440), Direction(Stick.RIGHT, -60)])
 		count = 0
 
 		while self.checkIfAlive():
 			self.wait(1)
 
-			# self.press([Direction('L', -60), Button.X], duration=1, wait=2)
-			# self.press([Direction('L', 275), Button.X], duration=1)
+			# self.press([Direction(Stick.LEFT, -60), Button.X], duration=1, wait=2)
+			# self.press([Direction(Stick.LEFT, 275), Button.X], duration=1)
 
-			#self.hold(Direction('L', 120))
+			#self.hold(Direction(Stick.LEFT, 120))
 			self.press(Button.X, wait=1)
 
 			count += 1
 			if count > 1: 
 				if (count == 2):
-					self.holdEnd([Direction('L', 440), Direction('R', -60)])
+					self.holdEnd([Direction(Stick.LEFT, 440), Direction(Stick.RIGHT, -60)])
 
 			#self.finish()
 
@@ -428,32 +428,32 @@ class InfinityCafe(RankGlitchPythonCommand):
 				if not self.checkIfAlive(): return
 			
 			# go to pokemon center to restore PP
-			self.press(Button.DOWN, duration=3.5)
+			self.press(Direction.DOWN, duration=3.5)
 			self.press(Button.X, wait=1)
 			self.press(Button.A, wait=3) # open up a map
 			self.press(Button.A, wait=1)
 			self.press(Button.A, wait=4)
-			self.press(Button.UP, duration=0.2)
-			self.press([Button.UP, Button.LEFT], duration=1, wait=2)
+			self.press(Direction.UP, duration=0.2)
+			self.press([Direction.UP, Direction.LEFT], duration=1, wait=2)
 
 			# in pokemon center
-			self.press(Button.UP, duration=2)
+			self.press(Direction.UP, duration=2)
 			for _ in range(0, 10):	# A loop
 				self.press(Button.A, wait=0.5)
 				if not self.checkIfAlive(): return
 			for _ in range(0, 15):	# B loop
 				self.press(Button.B, wait=0.5)
 				if not self.checkIfAlive(): return
-			self.press(Button.DOWN, duration=2, wait=2)
+			self.press(Direction.DOWN, duration=2, wait=2)
 			if not self.checkIfAlive(): return
 
 			# move to cafe in Wyndon (Shoot City)
-			self.press(Button.LEFT, duration=3)
-			self.press(Button.UP, duration=4)
-			self.press(Button.RIGHT, duration=1 ,wait=2)
+			self.press(Direction.LEFT, duration=3)
+			self.press(Direction.UP, duration=4)
+			self.press(Direction.RIGHT, duration=1 ,wait=2)
 			if not self.checkIfAlive(): return
 
-			self.press(Button.UP, duration=2, wait=1)
+			self.press(Direction.UP, duration=2, wait=1)
 
 
 # auto egg hatching using image recognition
@@ -490,27 +490,27 @@ class InfinityWatt(RankGlitchPythonCommand):
 				self.press(Button.A, wait=3)	# レイド開始
 
 				self.press(Button.HOME, wait=1)
-				self.press(Button.DOWN)
-				self.press(Button.RIGHT)
-				self.press(Button.RIGHT)
-				self.press(Button.RIGHT)
-				self.press(Button.RIGHT)
+				self.press(Direction.DOWN)
+				self.press(Direction.RIGHT)
+				self.press(Direction.RIGHT)
+				self.press(Direction.RIGHT)
+				self.press(Direction.RIGHT)
 				self.press(Button.A, wait=1.5) # 設定選択
-				self.press(Button.DOWN, duration=2, wait=0.5)
+				self.press(Direction.DOWN, duration=2, wait=0.5)
 				
 				self.press(Button.A, wait=0.3) # 設定 > 本体
-				self.press(Button.DOWN)
-				self.press(Button.DOWN)
-				self.press(Button.DOWN)
-				self.press(Button.DOWN, wait=0.3)
+				self.press(Direction.DOWN)
+				self.press(Direction.DOWN)
+				self.press(Direction.DOWN)
+				self.press(Direction.DOWN, wait=0.3)
 				self.press(Button.A, wait=0.2) # 日付と時刻 選択
 				self.press(Button.A, wait=0.4)
 
-				self.press(Button.DOWN, wait=0.2)
-				self.press(Button.DOWN, wait=0.2)
+				self.press(Direction.DOWN, wait=0.2)
+				self.press(Direction.DOWN, wait=0.2)
 				self.press(Button.A, wait=0.2)
-				self.press(Button.UP, wait=0.2)
-				self.press(Button.RIGHT, duration=1, wait=0.3)
+				self.press(Direction.UP, wait=0.2)
+				self.press(Direction.RIGHT, duration=1, wait=0.3)
 				self.press(Button.A, wait=0.5)
 				self.press(Button.HOME, wait=1) # ゲームに戻る
 				self.press(Button.HOME, wait=2)
@@ -524,19 +524,19 @@ class InfinityWatt(RankGlitchPythonCommand):
 				self.press(Button.B, wait=1.5)
 
 				self.press(Button.HOME, wait=1)
-				self.press(Button.DOWN)
-				self.press(Button.RIGHT)
-				self.press(Button.RIGHT)
-				self.press(Button.RIGHT)
-				self.press(Button.RIGHT)
+				self.press(Direction.DOWN)
+				self.press(Direction.RIGHT)
+				self.press(Direction.RIGHT)
+				self.press(Direction.RIGHT)
+				self.press(Direction.RIGHT)
 				self.press(Button.A, wait=1.5) # 設定選択
-				self.press(Button.DOWN, duration=2, wait=0.5)
+				self.press(Direction.DOWN, duration=2, wait=0.5)
 				
 				self.press(Button.A, wait=0.3) # 設定 > 本体
-				self.press(Button.DOWN)
-				self.press(Button.DOWN)
-				self.press(Button.DOWN)
-				self.press(Button.DOWN)
+				self.press(Direction.DOWN)
+				self.press(Direction.DOWN)
+				self.press(Direction.DOWN)
+				self.press(Direction.DOWN)
 				self.press(Button.A) # 日付と時刻 選択
 				self.press(Button.A, wait=0.5)
 
@@ -551,17 +551,17 @@ class HoldTest(PythonCommand):
 		self.wait(1)
 
 		while self.checkIfAlive():
-			self.hold([Button.LEFT, Button.DOWN])
+			self.hold([Direction.LEFT, Direction.DOWN])
 			self.wait(0.5)
 			self.press(Button.X, wait=2)
-			self.holdEnd([Button.LEFT, Button.DOWN])
+			self.holdEnd([Direction.LEFT, Direction.DOWN])
 
 			self.wait(1)
 
-			self.hold(Button.UP)
+			self.hold(Direction.UP)
 			self.wait(2)
 
-			self.holdEnd(Button.UP)
+			self.holdEnd(Direction.UP)
 			self.wait(2)
 
 
