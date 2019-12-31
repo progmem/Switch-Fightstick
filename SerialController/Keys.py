@@ -139,7 +139,7 @@ class Direction:
 		# X = 127.5*cos(theta) + 127.5
 		# Y = 127.5*sin(theta) + 127.5
 		self.x = math.ceil(127.5 * math.cos(angle) + 127.5)
-		self.y = math.ceil(127.5 * math.sin(angle) + 127.5)
+		self.y = math.floor(127.5 * math.sin(angle) + 127.5)
 
 	def __repr__(self):
 		return "<{}, {}[deg]>".format(self.stick, self.angle_for_show)
