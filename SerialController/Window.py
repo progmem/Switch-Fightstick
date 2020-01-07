@@ -64,6 +64,7 @@ class GUI:
 			borderwidth=5)
 		self.controller = None
 		self.keyPress = None
+		self.keyboard = None
 
 		# log area
 		self.logArea = MyScrolledText(self.frame1, width=70)
