@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pynput.keyboard import Key, Listener
-from Keys import KeyPress, Button, Direction
+from Keys import KeyPress, Button, Direction, Stick
 
 # This handles keyboard interactions
 class Keyboard:
@@ -79,6 +79,13 @@ class SwitchKeyboardController(Keyboard):
 				if key == k:
 					self.key.input(self.key_map[k])
 					self.holding.append(key)
+
+			if Key.up in self.holding:
+				if Key.right in self.holding:	self.key.input(Direction(Stick.LEFT, 45))
+				elif Key.left in self.holding:	self.key.input(Direction(Stick.LEFT, 135))
+			elif Key.down in self.holding:
+				if Key.left in self.holding:	self.key.input(Direction(Stick.LEFT, 225))
+				elif Key.right in self.holding:	self.key.input(Direction(Stick.LEFT, 315))
 
 	def on_release(self, key):
 		if key is None:

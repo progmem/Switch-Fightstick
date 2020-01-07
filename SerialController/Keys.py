@@ -77,7 +77,7 @@ class SendFormat:
 					self.L_stick_changed = True
 
 				self.format['lx'] = dir.x
-				self.format['ly'] = 255 - dir.y # y axis directs under
+				self.format['ly'] = 255 - dir.y # NOTE: y axis directs under
 			elif dir.stick == Stick.RIGHT:
 				if self.format['rx'] != dir.x or self.format['ry'] != 255 - dir.y:
 					self.R_stick_changed = True
@@ -88,16 +88,27 @@ class SendFormat:
 	def unsetDirection(self, dirs):
 		if Tilt.UP in dirs or Tilt.DOWN in dirs:
 			self.format['ly'] = center
+			self.format['lx'] = self.fixOtherAxis(self.format['lx'])
 			self.L_stick_changed = True
 		if Tilt.RIGHT in dirs or Tilt.LEFT in dirs:
 			self.format['lx'] = center
+			self.format['ly'] = self.fixOtherAxis(self.format['ly'])
 			self.L_stick_changed = True
 		if Tilt.R_UP in dirs or Tilt.R_DOWN in dirs:
 			self.format['ry'] = center
+			self.format['rx'] = self.fixOtherAxis(self.format['rx'])
 			self.R_stick_changed = True
 		if Tilt.R_RIGHT in dirs or Tilt.R_LEFT in dirs:
 			self.format['rx'] = center
+			self.format['ry'] = self.fixOtherAxis(self.format['ry'])
 			self.R_stick_changed = True
+	
+	# Use this to fix an either tilt to max when the other axis sets to 0
+	def fixOtherAxis(self, fix_target):
+		if fix_target == center:
+			return center
+		else:
+			return 0 if fix_target < center else 255
 	
 	def resetAllDirections(self):
 		self.format['lx'] = center
@@ -162,14 +173,14 @@ class Direction:
 			if self.x < center:		tilting.append(Tilt.LEFT)
 			elif self.x > center:	tilting.append(Tilt.RIGHT)
 
-			if self.y < center:		tilting.append(Tilt.DOWN)
-			elif self.y > center:	tilting.append(Tilt.UP)
+			if self.y < center-1:	tilting.append(Tilt.DOWN)
+			elif self.y > center-1:	tilting.append(Tilt.UP)
 		elif self.stick == Stick.RIGHT:
 			if self.x < center:		tilting.append(Tilt.R_LEFT)
 			elif self.x > center:	tilting.append(Tilt.R_RIGHT)
 
-			if self.y < center:		tilting.append(Tilt.R_DOWN)
-			elif self.y > center:	tilting.append(Tilt.R_UP)
+			if self.y < center-1:	tilting.append(Tilt.R_DOWN)
+			elif self.y > center-1:	tilting.append(Tilt.R_UP)
 		return tilting
 
 # Left stick for ease of use
