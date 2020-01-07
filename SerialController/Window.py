@@ -114,7 +114,7 @@ class GUI:
 		self.fps_cb = ttk.Combobox(self.frame1, textvariable=self.fps, width=2)
 		self.fps_cb['values'] = [45, 30, 15]
 		self.fps_cb.bind('<<ComboboxSelected>>', self.applyFps)
-		self.fps_cb.current(0)
+		self.fps_cb.current(self.fps_cb['values'].index(self.fps.get()))
 
 		# command radio button
 		self.lf = ttk.Labelframe(self.frame1, text='Command Option', padding=5)
