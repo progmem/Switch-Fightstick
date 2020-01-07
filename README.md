@@ -11,7 +11,8 @@
 ![リリース前GUI](https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/pokecon_gui_before_release.PNG)
 
 ## Releases
-未定ですが年内に画像認識を用いた卵孵化自動化を書いた時点で1つリリースとして区切る予定です  
+2019年内に卵孵化自動化を書いて1つ目のリリースとする予定でしたが諸事情により間に合いませんでした  
+1月中を目途にバグ修正を行いながら準備を進めますので何卒ごゆるりと  
 その後も下記目標までリリースを続けていきます  
 
 ## About this project
@@ -57,9 +58,6 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
     2: .hex書き込み済みのマイコンを接続   
     
     [提供元](https://medaka.5ch.net/test/read.cgi/poke/1574816324/)の>>25を参照  
-
-  - IDくじ&ワット自動化  
-    [提供元](https://medaka.5ch.net/test/read.cgi/poke/1574816324/)の>>325を参照  
   
 - Python  
   <画像認識なし>  
@@ -130,12 +128,15 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
   
     ランクマッチに一戦潜る(シングルorダブル)  
     Switch側の本体設定で「インターネットで時間を合わせる」を**OFF**にしておく.  
+    晴れなどの差分画像の変化が生じにくい天候に調整しておく(日付変更等)  
     
     1: きのみを収穫したい木の話しかける位置に立つ  
     2: Startを押す  
     <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/infinity_berry_image_recog.PNG" width="720">
 
   <br>
+
+
 
 既存のコマンドは順次移植/追加予定で自作も上げていきます  
 [プルリクエスト](https://github.com/KawaSwitch/Poke-Controller/pulls)も受け付けています
@@ -150,7 +151,7 @@ MCUとPythonの双方を選択可能ですがPythonを強く推奨します
 [Pythonコマンドの作成](https://github.com/KawaSwitch/Poke-Controller/wiki/%E6%96%B0%E3%81%97%E3%81%84Python%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%81%AE%E4%BD%9C%E3%82%8A%E6%96%B9)
 
 `self.press(Button.A, 0.1, 1)`  
-`self.press(Button.UP, 5, 1)`  
+`self.press(Direction.UP, 5, 1)`  
 など  
 
 ### 画像認識
@@ -165,6 +166,29 @@ MCUとPythonの双方を選択可能ですがPythonを強く推奨します
   - OCR(文字認識)  
   - 特徴量マッチング  
   - 動体認識  
+
+### コントローラ
+"Controller"ボタンを押下すると次のような簡易コントローラが表示されます  
+これらのボタンの押下でUSBを繋いだままの移動や操作に使用できます  
+またキーボード(コントローラ表示時のみ)でも同様の操作を行うことができます  
+
+現在の簡易コントローラUI  
+![簡易コントローラUI](https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/simple_controller_pre_release.PNG)
+
+キーボード操作のキー配置  
+
+| Switchコントローラ | キーボード |
+| ---- | ---- |
+| A, B, X, Y, L, R | 'a', 'b', ...キー |
+| ZL | 'k'キー |
+| ZR | 'e'キー |
+| MINUS | 'm'キー |
+| PLUS | 'p'キー |
+| LCLICK | 'q'キー |
+| RCLICK | 'w'キー |
+| HOME | 'h'キー |
+| CAPTURE | 'c'キー |
+| 左スティック | 矢印キー |
   
 ## What you need
 [こちら](https://github.com/KawaSwitch/Poke-Controller/wiki)に載せています  
