@@ -38,9 +38,26 @@ class SwitchKeyboardController(Keyboard):
 			'b': Button.B,
 			'x': Button.X,
 			'a': Button.A,
+			'l': Button.L,
+			'r': Button.R,
+			'k': Button.ZL,
+			'e': Button.ZR,
+			'm': Button.MINUS,
+			'p': Button.PLUS,
+			'q': Button.LCLICK,
+			'w': Button.RCLICK,
+			'h': Button.HOME,
+			'c': Button.CAPTURE,
+			Key.up: Direction.UP,
+			Key.right: Direction.RIGHT,
+			Key.down: Direction.DOWN,
+			Key.left: Direction.LEFT,
 		}
 
 	def on_press(self, key):
+		# for debug (show row key data)
+		#super().on_press(key)
+
 		if key is None:
 			print('unknown key has input')
 
@@ -61,7 +78,7 @@ class SwitchKeyboardController(Keyboard):
 			for k in self.key_map.keys():
 				if key == k:
 					self.key.input(self.key_map[k])
-					self.holding.append(key.char)
+					self.holding.append(key)
 
 	def on_release(self, key):
 		if key is None:
