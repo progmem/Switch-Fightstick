@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import math
 from collections import OrderedDict
 from enum import IntFlag, Enum, auto

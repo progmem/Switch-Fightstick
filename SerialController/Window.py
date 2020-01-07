@@ -14,6 +14,8 @@ import McuCommand
 import PythonCommand
 import UnitCommand
 import Sender
+from Keys import KeyPress
+from Keyboard import SwitchKeyboardController
 
 SETTING_PATH = "./settings.json"
 
@@ -61,6 +63,7 @@ class GUI:
 			relief='flat',
 			borderwidth=5)
 		self.controller = None
+		self.keyPress = None
 
 		# log area
 		self.logArea = MyScrolledText(self.frame1, width=70)
@@ -236,6 +239,11 @@ class GUI:
 		if self.ser.isOpened():
 			self.ser.closeSerial()
 			print("serial disconnected")
+		
+		# stop listening to keyboard events
+		if not self.keyboard is None:
+			self.keyboard.stop()
+			self.keyboard = None
 
 		# save settings
 		json.dump(self.settings, open(SETTING_PATH, 'w'), indent=4)
@@ -272,11 +280,13 @@ class GUI:
 			if self.ser.isOpened():
 				print('Port is already opened and being closed.')
 				self.ser.closeSerial()
+				self.keyPress = None
 				self.activateSerial()
 			else:
 				self.ser.openSerial("COM"+str(self.comPort.get()))
 				self.settings['com_port'] = self.comPort.get()
 				print('COM Port ' + str(self.comPort.get()) + ' connected successfully')
+				self.keyPress = KeyPress(self.ser)
 		except IOError:
 			print('COM Port: can\'t be established')
 
@@ -315,10 +325,19 @@ class GUI:
 		ttk.Label(window, text='Direction buttons are toggle switch.').grid(row=10, column=0, columnspan=8, sticky='w', padx=10, pady=3)
 		ttk.Label(window, text='Key Arrangements are based on Switch Pro. Controller.').grid(row=11, column=0, columnspan=8, sticky='w', padx=10, pady=3)
 		
+		# enable Keyboard as controller
+		self.keyboard = SwitchKeyboardController(self.keyPress)
+		self.keyboard.listen()
+
 		window.protocol("WM_DELETE_WINDOW", self.closingController)
 		self.controller = window
 	
 	def closingController(self):
+		# stop listening to keyboard events
+		if not self.keyboard is None:
+			self.keyboard.stop()
+			self.keyboard = None
+
 		self.controller.destroy()
 		self.controller = None
 
