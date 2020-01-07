@@ -7,6 +7,7 @@ import serial
 class Sender:
 	def __init__(self):
 		self.ser = None
+		self.is_show_serial = False
 
 	def openSerial(self, portNum):
 		self.ser = serial.Serial(portNum, 9600)
@@ -17,6 +18,12 @@ class Sender:
 	def isOpened(self):
 		return not self.ser is None and self.ser.isOpen()
 	
+	def setIsShowSerial(self, is_show):
+		self.is_show_serial = is_show
+
 	def writeRow(self, row):
 		self.ser.write((row+'\r\n').encode('utf-8'))
-		print(row)
+
+		# Show sending serial datas
+		if self.is_show_serial:
+			print(row)

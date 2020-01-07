@@ -84,7 +84,6 @@ class GUI:
 		self.openCamera()
 
 		self.showPreview = tk.BooleanVar()
-		self.showPreview.set(False)
 		self.cb1 = ttk.Checkbutton(
 			self.frame1,
 			padding=5,
@@ -108,6 +107,17 @@ class GUI:
 		self.reloadComPort = ttk.Button(self.frame1, text='Reload Port', command=self.activateSerial)
 		self.startButton = ttk.Button(self.frame1, text='Start', command=self.startPlay)
 		self.captureButton = ttk.Button(self.frame1, text='Capture', command=self.saveCapture)
+
+		self.showSerial = tk.BooleanVar()
+		self.showSerial.set(False)
+		self.cb_show_ser = ttk.Checkbutton(
+			self.frame1,
+			padding=5,
+			text='Show Serial',
+			onvalue=True,
+			offvalue=False,
+			variable=self.showSerial,
+			command=lambda: self.ser.setIsShowSerial(self.showSerial.get()))
 
 		# simple controller
 		self.simpleConButton = ttk.Button(self.frame1, text='Controller', command=self.createControllerWindow)
@@ -200,6 +210,8 @@ class GUI:
 
 		self.startButton.grid(row=2,column=6)
 		self.simpleConButton.grid(row=4, column=4)
+
+		self.cb_show_ser.grid(row=4, column=3)
 
 		for child in self.frame1.winfo_children():
 			child.grid_configure(padx=5, pady=5)
