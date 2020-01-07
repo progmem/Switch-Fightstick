@@ -60,6 +60,7 @@ class GUI:
 			width=1280,
 			relief='flat',
 			borderwidth=5)
+		self.controller = None
 
 		# log area
 		self.logArea = MyScrolledText(self.frame1, width=70)
@@ -280,6 +281,10 @@ class GUI:
 			print('COM Port: can\'t be established')
 
 	def createControllerWindow(self):
+		if not self.controller is None:
+			self.controller.focus_force()
+			return
+
 		window = tk.Toplevel(self.root)
 		window.title('Simple Switch Controller')
 		window.geometry("%dx%d%+d%+d" % (600, 300, 250, 125))
@@ -309,6 +314,13 @@ class GUI:
 		ttk.Label(window, text='NOTE:').grid(row=9, column=0, columnspan=8, sticky='w', padx=10, pady=(20, 0))
 		ttk.Label(window, text='Direction buttons are toggle switch.').grid(row=10, column=0, columnspan=8, sticky='w', padx=10, pady=3)
 		ttk.Label(window, text='Key Arrangements are based on Switch Pro. Controller.').grid(row=11, column=0, columnspan=8, sticky='w', padx=10, pady=3)
+		
+		window.protocol("WM_DELETE_WINDOW", self.closingController)
+		self.controller = window
+	
+	def closingController(self):
+		self.controller.destroy()
+		self.controller = None
 
 	def doProcess(self):
 		image_bgr = self.camera.readFrame()
