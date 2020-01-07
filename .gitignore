@@ -9,6 +9,7 @@
 *.sym
 *.eep
 *.exe
+*.json
 LUFA/
 
 # Byte-compiled / optimized / DLL files

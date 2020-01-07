@@ -229,7 +229,14 @@ class GUI:
 		if os.path.isfile(SETTING_PATH):
 			self.settings = json.load(open(SETTING_PATH, 'r'))
 		else:
-			print('could not read settings file')
+			default = {
+				"camera_id": 0,
+				"com_port": 1,
+				"fps": "45"
+			}
+			json.dump(default, open(SETTING_PATH, 'w'), indent=4)
+			print('default settings file has been created')
+			self.loadSettings()
 	
 	def startPlay(self):
 		print(self.startButton["text"] + ' ' + self.cur_command.getName())
