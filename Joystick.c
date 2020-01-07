@@ -23,6 +23,15 @@ these buttons for our use.
 
 USB_JoystickReport_Input_t pc_report;
 
+void ResetDirections()
+{
+	pc_report.LX = 128;
+	pc_report.LY = 128;
+	pc_report.RX = 128;
+	pc_report.RY = 128;
+	pc_report.HAT = HAT_CENTER;
+}
+
 // Main entry point.
 int main(void) {
 	Serial_Init(9600, false);
@@ -31,10 +40,7 @@ int main(void) {
 	sei();
 	UCSR1B |= (1 << RXCIE1);
 
-	pc_report.LX = 128;
-	pc_report.LY = 128;
-	pc_report.RX = 128;
-	pc_report.RY = 128;
+	ResetDirections();
 
 	// We'll start by performing hardware and peripheral setup.
 	SetupHardware();
@@ -236,10 +242,7 @@ void ParseLine(char* line)
 		proc_state = DEBUG;
 	} else if (strncmp(cmd, "end", 16) == 0) {
 		proc_state = NONE;
-		pc_report.LX = 128;
-		pc_report.LY = 128;
-		pc_report.RX = 128;
-		pc_report.RY = 128;
+		ResetDirections();
 	} else if (cmd[0] == 'p') {
 		memset(&pc_report, 0, sizeof(uint16_t));
 
@@ -247,7 +250,9 @@ void ParseLine(char* line)
 		// button: Y | B | A | X | L | R | ZL | ZR | MINUS | PLUS | LCLICK | RCLICK | HOME | CAP
 		// LeftStick : 0 to 255
 		// RightStick: 0 to 255
+
 		// HAT : 0(TOP) to 7(TOP_LEFT) in clockwise | 8(CENTER)  currently disabled
+		pc_report.HAT = HAT_CENTER;
 
 		// we use bit array for buttons(2 Bytes), which last 2 bits are flags of directions
 		bool use_right = p_btns & 0x1;
