@@ -160,7 +160,7 @@ class ImageProcPythonCommand(PythonCommand):
 	# It's recommended that you use gray_scale option unless the template color wouldn't be cared for performace
 	# 現在のスクリーンショットと指定した画像のテンプレートマッチングを行います
 	# 色の違いを考慮しないのであればパフォーマンスの点からuse_grayをTrueにしてグレースケール画像を使うことを推奨します
-	def isContainTemplate(self, template_path, threshold=0.7, use_gray=True):
+	def isContainTemplate(self, template_path, threshold=0.7, use_gray=True, show_value=False):
 		src = self.camera.readFrame()
 		src = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY) if use_gray else src
 
@@ -170,6 +170,9 @@ class ImageProcPythonCommand(PythonCommand):
 		method = cv2.TM_CCOEFF_NORMED
 		res = cv2.matchTemplate(src, template, method)
 		_, max_val, _, max_loc = cv2.minMaxLoc(res)
+
+		if show_value:
+			print(template_path + ' ZNCC value: ' + str(max_val))
 
 		if max_val > threshold:
 			if use_gray:
@@ -458,13 +461,43 @@ class InfinityCafe(RankGlitchPythonCommand):
 
 # auto egg hatching using image recognition
 # 自動卵孵化(キャプボあり)
-class AutoHatching(PythonCommand):
-	def __init__(self, name):
-		super(AutoHatching, self).__init__(name)
+class AutoHatching(ImageProcPythonCommand):
+	def __init__(self, name, cam):
+		super(AutoHatching, self).__init__(name, cam)
 
 	def do(self):
-		while self.checkIfAlive():
-			self.wait(1)
+		#self.wait(0.5)
+
+		if self.isContainTemplate('baby_msg.png'):
+			print('detected target box')
+
+			for i in range(0, 5):
+				for j in range(0, 6):
+					# Maybe this threshold works for only Japanese version.
+					# I'll consider the other way if needed.
+					if self.isContainTemplate('milcery_status.png', threshold=0.4):
+						# Release a pokemon
+						self.press(Button.A, wait=0.5)
+						self.press(Direction.UP, wait=0.2)
+						self.press(Direction.UP, wait=0.2)
+						self.press(Button.A, wait=1)
+						self.press(Direction.UP, wait=0.2)
+						self.press(Button.A, wait=1)
+						self.press(Button.A, wait=0.3)
+						if not self.checkIfAlive(): return
+					
+					if not j == 5:
+						if i % 2 == 0:	self.press(Direction.RIGHT, wait=0.2)
+						else:			self.press(Direction.LEFT, wait=0.2)
+				
+				self.press(Direction.DOWN, wait=0.2)
+
+		# Return from pokemon box
+		self.press(Button.B, wait=2)
+		self.press(Button.B, wait=2)
+		self.press(Button.B, wait=1.5)
+
+		self.finish()
 
 # Get watt automatically using the glitch
 # source: MCU Command 'InifinityWatt'

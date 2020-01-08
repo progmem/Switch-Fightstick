@@ -146,6 +146,7 @@ class GUI:
 			McuCommand.InfinityId('無限IDくじ'),
 		]
 		self.py_commands = [
+			PythonCommand.AutoHatching('自動孵化(画像認識)', self.camera),
 			PythonCommand.Mash_A('A連打'),
 			PythonCommand.AutoLeague('自動リーグ周回'),
 			PythonCommand.InfinityWatt('無限ワット', False),
