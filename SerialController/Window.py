@@ -349,6 +349,12 @@ class GUI:
 		self.keyboard = SwitchKeyboardController(self.keyPress)
 		self.keyboard.listen()
 
+		# bind focus
+		window.bind("<FocusIn>", self.onFocusInController)
+		window.bind("<FocusOut>", self.onFocusOutController)
+		self.root.bind("<FocusIn>", self.onFocusInController)
+		self.root.bind("<FocusOut>", self.onFocusOutController)
+
 		window.protocol("WM_DELETE_WINDOW", self.closingController)
 		self.controller = window
 	
@@ -357,9 +363,24 @@ class GUI:
 		if not self.keyboard is None:
 			self.keyboard.stop()
 			self.keyboard = None
+		
+		self.root.bind("<FocusIn>", lambda _: None)
+		self.root.bind("<FocusOut>", lambda _: None)
 
 		self.controller.destroy()
 		self.controller = None
+	
+	def onFocusInController(self, event):
+		# enable Keyboard as controller
+		if self.keyboard is None:
+			self.keyboard = SwitchKeyboardController(self.keyPress)
+			self.keyboard.listen()
+	
+	def onFocusOutController(self, event):
+		# stop listening to keyboard events
+		if not self.keyboard is None:
+			self.keyboard.stop()
+			self.keyboard = None
 
 	def doProcess(self):
 		image_bgr = self.camera.readFrame()
