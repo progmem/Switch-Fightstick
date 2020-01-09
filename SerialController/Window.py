@@ -33,13 +33,16 @@ class Camera:
 		if self.camera is not None and self.camera.isOpened():
 			self.camera.release()
 			self.camera = None
-		self.camera = cv2.VideoCapture(1 + cv2.CAP_DSHOW)
+		self.camera = cv2.VideoCapture(cameraId)
 		if not self.camera.isOpened():
 			print("Camera ID: " + str(cameraId) + " can't open.")
 			return
 		self.camera.set(cv2.CAP_PROP_FPS, 60)
 		self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.capture_size[0])
 		self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.capture_size[1])
+	
+	def isOpened(self):
+		return self.camera.isOpened()
 	
 	def readFrame(self):
 		_, self.image_bgr = self.camera.read()
@@ -146,6 +149,7 @@ class GUI:
 			McuCommand.InfinityId('無限IDくじ'),
 		]
 		self.py_commands = [
+			PythonCommand.AutoRelease('自動リリース', self.camera),
 			PythonCommand.AutoHatching('自動孵化(画像認識)', self.camera),
 			PythonCommand.Mash_A('A連打'),
 			PythonCommand.AutoLeague('自動リーグ周回'),

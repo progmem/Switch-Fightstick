@@ -25,11 +25,14 @@ class PythonCommand(Command.Command):
 		pass
 
 	def do_safe(self, ser):
+		if self.keys is None:
+			self.keys = Keys.KeyPress(ser)
+
 		try:
 			if self.alive:
 				self.do()
 		except:
-			if not self.keys:
+			if self.keys is None:
 				self.keys = Keys.KeyPress(ser)
 			print('interuppt')
 			import traceback
@@ -40,17 +43,15 @@ class PythonCommand(Command.Command):
 	def start(self, ser, postProcess=None):
 		self.alive = True
 		self.postProcess = postProcess
-		self.keys = Keys.KeyPress(ser)
 		if not self.thread:
 			self.thread = threading.Thread(target=self.do_safe, args=([ser]))
 			self.thread.start()
-		self.isRunning = True
 
 	def end(self, ser):
 		self.sendStopRequest()
 
 	def sendStopRequest(self):
-		if (self.checkIfAlive()): # try if we can stop now
+		if self.checkIfAlive(): # try if we can stop now
 			self.alive = False
 			print (self.name + ': we\'ve sent a stop request.')
 	
@@ -79,11 +80,10 @@ class PythonCommand(Command.Command):
 		sleep(wait)
 	
 	def checkIfAlive(self):
-		if (not self.alive):
+		if not self.alive:
 			self.keys.end()
 			self.keys = None
 			self.thread = None
-			self.isRunning = False
 			print(self.name + ' has reached an alive check and exited succucesfully.')
 
 			if not self.postProcess is None:
@@ -378,32 +378,6 @@ class InfinityBerryIP(ImageProcPythonCommand, RankGlitchPythonCommand):
 		return True if zero_cnt < 9000 else False
 
 
-# for debug
-class Move(PythonCommand):
-	def __init__(self, name):
-		super(Move, self).__init__(name)
-	
-	def do(self):
-		self.hold([Direction(Stick.LEFT, 440), Direction(Stick.RIGHT, -60)])
-		count = 0
-
-		while self.checkIfAlive():
-			self.wait(1)
-
-			# self.press([Direction(Stick.LEFT, -60), Button.X], duration=1, wait=2)
-			# self.press([Direction(Stick.LEFT, 275), Button.X], duration=1)
-
-			#self.hold(Direction(Stick.LEFT, 120))
-			self.press(Button.X, wait=1)
-
-			count += 1
-			if count > 1: 
-				if (count == 2):
-					self.holdEnd([Direction(Stick.LEFT, 440), Direction(Stick.RIGHT, -60)])
-
-			#self.finish()
-
-
 # using RankBattle glitch
 # Auto cafe battles
 # 無限カフェ(ランクマッチ使用)
@@ -458,39 +432,38 @@ class InfinityCafe(RankGlitchPythonCommand):
 
 			self.press(Direction.UP, duration=2, wait=1)
 
-
-# auto egg hatching using image recognition
-# 自動卵孵化(キャプボあり)
-class AutoHatching(ImageProcPythonCommand):
+# auto releaseing pokemons
+class AutoRelease(ImageProcPythonCommand):
 	def __init__(self, name, cam):
-		super(AutoHatching, self).__init__(name, cam)
+		super(AutoRelease, self).__init__(name, cam)
+		self.row = 5
+		self.col = 6
+		self.cam = cam
 
 	def do(self):
-		#self.wait(0.5)
+		self.wait(0.5)
 
-		if self.isContainTemplate('baby_msg.png'):
-			print('detected target box')
+		for i in range(0, self.row):
+			for j in range(0, self.col):
+				if not self.checkIfAlive(): return
 
-			for i in range(0, 5):
-				for j in range(0, 6):
-					# Maybe this threshold works for only Japanese version.
-					# I'll consider the other way if needed.
-					if self.isContainTemplate('milcery_status.png', threshold=0.4):
-						# Release a pokemon
-						self.press(Button.A, wait=0.5)
-						self.press(Direction.UP, wait=0.2)
-						self.press(Direction.UP, wait=0.2)
-						self.press(Button.A, wait=1)
-						self.press(Direction.UP, wait=0.2)
-						self.press(Button.A, wait=1)
-						self.press(Button.A, wait=0.3)
-						if not self.checkIfAlive(): return
-					
-					if not j == 5:
-						if i % 2 == 0:	self.press(Direction.RIGHT, wait=0.2)
-						else:			self.press(Direction.LEFT, wait=0.2)
+				# Maybe this threshold works for only Japanese version.
+				# I'll consider the other way if needed.
+				if self.cam.isOpened() and self.isContainTemplate('milcery_status.png', threshold=0.4):
+					# Release a pokemon
+					self.press(Button.A, wait=0.5)
+					self.press(Direction.UP, wait=0.2)
+					self.press(Direction.UP, wait=0.2)
+					self.press(Button.A, wait=1)
+					self.press(Direction.UP, wait=0.2)
+					self.press(Button.A, wait=1)
+					self.press(Button.A, wait=0.3)
 				
-				self.press(Direction.DOWN, wait=0.2)
+				if not j == self.col - 1:
+					if i % 2 == 0:	self.press(Direction.RIGHT, wait=0.2)
+					else:			self.press(Direction.LEFT, wait=0.2)
+			
+			self.press(Direction.DOWN, wait=0.2)
 
 		# Return from pokemon box
 		self.press(Button.B, wait=2)
@@ -498,6 +471,27 @@ class AutoHatching(ImageProcPythonCommand):
 		self.press(Button.B, wait=1.5)
 
 		self.finish()
+
+# auto egg hatching using image recognition
+# 自動卵孵化(キャプボあり)
+class AutoHatching(ImageProcPythonCommand):
+	def __init__(self, name, cam):
+		super(AutoHatching, self).__init__(name, cam)
+		self.cam = cam
+		self.release = None
+
+	def do(self):
+		#self.wait(0.5)
+
+		self.release = AutoRelease('auto_release in egg_hatch', self.cam)
+		self.release.do_safe(self.keys.ser)
+
+
+		if not self.checkIfAlive(): return
+	
+	def end(self, ser):
+		self.release.end(ser)
+		self.sendStopRequest()
 
 # Get watt automatically using the glitch
 # source: MCU Command 'InifinityWatt'
@@ -575,6 +569,32 @@ class InfinityWatt(RankGlitchPythonCommand):
 
 				self.press(Button.HOME, wait=1) # ゲームに戻る
 				self.press(Button.HOME, wait=1)
+
+
+# for debug
+class Move(PythonCommand):
+	def __init__(self, name):
+		super(Move, self).__init__(name)
+	
+	def do(self):
+		self.hold([Direction(Stick.LEFT, 440), Direction(Stick.RIGHT, -60)])
+		count = 0
+
+		while self.checkIfAlive():
+			self.wait(1)
+
+			# self.press([Direction(Stick.LEFT, -60), Button.X], duration=1, wait=2)
+			# self.press([Direction(Stick.LEFT, 275), Button.X], duration=1)
+
+			#self.hold(Direction(Stick.LEFT, 120))
+			self.press(Button.X, wait=1)
+
+			count += 1
+			if count > 1: 
+				if (count == 2):
+					self.holdEnd([Direction(Stick.LEFT, 440), Direction(Stick.RIGHT, -60)])
+
+			#self.finish()
 
 class HoldTest(PythonCommand):
 	def __init__(self, name):
