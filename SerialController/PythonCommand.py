@@ -8,13 +8,12 @@ import Command
 import Keys
 import cv2
 from Keys import Button, Direction, Stick
-from Window import Camera
 
 # Python command
 class PythonCommand(Command.Command):
 	def __init__(self, name):
 		super(PythonCommand, self).__init__(name)
-		print('init Python command: ' + name)
+		#print('init Python command: ' + name)
 		self.keys = None
 		self.thread = None
 		self.alive = True
@@ -635,9 +634,9 @@ class Debug(ImageProcPythonCommand):
 # Get watt automatically using the glitch
 # source: MCU Command 'InifinityWatt'
 class InfinityWatt(RankGlitchPythonCommand):
-	def __init__(self, name, is_use_rank):
+	def __init__(self, name):
 		super(InfinityWatt, self).__init__(name)
-		self.use_rank = is_use_rank
+		self.use_rank = True
 
 	def do(self):
 		while self.checkIfAlive():
@@ -710,36 +709,29 @@ class InfinityWatt(RankGlitchPythonCommand):
 				self.press(Button.HOME, wait=1)
 
 
-class HoldTest(PythonCommand):
-	def __init__(self, name):
-		super(HoldTest, self).__init__(name)
-
-	def do(self):
-		self.wait(1)
-
-		while self.checkIfAlive():
-			self.hold([Direction.LEFT, Direction.DOWN])
-			self.wait(0.5)
-			self.press(Button.X, wait=2)
-			self.holdEnd([Direction.LEFT, Direction.DOWN])
-
-			self.wait(1)
-
-			self.hold(Direction.UP)
-			self.wait(2)
-
-			self.holdEnd(Direction.UP)
-			self.wait(2)
-
-
 # sample initial code
 # Copy and paste this class and write codes in start method.
-# After you write the codes, don't forget to add commands list in Window.py.
+# After you write the codes, don't forget to add commands dictionary below.
 # このクラスをコピぺしてstartメソッドの続きにコードを書いてください
-# コードを書き終わったら, Window.pyのコマンド(self.py_command)に追加するのを忘れないように
+# コードを書き終わったら, 下のcommands変数に追加するのを忘れないように
 class Sample(PythonCommand):
 	def __init__(self, name):
 		super(Sample, self).__init__(name)
 
 	def do(self):
 		self.wait(1)
+
+
+# Add commands you want to use
+# 使用したいコマンドをここに追加してください
+commands = {
+	'A連打': Mash_A,
+	'自動リーグ周回': AutoLeague,
+	'自動孵化(画像認識)': AutoHatching,
+	'固定数孵化(画像認識)': CountHatching,
+	'無限きのみ(画像認識)': InfinityBerryIP,
+	'無限ワット(ランクマ)': InfinityWatt,
+	'無限IDくじ(ランクマ)': InfinityLottery,
+	'無限きのみ(ランクマ)': InfinityBerry,
+	'無限カフェ(ランクマ)': InfinityCafe,
+}

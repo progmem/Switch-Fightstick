@@ -141,27 +141,7 @@ class GUI:
 		self.rb1 = ttk.Radiobutton(self.lf, text='Mcu', value='Mcu', variable=self.v1, command=self.selectCommandCmbbox)
 		self.rb2 = ttk.Radiobutton(self.lf, text='Python', value='Python', variable=self.v1, command=self.selectCommandCmbbox)			
 
-		# commands registration
-		self.mcu_commands = [
-			McuCommand.Mash_A('A連打'), 
-			McuCommand.AutoLeague('自動リーグ周回'),
-			McuCommand.InfinityWatt('無限ワット'),
-			McuCommand.InfinityId('無限IDくじ'),
-		]
-		self.py_commands = [
-			PythonCommand.AutoHatching('自動孵化(画像認識)', self.camera),
-			PythonCommand.CountHatching('固定数孵化(画像認識)', self.camera),
-			PythonCommand.Debug('Debug', self.camera),
-			PythonCommand.AutoRelease('自動リリース', self.camera),
-			PythonCommand.Mash_A('A連打'),
-			PythonCommand.AutoLeague('自動リーグ周回'),
-			PythonCommand.InfinityWatt('無限ワット', False),
-			PythonCommand.InfinityWatt('無限ワット(ランクマ)', True),
-			PythonCommand.InfinityLottery('無限IDくじ(ランクマ)'),
-			PythonCommand.InfinityBerry('無限きのみ(ランクマ)'),
-			PythonCommand.InfinityCafe('無限カフェ(ランクマ)'),
-			PythonCommand.InfinityBerryIP('無限きのみ(ランクマ/画像認識)', self.camera),
-		]
+		# special commands registration
 		self.hid_commands = [ # not visible
 			PythonCommand.Sync('同期'),
 			PythonCommand.Unsync('同期解除'),
@@ -172,18 +152,20 @@ class GUI:
 			UnitCommand.DOWN(),
 			UnitCommand.LEFT(),
 		]
-		self.cur_command = self.py_commands[0] # attach a top of python commands first
 
-		self.mcu_cb = ttk.Combobox(self.frame1)
-		self.mcu_cb['values'] = [c.getName() for c in self.mcu_commands]
+		self.mcu_name = tk.StringVar()
+		self.mcu_cb = ttk.Combobox(self.frame1, textvariable=self.mcu_name)
+		self.mcu_cb['values'] = [name for name in McuCommand.commands.keys()]
 		self.mcu_cb.bind('<<ComboboxSelected>>', self.assignMcuCommand)
 		self.mcu_cb.current(0)
 		self.mcu_cb['state'] = 'disabled'
 
-		self.py_cb = ttk.Combobox(self.frame1)
-		self.py_cb['values'] = [c.getName() for c in self.py_commands]
+		self.py_name = tk.StringVar()
+		self.py_cb = ttk.Combobox(self.frame1, textvariable=self.py_name)
+		self.py_cb['values'] = [name for name in PythonCommand.commands.keys()]
 		self.py_cb.bind('<<ComboboxSelected>>', self.assignPythonCommand)
 		self.py_cb.current(0)
+		self.assignCommand()
 
 		self.sync_btn = ttk.Button(self.frame1, text='Sync', command=lambda: self.hid_commands[0].start(self.ser))
 		self.unsync_btn = ttk.Button(self.frame1, text='Unsync', command=lambda: self.hid_commands[1].start(self.ser))
@@ -246,11 +228,30 @@ class GUI:
 			self.loadSettings()
 	
 	def startPlay(self):
+		if self.cur_command is None:
+			print('No commands have been assinged yet.')
+		
+		# set and init selected command
+		self.assignCommand()
+
 		print(self.startButton["text"] + ' ' + self.cur_command.getName())
 		self.cur_command.start(self.ser, self.stopPlayPost)
 		
 		self.startButton["text"] = "Stop"
 		self.startButton["command"] = self.stopPlay
+	
+	def assignCommand(self):
+		if self.v1.get() == 'Mcu':
+			name = self.mcu_name.get()
+			self.cur_command = McuCommand.commands[name](name)
+		elif self.v1.get() == 'Python':
+			name = self.py_name.get()
+			cmd_class = PythonCommand.commands[name]
+
+			if issubclass(cmd_class, PythonCommand.ImageProcPythonCommand):
+				self.cur_command = cmd_class(name, self.camera)
+			else:
+				self.cur_command = cmd_class(name)
 	
 	def stopPlay(self):
 		print(self.startButton["text"] + ' ' + self.cur_command.getName())
@@ -285,12 +286,10 @@ class GUI:
 		self.settings['fps'] = self.fps.get()
 
 	def assignMcuCommand(self, event):
-		self.cur_command = self.mcu_commands[self.mcu_cb.current()]
-		print('changed to mcu command: ' + self.cur_command.getName())
+		print('changed to mcu command: ' + self.mcu_name.get())
 	
 	def assignPythonCommand(self, event):
-		self.cur_command = self.py_commands[self.py_cb.current()]
-		print('changed to python command: ' + self.cur_command.getName())
+		print('changed to python command: ' + self.py_name.get())
 
 	def selectCommandCmbbox(self):
 		if self.v1.get() == 'Mcu':

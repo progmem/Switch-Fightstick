@@ -7,7 +7,7 @@ import Command
 class McuCommand(Command.Command):
 	def __init__(self, name, sync_name):
 		super(McuCommand, self).__init__(name)
-		print('init MCU command: ' + name)
+		#print('init MCU command: ' + name)
 		self.sync_name = sync_name
 		self.postProcess = None
 	
@@ -46,3 +46,10 @@ class Sync(McuCommand):
 class Unsync(McuCommand):
 	def __init__(self, name, sync_name = 'unsync'):
 		super(Unsync, self).__init__(name, sync_name)
+
+
+commands = {
+	'A連打': Mash_A,
+	'自動リーグ': AutoLeague,
+	'無限ワット': InfinityWatt,
+}
