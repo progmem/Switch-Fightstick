@@ -67,6 +67,12 @@ class PythonCommand(Command.Command):
 		self.keys.inputEnd(buttons)
 		self.wait(wait)
 	
+	# press button at duration times(s) repeatedly
+	def pressRep(self, buttons, repeat, duration=0.1, interval=0.1, wait=0.1):
+		for i in range(0, repeat):
+			self.press(buttons, duration, 0 if i == repeat - 1 else interval)
+		self.wait(wait)
+	
 	# add hold buttons
 	def hold(self, buttons):
 		self.keys.hold(buttons)
@@ -472,6 +478,39 @@ class AutoRelease(ImageProcPythonCommand):
 
 		self.finish()
 
+# Egg hathing at count times
+# 指定回数の孵化(キャプボあり)
+class CountHatching(ImageProcPythonCommand):
+	def __init__(self, name, cam):
+		super(CountHatching, self).__init__(name, cam)
+		self.hatched_num = 0
+		self.count = 5
+		self.place = 'wild_area'
+	
+	def do(self):
+		while self.hatched_num < self.count:
+			if self.hatched_num == 0:
+				self.press(Direction.RIGHT, duration=1)
+			
+			self.hold([Direction.RIGHT, Direction.R_LEFT])
+
+			# turn round and round
+			while not self.isContainTemplate('egg_notice.png'):
+				self.wait(1)
+				if not self.checkIfAlive(): return
+			
+			print('egg hathing')
+			self.holdEnd([Direction.RIGHT, Direction.R_LEFT])
+			self.press(Button.A)
+			self.wait(15)
+			for i in range(0, 5):
+				self.press(Button.A, wait=1)
+			self.hatched_num += 1
+			print('hatched_num: ' + str(self.hatched_num))
+			if not self.checkIfAlive(): return
+		
+		self.finish()
+
 # auto egg hatching using image recognition
 # 自動卵孵化(キャプボあり)
 class AutoHatching(ImageProcPythonCommand):
@@ -479,19 +518,119 @@ class AutoHatching(ImageProcPythonCommand):
 		super(AutoHatching, self).__init__(name, cam)
 		self.cam = cam
 		self.release = None
+		self.party_num = 1	# don't count eggs
+		self.hatched_num = 0
 
 	def do(self):
-		#self.wait(0.5)
+		self.getNewEgg()
+		self.press(Direction.DOWN, duration=0.05, wait=0.5)
+		self.press(Button.L)
+		self.press(Direction.UP, duration=1)
 
-		self.release = AutoRelease('auto_release in egg_hatch', self.cam)
-		self.release.do_safe(self.keys.ser)
+		# hatch eggs
+		while self.party_num < 6:
+			self.press(Direction.RIGHT, duration=1)
+			self.hold([Direction.RIGHT, Direction.R_LEFT])
+
+			# turn round and round
+			while not self.isContainTemplate('egg_notice.png'):
+				self.wait(1)
+				if not self.checkIfAlive(): return
+			
+			print('egg hathing')
+			self.holdEnd([Direction.RIGHT, Direction.R_LEFT])
+			self.press(Button.A)
+			self.wait(15)
+			for i in range(0, 5):
+				self.press(Button.A, wait=1)
+			self.hatched_num += 1
+			self.party_num += 1
+			print('party_num: ' + str(self.party_num))
+			if not self.checkIfAlive(): return
+			
+			self.press(Button.X, wait=1)
+			self.press(Button.A, wait=3) # open up a map
+			self.press(Button.A, wait=1)
+			self.press(Button.A, wait=4)
+			self.press(Direction.DOWN, duration=0.05, wait=0.5)
+			self.press(Direction.DOWN, duration=0.8)
+			self.press(Direction.LEFT, duration=0.2)
+			if not self.checkIfAlive(): return
+
+			if self.party_num < 6:
+				# get a new egg
+				self.getNewEgg()
+				self.press(Direction.UP, duration=0.05, wait=0.5)
+				self.press(Direction.UP, duration=1)
+		
+		# check if we have shinies
+			# we'll do this later
+
+		# open up pokemon box
+		self.press(Button.X, wait=1)
+		self.press(Direction.RIGHT, wait=0.5) # set cursor to party
+		self.press(Button.A, wait=2)
+		self.press(Button.R, wait=2)
+		
+		self.putPokemonsToBox(start=1, num=5)
+		self.party_num = 1
+
+		self.press(Button.B, wait=0.5)
+		self.press(Button.B, wait=2)
+		self.press(Button.B, wait=2)
+		self.press(Direction.LEFT, wait=0.2) # set cursor to map
+		self.press(Button.B, wait=1.5)
 
 
-		if not self.checkIfAlive(): return
+		# self.release = AutoRelease('auto_release in egg_hatch', self.cam)
+		# self.release.do_safe(self.keys.ser)
+
+		self.finish()
+	
+	def getNewEgg(self):
+		self.press(Button.A, wait=0.5)
+		if not self.isContainTemplate('egg_found.png'):
+			print('egg not found')
+			self.finish() # TODO
+		print('egg found')
+		self.press(Button.A, wait=1)
+		self.press(Button.A, wait=1)
+		self.press(Button.A, wait=3)
+		self.press(Button.A, wait=2)
+		self.press(Button.A, wait=2)
+		self.press(Button.A, wait=1)
+	
+	def putPokemonsToBox(self, start=0, num=1):
+		self.press(Direction.LEFT, wait=0.3)
+		self.pressRep(Direction.DOWN, start, wait=0.3)
+		
+		# select by range
+		self.press(Button.Y, wait=0.2)
+		self.press(Button.Y, wait=0.2)
+		self.press(Button.A, wait=0.2)
+		self.pressRep(Direction.DOWN, num-1)
+		self.press(Button.A, wait=0.2)
+
+		# put to box
+		self.pressRep(Direction.UP, 3)
+		self.press(Direction.RIGHT, wait=0.2)
+		self.press(Button.A, wait=0.5)
+		self.press(Button.A, wait=0.5)
 	
 	def end(self, ser):
-		self.release.end(ser)
+		if not self.release is None:
+			self.release.end(ser)
 		self.sendStopRequest()
+
+# for debug
+class Debug(ImageProcPythonCommand):
+	def __init__(self, name, cam):
+		super(Debug, self).__init__(name, cam)
+	
+	def do(self):
+
+
+		self.finish()
 
 # Get watt automatically using the glitch
 # source: MCU Command 'InifinityWatt'
@@ -570,31 +709,6 @@ class InfinityWatt(RankGlitchPythonCommand):
 				self.press(Button.HOME, wait=1) # ゲームに戻る
 				self.press(Button.HOME, wait=1)
 
-
-# for debug
-class Move(PythonCommand):
-	def __init__(self, name):
-		super(Move, self).__init__(name)
-	
-	def do(self):
-		self.hold([Direction(Stick.LEFT, 440), Direction(Stick.RIGHT, -60)])
-		count = 0
-
-		while self.checkIfAlive():
-			self.wait(1)
-
-			# self.press([Direction(Stick.LEFT, -60), Button.X], duration=1, wait=2)
-			# self.press([Direction(Stick.LEFT, 275), Button.X], duration=1)
-
-			#self.hold(Direction(Stick.LEFT, 120))
-			self.press(Button.X, wait=1)
-
-			count += 1
-			if count > 1: 
-				if (count == 2):
-					self.holdEnd([Direction(Stick.LEFT, 440), Direction(Stick.RIGHT, -60)])
-
-			#self.finish()
 
 class HoldTest(PythonCommand):
 	def __init__(self, name):
