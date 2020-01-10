@@ -452,17 +452,15 @@ class AutoRelease(ImageProcPythonCommand):
 			for j in range(0, self.col):
 				if not self.checkIfAlive(): return
 
-				# Maybe this threshold works for only Japanese version.
-				# I'll consider the other way if needed.
-				if self.cam.isOpened() and self.isContainTemplate('milcery_status.png', threshold=0.4):
-					# Release a pokemon
-					self.press(Button.A, wait=0.5)
-					self.press(Direction.UP, wait=0.2)
-					self.press(Direction.UP, wait=0.2)
-					self.press(Button.A, wait=1)
-					self.press(Direction.UP, wait=0.2)
-					self.press(Button.A, wait=1)
-					self.press(Button.A, wait=0.3)
+				if not self.cam.isOpened():
+					self.Release()
+				else:
+					# if shiny, then skip
+					if not self.isContainTemplate('shiny_mark.png', threshold=0.9):
+						if self.isContainTemplate('milcery_status.png', threshold=0.4): # Maybe this threshold works for only Japanese version.
+							# Release a pokemon
+							self.Release()
+
 				
 				if not j == self.col - 1:
 					if i % 2 == 0:	self.press(Direction.RIGHT, wait=0.2)
@@ -476,6 +474,15 @@ class AutoRelease(ImageProcPythonCommand):
 		self.press(Button.B, wait=1.5)
 
 		self.finish()
+	
+	def Release(self):
+		self.press(Button.A, wait=0.5)
+		self.press(Direction.UP, wait=0.2)
+		self.press(Direction.UP, wait=0.2)
+		self.press(Button.A, wait=1)
+		self.press(Direction.UP, wait=0.2)
+		self.press(Button.A, wait=1)
+		self.press(Button.A, wait=0.3)
 
 # Egg hathing at count times
 # 指定回数の孵化(キャプボあり)
@@ -628,7 +635,6 @@ class Debug(ImageProcPythonCommand):
 	
 	def do(self):
 
-
 		self.finish()
 
 # Get watt automatically using the glitch
@@ -729,9 +735,11 @@ commands = {
 	'自動リーグ周回': AutoLeague,
 	'自動孵化(画像認識)': AutoHatching,
 	'固定数孵化(画像認識)': CountHatching,
+	'自動リリース': AutoRelease,
 	'無限きのみ(画像認識)': InfinityBerryIP,
 	'無限ワット(ランクマ)': InfinityWatt,
 	'無限IDくじ(ランクマ)': InfinityLottery,
 	'無限きのみ(ランクマ)': InfinityBerry,
 	'無限カフェ(ランクマ)': InfinityCafe,
+	'デバグ': Debug,
 }
