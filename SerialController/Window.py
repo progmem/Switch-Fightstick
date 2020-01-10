@@ -35,8 +35,9 @@ class Camera:
 			self.camera = None
 		self.camera = cv2.VideoCapture(cameraId)
 		if not self.camera.isOpened():
-			print("Camera ID: " + str(cameraId) + " can't open.")
+			print("Camera ID " + str(cameraId) + " can't open.")
 			return
+		print("Camera ID " + str(cameraId) + " opened successfully")
 		self.camera.set(cv2.CAP_PROP_FPS, 60)
 		self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.capture_size[0])
 		self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.capture_size[1])
