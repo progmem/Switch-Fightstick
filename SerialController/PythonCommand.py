@@ -212,9 +212,6 @@ class Sync(PythonCommand):
 	def __init__(self, name):
 		super(Sync, self).__init__(name)
 	
-	def start(self, ser):
-		super().start(ser)
-	
 	def do(self):
 		self.wait(1)
 
@@ -733,7 +730,7 @@ class Sample(PythonCommand):
 commands = {
 	'A連打': Mash_A,
 	'自動リーグ周回': AutoLeague,
-	'自動孵化(画像認識)': AutoHatching,
+	'仮:自動孵化(画像認識)': AutoHatching,
 	'固定数孵化(画像認識)': CountHatching,
 	'自動リリース': AutoRelease,
 	'無限きのみ(画像認識)': InfinityBerryIP,
@@ -742,4 +739,11 @@ commands = {
 	'無限きのみ(ランクマ)': InfinityBerry,
 	'無限カフェ(ランクマ)': InfinityCafe,
 	'デバグ': Debug,
+}
+
+# Add commands as utility you want to use
+# ユーティリティとして使用したいコマンドを追加してください
+utils = {
+	'コントローラ同期': Sync,
+	'コントローラ同期解除': Unsync,
 }

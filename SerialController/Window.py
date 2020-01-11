@@ -53,6 +53,7 @@ class Camera:
 		dt_now = datetime.datetime.now()
 		fileName = dt_now.strftime('%Y-%m-%d_%H-%M-%S')+".png"
 		cv2.imwrite(fileName, self.image_bgr)
+		print('capture succeeded: ' + fileName)
 
 class GUI:
 	def __init__(self):
@@ -70,6 +71,16 @@ class GUI:
 		self.keyPress = None
 		self.keyboard = None
 
+		# label frames
+		self.lf = ttk.Labelframe(self.frame1, text='Command', padding=5)
+		self.serial_lf = ttk.Labelframe(self.frame1, text='Serial Settings', padding=5)
+		self.camera_lf = ttk.Labelframe(self.frame1, text='Camera', padding=5)
+		self.control_lf = ttk.Labelframe(self.frame1, text='Controller', padding=5)
+
+		# frames
+		self.camera_f1 = ttk.Frame(self.camera_lf, relief='flat')
+		self.camera_f2 = ttk.Frame(self.camera_lf, relief='flat')
+
 		# log area
 		self.logArea = MyScrolledText(self.frame1, width=70)
 		self.logArea.write = self.write
@@ -78,10 +89,10 @@ class GUI:
 		# load settings file
 		self.loadSettings()
 			
-		self.label1 = ttk.Label(self.frame1, text='Camera ID:')
+		self.label1 = ttk.Label(self.camera_f1, text='Camera ID:')
 		self.cameraID = tk.IntVar()
 		self.cameraID.set(int(self.settings['camera_id']))
-		self.entry1 = ttk.Entry(self.frame1, width=5, textvariable=self.cameraID)
+		self.entry1 = ttk.Entry(self.camera_f1, width=5, textvariable=self.cameraID)
 
 		# open up a camera
 		self.camera = Camera()
@@ -89,33 +100,38 @@ class GUI:
 
 		self.showPreview = tk.BooleanVar()
 		self.cb1 = ttk.Checkbutton(
-			self.frame1,
+			self.camera_f1,
 			padding=5,
-			text='Show Preview',
+			text='Show Realtime',
 			onvalue=True,
 			offvalue=False,
 			variable=self.showPreview)
 		self.showPreview.set(True)
 		
-		self.label2 = ttk.Label(self.frame1, text='COM Port:')
+		self.label2 = ttk.Label(self.serial_lf, text='COM Port:')
 		self.comPort = tk.IntVar()
 		self.comPort.set(int(self.settings['com_port']))
-		self.entry2 = ttk.Entry(self.frame1, width=5, textvariable=self.comPort)
-		self.preview = ttk.Label(self.frame1) 
+		self.entry2 = ttk.Entry(self.serial_lf, width=5, textvariable=self.comPort)
+		self.preview = ttk.Label(self.camera_lf) 
 
 		# activate serial communication
 		self.ser = Sender.Sender()
 		self.activateSerial()
 
-		self.reloadButton = ttk.Button(self.frame1, text='Reload Cam', command=self.openCamera)
-		self.reloadComPort = ttk.Button(self.frame1, text='Reload Port', command=self.activateSerial)
-		self.startButton = ttk.Button(self.frame1, text='Start', command=self.startPlay)
-		self.captureButton = ttk.Button(self.frame1, text='Capture', command=self.saveCapture)
+		self.v1 = tk.StringVar(value='Python')
+		self.rb1 = ttk.Radiobutton(self.lf, text='Mcu', value='Mcu', variable=self.v1, command=self.setCommandCmbbox)
+		self.rb2 = ttk.Radiobutton(self.lf, text='Python', value='Python', variable=self.v1, command=self.setCommandCmbbox)
+		self.rb3 = ttk.Radiobutton(self.lf, text='Utility', value='Utility', variable=self.v1, command=self.setCommandCmbbox)
+
+		self.reloadButton = ttk.Button(self.camera_f1, text='Reload Cam', command=self.openCamera)
+		self.reloadComPort = ttk.Button(self.serial_lf, text='Reload Port', command=self.activateSerial)
+		self.startButton = ttk.Button(self.lf, text='Start', command=self.startPlay)
+		self.captureButton = ttk.Button(self.camera_f1, text='Capture', command=self.saveCapture)
 
 		self.showSerial = tk.BooleanVar()
 		self.showSerial.set(False)
 		self.cb_show_ser = ttk.Checkbutton(
-			self.frame1,
+			self.serial_lf,
 			padding=5,
 			text='Show Serial',
 			onvalue=True,
@@ -124,29 +140,18 @@ class GUI:
 			command=lambda: self.ser.setIsShowSerial(self.showSerial.get()))
 
 		# simple controller
-		self.simpleConButton = ttk.Button(self.frame1, text='Controller', command=self.createControllerWindow)
+		self.simpleConButton = ttk.Button(self.control_lf, text='Controller', command=self.createControllerWindow)
 
 		# fps
-		self.label3 = ttk.Label(self.frame1, text='FPS:')
+		self.label3 = ttk.Label(self.camera_f2, text='FPS:')
 		self.fps = tk.StringVar()
 		self.fps.set(str(self.settings['fps']))
-		self.fps_cb = ttk.Combobox(self.frame1, textvariable=self.fps, width=2)
+		self.fps_cb = ttk.Combobox(self.camera_f2, textvariable=self.fps, width=2)
 		self.fps_cb['values'] = [45, 30, 15]
 		self.fps_cb.bind('<<ComboboxSelected>>', self.applyFps)
 		self.fps_cb.current(self.fps_cb['values'].index(self.fps.get()))
 
-		# command radio button
-		self.lf = ttk.Labelframe(self.frame1, text='Command Option', padding=5)
-
-		self.v1 = tk.StringVar(value='Python')
-		self.rb1 = ttk.Radiobutton(self.lf, text='Mcu', value='Mcu', variable=self.v1, command=self.selectCommandCmbbox)
-		self.rb2 = ttk.Radiobutton(self.lf, text='Python', value='Python', variable=self.v1, command=self.selectCommandCmbbox)			
-
 		# special commands registration
-		self.hid_commands = [ # not visible
-			PythonCommand.Sync('同期'),
-			PythonCommand.Unsync('同期解除'),
-		]
 		self.unit_dir_commands = [
 			UnitCommand.UP(),
 			UnitCommand.RIGHT(),
@@ -155,56 +160,67 @@ class GUI:
 		]
 
 		self.mcu_name = tk.StringVar()
-		self.mcu_cb = ttk.Combobox(self.frame1, textvariable=self.mcu_name)
+		self.mcu_cb = ttk.Combobox(self.lf, textvariable=self.mcu_name)
 		self.mcu_cb['values'] = [name for name in McuCommand.commands.keys()]
 		self.mcu_cb.bind('<<ComboboxSelected>>', self.assignMcuCommand)
 		self.mcu_cb.current(0)
-		self.mcu_cb['state'] = 'disabled'
 
 		self.py_name = tk.StringVar()
-		self.py_cb = ttk.Combobox(self.frame1, textvariable=self.py_name)
+		self.py_cb = ttk.Combobox(self.lf, textvariable=self.py_name)
 		self.py_cb['values'] = [name for name in PythonCommand.commands.keys()]
 		self.py_cb.bind('<<ComboboxSelected>>', self.assignPythonCommand)
 		self.py_cb.current(0)
 		self.assignCommand()
+	
+		self.util_name = tk.StringVar()
+		self.util_cb = ttk.Combobox(self.lf, textvariable=self.util_name)
+		self.util_cb['values'] = [name for name in PythonCommand.utils.keys()]
+		self.util_cb.bind('<<ComboboxSelected>>', self.assignUtilCommand)
+		self.util_cb.current(0)
 
-		self.sync_btn = ttk.Button(self.frame1, text='Sync', command=lambda: self.hid_commands[0].start(self.ser))
-		self.unsync_btn = ttk.Button(self.frame1, text='Unsync', command=lambda: self.hid_commands[1].start(self.ser))
+		self.partition1 = ttk.Label(self.camera_f1, text=' / ')
+		self.partition2 = ttk.Label(self.camera_f1, text=' / ')
 
 		self.frame1.grid(row=0,column=0,sticky='nwse')
-		
-		self.preview.grid(row=0,column=0,columnspan=7, sticky='nw')
 		self.logArea.grid(row=0,column=7,rowspan=5, sticky='nwse')
 
-		# camera & com port & FPS
-		self.label1.grid(row=1,column=0, sticky='w')
-		self.entry1.grid(row=1,column=1, sticky='w')
-		self.reloadButton.grid(row=1,column=2, sticky='w')
-		self.label2.grid(row=2,column=0, sticky='w')
-		self.entry2.grid(row=2,column=1, sticky='w')
-		self.reloadComPort.grid(row=2,column=2, sticky='w')
-		self.label3.grid(row=3,column=0, sticky='w')
-		self.fps_cb.grid(row=3,column=1, sticky='w')
+		# camera
+		self.camera_lf.grid(row=0,column=0,columnspan=3, sticky='nw')
+		self.camera_f1.grid(row=0,column=0, sticky='nw')
+		self.camera_f2.grid(row=2,column=0, sticky='nw', pady=(5, 0))
+		self.preview.grid(row=1,column=0,columnspan=7, sticky='nw')
+		self.label1.pack(side=tk.LEFT)
+		self.entry1.pack(side=tk.LEFT, padx=5)
+		self.reloadButton.pack(side=tk.LEFT)
+		self.partition1.pack(side=tk.LEFT, padx=10)
+		self.cb1.pack(side=tk.LEFT)
+		self.partition2.pack(side=tk.LEFT, padx=10)
+		self.captureButton.pack(side=tk.LEFT)
+		self.label3.pack(side=tk.LEFT)
+		self.fps_cb.pack(side=tk.LEFT, padx=5)
 
-		self.cb1.grid(row=1,column=3, sticky='w')
-		self.captureButton.grid(row=2,column=3)
+		# serial
+		self.serial_lf.grid(row=1,column=0, sticky='nw')
+		self.label2.grid(row=0,column=0, sticky='w')
+		self.entry2.grid(row=0,column=1, sticky='w')
+		self.reloadComPort.grid(row=0,column=2, padx=(5,0), sticky='w')
+		self.cb_show_ser.grid(row=1, column=0)
+
+		# controller simulator
+		self.control_lf.grid(row=1, column=1, sticky='ne')
+		self.simpleConButton.grid(row=0, column=0)
 
 		# commands selection
-		self.lf.grid(row=3,column=5, rowspan=2)
-		self.rb1.grid(row=2,column=5, sticky='nwse')
-		self.rb2.grid(row=3,column=5, sticky='nwse')
-		self.mcu_cb.grid(row=3, column=6)
-		self.py_cb.grid(row=4, column=6)
-		self.sync_btn.grid(row=1, column=5)
-		self.unsync_btn.grid(row=2, column=5)
-
-		self.startButton.grid(row=2,column=6)
-		self.simpleConButton.grid(row=4, column=4)
-
-		self.cb_show_ser.grid(row=4, column=3)
+		self.lf.grid(row=1,column=2, rowspan=3, sticky='ne')
+		self.rb1.grid(row=0,column=0, sticky='w')
+		self.rb2.grid(row=1,column=0, sticky='w')
+		self.rb3.grid(row=2,column=0, sticky='w')
+		self.setCommandCmbbox()
+		self.startButton.grid(row=3,column=2, sticky='e')
 
 		for child in self.frame1.winfo_children():
-			child.grid_configure(padx=5, pady=5)
+			if not type(child) is ttk.Combobox:
+				child.grid_configure(padx=5, pady=5)
 
 		self.root.iconbitmap('../infinite.ico')
 		self.root.protocol("WM_DELETE_WINDOW", self.exit)
@@ -245,9 +261,9 @@ class GUI:
 		if self.v1.get() == 'Mcu':
 			name = self.mcu_name.get()
 			self.cur_command = McuCommand.commands[name](name)
-		elif self.v1.get() == 'Python':
-			name = self.py_name.get()
-			cmd_class = PythonCommand.commands[name]
+		elif self.v1.get() == 'Python' or self.v1.get() == 'Utility':
+			name = self.py_name.get() if self.v1.get() == 'Python' else self.util_name.get()
+			cmd_class = PythonCommand.commands[name] if self.v1.get() == 'Python' else PythonCommand.utils[name]
 
 			if issubclass(cmd_class, PythonCommand.ImageProcPythonCommand):
 				self.cur_command = cmd_class(name, self.camera)
@@ -291,16 +307,26 @@ class GUI:
 	
 	def assignPythonCommand(self, event):
 		print('changed to python command: ' + self.py_name.get())
+	
+	def assignUtilCommand(self, event):
+		print('changed to utility command: ' + self.util_name.get())
 
-	def selectCommandCmbbox(self):
+	def setCommandCmbbox(self):
 		if self.v1.get() == 'Mcu':
-			self.mcu_cb['state'] = 'normal'
-			self.py_cb['state'] = 'disabled'
+			self.mcu_cb.grid(row=1,column=1, columnspan=2, padx=(10, 0))
+			self.py_cb.grid_remove()
+			self.util_cb.grid_remove()
 			self.assignMcuCommand(None)
 		elif self.v1.get() == 'Python':
-			self.mcu_cb['state'] = 'disabled'
-			self.py_cb['state'] = 'normal'
+			self.mcu_cb.grid_remove()
+			self.py_cb.grid(row=1,column=1, columnspan=2, padx=(10, 0))
+			self.util_cb.grid_remove()
 			self.assignPythonCommand(None)
+		elif self.v1.get() == 'Utility':
+			self.mcu_cb.grid_remove()
+			self.py_cb.grid_remove()
+			self.util_cb.grid(row=1,column=1, columnspan=2, padx=(10, 0))
+			self.assignUtilCommand(None)
 	
 	def activateSerial(self):
 		try:
