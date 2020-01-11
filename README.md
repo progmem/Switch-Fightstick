@@ -11,9 +11,8 @@
 ![リリース前GUI](https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/pokecon_gui_before_release.PNG)
 
 ## Releases
-2019年内に卵孵化自動化を書いて1つ目のリリースとする予定でしたが諸事情により間に合いませんでした  
-1月中を目途にバグ修正を行いながら準備を進めますので何卒ごゆるりと  
-その後も下記目標までリリースを続けていきます  
+[リリースについて](https://github.com/KawaSwitch/Poke-Controller/wiki/About-Releases)  
+以降も下記目標までリリースを続けていきます  
 
 ## About this project
 AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以下の操作の自動化が目的です  
@@ -30,6 +29,7 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
   
 自動化以外の目的としては
 + マクロ作成機能(Pythonコード/マイコン書き込み)  
++ PythonコードからのMCU変換  
 + 取得情報の記録と通知  
 + 不測挙動時の自動停止 など  
   
@@ -60,7 +60,7 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
     [提供元](https://medaka.5ch.net/test/read.cgi/poke/1574816324/)の>>25を参照  
   
 - Python  
-  <画像認識なし>  
+  <画像認識なし/任意>  
   - A連打  
     MCU版と同じ  
     <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/mash_a.PNG" width="720">
@@ -69,10 +69,6 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
     MCU版と同じ  
     [発案元](http://niwaka-syndrome.blog.jp/archives/20509394.html) を要参照  
     <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/auto_league.PNG" width="720">
-  
-  - ワット自動化  
-    MCU版と同じ  
-    MCU版との違いは手順2で代わりにStartを押す.  
   
   - ワット自動化 高速化版(ランクマッチバグ使用)  
     無限ワット対象の巣の200W/2000Wの光は消しておく.   
@@ -95,10 +91,18 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
   - きのみ自動化(ランクマッチバグ使用)  
     ランクマッチに一戦潜る(シングルorダブル)  
     Switch側の本体設定で「インターネットで時間を合わせる」を**OFF**にしておく.  
+    自転車からは降りておく  
+    
+    <画像認識なし>  
+    野生のポケモンが降ってこない1回目だけ取得して終了し時渡り  
+    <画像認識あり> Experimental  
+    画像認識を用いてゆれが強くなったら終了し時渡り  
+    晴れなどの差分画像の変化が生じにくい天候に調整しておく(日付変更等)  
+    画面上半分に変化が生じにくい方向を向いておく  
     
     1: きのみを収穫したい木の話しかける位置に立つ  
     2: Startを押す  
-    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/auto_berry_rankBattle_noImageRecog.PNG" width="720">
+    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/infinity_berry_image_recog.PNG" width="720">  
     
   - シュートシティ カフェ自動化(ランクマッチバグ使用)  
     ランクマッチに一戦潜る(シングルorダブル)  
@@ -119,20 +123,23 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
     3: Startを押す  
     <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/infinity_cafe_v0.PNG" width="720">
   
+  - 自動リリース  
+    <画像認識なし>  
+    1ボックスすべてのポケモンを逃がします(空きは不可)  
+    <画像認識あり>  
+    空いている箇所があればスキップする  
+    色違いであればスキップする(後実装で選択式に変更予定)  
+    
+    ボックス内の持ち方を「つうじょう」にする(デフォルトの赤い矢印の状態)  
+    
+    1: ボックスを開き一番左上のポケモンにカーソルを合わせる  
+    2: Startを押す  
+    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/auto_release.PNG" width="720">  
   
   <br>
   
-  <画像認識あり>  
-  - きのみ自動化 改良版(ランクマッチバグ使用)  
-    画像認識を用いてゆれが強くなったら終了するようになっています  
-  
-    ランクマッチに一戦潜る(シングルorダブル)  
-    Switch側の本体設定で「インターネットで時間を合わせる」を**OFF**にしておく.  
-    晴れなどの差分画像の変化が生じにくい天候に調整しておく(日付変更等)  
-    
-    1: きのみを収穫したい木の話しかける位置に立つ  
-    2: Startを押す  
-    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/infinity_berry_image_recog.PNG" width="720">
+  <画像認識必須>  
+  現在なし  
 
   <br>
 
@@ -146,12 +153,13 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
 MCUとPythonの双方を選択可能ですがPythonを強く推奨します  
 + 実時間形式で秒を単位として書くことができます
 + ループや条件分岐を簡単に実装できます
-+ ホールドや画像認識を手軽に使用できます  
++ ホールド(押しっぱなし)や画像認識を手軽に使用できます  
 
 [Pythonコマンドの作成](https://github.com/KawaSwitch/Poke-Controller/wiki/%E6%96%B0%E3%81%97%E3%81%84Python%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%81%AE%E4%BD%9C%E3%82%8A%E6%96%B9)
 
 `self.press(Button.A, 0.1, 1)`  
-`self.press(Direction.UP, 5, 1)`  
+`self.hold([Direction.UP, Direction.R_LEFT])`  
+`self.isContainTemplate('status.png')`  
 など  
 
 ### 画像認識
