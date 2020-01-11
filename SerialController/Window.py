@@ -146,7 +146,7 @@ class GUI:
 		self.label3 = ttk.Label(self.camera_f2, text='FPS:')
 		self.fps = tk.StringVar()
 		self.fps.set(str(self.settings['fps']))
-		self.fps_cb = ttk.Combobox(self.camera_f2, textvariable=self.fps, width=2)
+		self.fps_cb = ttk.Combobox(self.camera_f2, textvariable=self.fps, width=2, state="readonly")
 		self.fps_cb['values'] = [45, 30, 15]
 		self.fps_cb.bind('<<ComboboxSelected>>', self.applyFps)
 		self.fps_cb.current(self.fps_cb['values'].index(self.fps.get()))
@@ -160,20 +160,20 @@ class GUI:
 		]
 
 		self.mcu_name = tk.StringVar()
-		self.mcu_cb = ttk.Combobox(self.lf, textvariable=self.mcu_name)
+		self.mcu_cb = ttk.Combobox(self.lf, textvariable=self.mcu_name, state="readonly")
 		self.mcu_cb['values'] = [name for name in McuCommand.commands.keys()]
 		self.mcu_cb.bind('<<ComboboxSelected>>', self.assignMcuCommand)
 		self.mcu_cb.current(0)
 
 		self.py_name = tk.StringVar()
-		self.py_cb = ttk.Combobox(self.lf, textvariable=self.py_name)
+		self.py_cb = ttk.Combobox(self.lf, textvariable=self.py_name, state="readonly")
 		self.py_cb['values'] = [name for name in PythonCommand.commands.keys()]
 		self.py_cb.bind('<<ComboboxSelected>>', self.assignPythonCommand)
 		self.py_cb.current(0)
 		self.assignCommand()
 	
 		self.util_name = tk.StringVar()
-		self.util_cb = ttk.Combobox(self.lf, textvariable=self.util_name)
+		self.util_cb = ttk.Combobox(self.lf, textvariable=self.util_name, state="readonly")
 		self.util_cb['values'] = [name for name in PythonCommand.utils.keys()]
 		self.util_cb.bind('<<ComboboxSelected>>', self.assignUtilCommand)
 		self.util_cb.current(0)
