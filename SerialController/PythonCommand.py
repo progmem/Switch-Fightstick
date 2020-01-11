@@ -293,64 +293,59 @@ class InfinityLottery(RankGlitchPythonCommand):
 
 # using RankBattle glitch
 # Infinity getting berries
-# 無限きのみ(ランクマッチ使用)
-class InfinityBerry(RankGlitchPythonCommand):
-	def __init__(self, name):
-		super(InfinityBerry, self).__init__(name)
-	
-	def do(self):
-		# 画像認識使わない場合, 1回だけ取って終了
-		while self.checkIfAlive():
-			self.press(Button.A, wait=0.5)
-			self.press(Button.B, wait=0.5)
-			self.press(Button.A, wait=0.5) # yes
-
-			for _ in range(0, 15):  # B loop
-				self.press(Button.B, wait=0.5)
-				if not self.checkIfAlive(): return
-
-			# Time glitch
-			self.timeLeap()
-
-# using RankBattle glitch
-# Infinity getting berries
-# 無限きのみ(ランクマッチ, 画像認識使用)
-class InfinityBerryIP(ImageProcPythonCommand, RankGlitchPythonCommand):
+# 無限きのみ(ランクマッチ, 画像認識任意)
+class InfinityBerry(ImageProcPythonCommand, RankGlitchPythonCommand):
 	def __init__(self, name, cam):
-		super(InfinityBerryIP, self).__init__(name, cam)
+		super(InfinityBerry, self).__init__(name, cam)
+		self.cam = cam
 
 	def do(self):
 		while self.checkIfAlive():
-			self.press(Button.A, wait=0.5)
-			self.press(Button.B, wait=0.5)
-			self.press(Button.A, wait=0.5) # yes
 
-			while True:
-				self.press(Button.A, wait=0.5) # for press 'shake more'
-				self.press(Button.A, wait=0.5) # just in case
+			# If camera is not opened, then pick 1 and timeleap
+			if not self.cam.isOpened():
 				self.press(Button.A, wait=0.5)
+				self.press(Button.B, wait=0.5)
+				self.press(Button.A, wait=0.5) # yes
 
-				while not self.isContainTemplate('fell_message.png'):
+				for _ in range(0, 15):  # B loop
 					self.press(Button.B, wait=0.5)
 					if not self.checkIfAlive(): return
-				print('fell message!')
+
+				# Time glitch
+				self.timeLeap()
+
+			else:
 				self.press(Button.A, wait=0.5)
-
-				# Judge continuity by tree shaking motion
-				if self.isContinue():
-					print('continue')
-					self.wait(0.5)
-					continue
-				else:
-					print('not continue')
-					break
-
-			for _ in range(0, 10):  # B loop
 				self.press(Button.B, wait=0.5)
-				if not self.checkIfAlive(): return
+				self.press(Button.A, wait=0.5) # yes
 
-			# Time glitch
-			self.timeLeap()
+				while True:
+					self.press(Button.A, wait=0.5) # for press 'shake more'
+					self.press(Button.A, wait=0.5) # just in case
+					self.press(Button.A, wait=0.5)
+
+					while not self.isContainTemplate('fell_message.png'):
+						self.press(Button.B, wait=0.5)
+						if not self.checkIfAlive(): return
+					print('fell message!')
+					self.press(Button.A, wait=0.5)
+
+					# Judge continuity by tree shaking motion
+					if self.isContinue():
+						print('continue')
+						self.wait(0.5)
+						continue
+					else:
+						print('not continue')
+						break
+
+				for _ in range(0, 10):  # B loop
+					self.press(Button.B, wait=0.5)
+					if not self.checkIfAlive(): return
+
+				# Time glitch
+				self.timeLeap()
 	
 	def isContinue(self, check_interval=0.1, check_duration=2):
 		time = 0
@@ -733,7 +728,6 @@ commands = {
 	'仮:自動孵化(画像認識)': AutoHatching,
 	'固定数孵化(画像認識)': CountHatching,
 	'自動リリース': AutoRelease,
-	'無限きのみ(画像認識)': InfinityBerryIP,
 	'無限ワット(ランクマ)': InfinityWatt,
 	'無限IDくじ(ランクマ)': InfinityLottery,
 	'無限きのみ(ランクマ)': InfinityBerry,
