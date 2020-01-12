@@ -143,26 +143,7 @@ class CAPTURE(UnitCommand):
 		super(CAPTURE, self).start(ser)
 		self.press(Button.CAPTURE)
 
-
-class UnitDirectionCommand(UnitCommand):
-	def __init__(self, name=None):
-		super(UnitDirectionCommand, self).__init__(name)
-		self.toggle = False
-
-	def start(self, ser):
-		self.isRunning = True
-		self.toggle = not self.toggle
-		self.key = Keys.KeyPress(ser)
-	
-	def press(self, btn):
-		if self.toggle:
-			self.key.input([btn])
-		else:
-			self.key.inputEnd([btn])
-		self.isRunning = False
-		self.key = None
-
-class UP(UnitDirectionCommand):
+class UP(UnitCommand):
 	def __init__(self, name=None):
 		super(UP, self).__init__(name)
 
@@ -170,7 +151,7 @@ class UP(UnitDirectionCommand):
 		super(UP, self).start(ser)
 		self.press(Direction.UP)
 
-class RIGHT(UnitDirectionCommand):
+class RIGHT(UnitCommand):
 	def __init__(self, name=None):
 		super(RIGHT, self).__init__(name)
 
@@ -178,7 +159,7 @@ class RIGHT(UnitDirectionCommand):
 		super(RIGHT, self).start(ser)
 		self.press(Direction.RIGHT)
 
-class DOWN(UnitDirectionCommand):
+class DOWN(UnitCommand):
 	def __init__(self, name=None):
 		super(DOWN, self).__init__(name)
 
@@ -186,7 +167,7 @@ class DOWN(UnitDirectionCommand):
 		super(DOWN, self).start(ser)
 		self.press(Direction.DOWN)
 
-class LEFT(UnitDirectionCommand):
+class LEFT(UnitCommand):
 	def __init__(self, name=None):
 		super(LEFT, self).__init__(name)
 
