@@ -1,3 +1,4 @@
+
 ## Fork元: Switch-Fightstick
 マイコンをコントローラに偽装してSwitchと通信を行えるようにするプロジェクト  
 有名なプロジェクトなので詳しくはそちらのReadmeや解説してくれてるサイトを参照してください  
@@ -125,11 +126,12 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
   
   - 自動リリース  
     <画像認識なし>  
-    1ボックスすべてのポケモンを逃がします(空きは不可)  
+    1ボックスすべてのポケモンを逃がします. 空きは不可  
     <画像認識あり>  
-    空いている箇所があればスキップする  
+    空いている箇所(空白or卵)があればスキップする  
     色違いであればスキップする(後実装で選択式に変更予定)  
     
+	プラスボタンで技構成のあるステータス画面を表示するようにしておく      
     ボックス内の持ち方を「つうじょう」にする(デフォルトの赤い矢印の状態)  
     
     1: ボックスを開き一番左上のポケモンにカーソルを合わせる  
@@ -237,3 +239,10 @@ https://github.com/ebith/Switch-Fightstick
   
 その他沢山のブログ等を参考にさせていただいています  
 また本プロジェクトでは自動化コード(それ以外でも)のプルリクエスト歓迎してます!  
+
+## License
+本プロジェクトではLGPLライセンスのDirectShowLib-2005.dllを同梱し使用しています  
+[About DirectShowLib]([http://directshownet.sourceforge.net/](http://directshownet.sourceforge.net/))  
+
+本プロジェクト自体はMITライセンスです  
+See here [LISENCE.txt](https://github.com/KawaSwitch/Poke-Controller/blob/master/LICENSE.txt)  

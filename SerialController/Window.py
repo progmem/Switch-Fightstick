@@ -33,7 +33,12 @@ class Camera:
 		if self.camera is not None and self.camera.isOpened():
 			self.camera.release()
 			self.camera = None
-		self.camera = cv2.VideoCapture(cameraId)
+
+		if os.name == 'nt':
+			self.camera = cv2.VideoCapture(cameraId, cv2.CAP_DSHOW)
+		else:
+			self.camera = cv2.VideoCapture(cameraId)
+
 		if not self.camera.isOpened():
 			print("Camera ID " + str(cameraId) + " can't open.")
 			return
@@ -54,6 +59,10 @@ class Camera:
 		fileName = dt_now.strftime('%Y-%m-%d_%H-%M-%S')+".png"
 		cv2.imwrite(fileName, self.image_bgr)
 		print('capture succeeded: ' + fileName)
+	
+	def destroy(self):
+		if self.camera is not None and self.camera.isOpened():
+			self.camera.release()
 
 # GUI of switch controller simulator
 class ControllerGUI:
@@ -100,7 +109,7 @@ class ControllerGUI:
 		tk.Button(joycon_R_frame, text='PLUS', width=5, command=lambda: UnitCommand.PLUS().start(ser)).place(x=35, y=70)
 		tk.Button(joycon_R_frame, text='HOME', width=5, command=lambda: UnitCommand.HOME().start(ser)).place(x=50, y=270)
 
-		label = ttk.Label(self.window, text='or Keyboard can be used').place(x=450, y=270)
+		ttk.Label(self.window, text='or Keyboard can be used').place(x=450, y=270)
 
 		joycon_L_frame.grid(row=0, column=0)
 		joycon_R_frame.grid(row=0, column=1)
@@ -170,10 +179,35 @@ class GUI:
 		# load settings file
 		self.loadSettings()
 
+		# camera settings
 		self.label1 = ttk.Label(self.camera_f1, text='Camera ID:')
 		self.cameraID = tk.IntVar()
 		self.cameraID.set(int(self.settings['camera_id']))
-		self.entry1 = ttk.Entry(self.camera_f1, width=5, textvariable=self.cameraID)
+		if os.name == 'nt':
+			import clr
+			clr.AddReference("../DirectShowLib/DirectShowLib-2005")
+			from DirectShowLib import DsDevice, FilterCategory
+
+			# Get names of detected camera devices
+			captureDevices = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice)
+			self.camera_dic = {device.Name: cam_id for cam_id, device in enumerate(captureDevices)}
+			dev_num = len(self.camera_dic)
+
+			if self.cameraID.get() > dev_num - 1:
+				print('inappropriate camera ID! -> set to 0')
+				self.cameraID.set(0)
+				if dev_num == 0: print('No camera devices can be found.')
+
+			# locate a combobox instead of an entry
+			self.cameraName = tk.StringVar()
+			self.label1['text'] = 'Camera: '
+			self.camera_cb = ttk.Combobox(self.camera_f1, width=30, textvariable=self.cameraName, state="readonly")
+			self.camera_cb['values'] = [device for device in self.camera_dic.keys()]
+			self.camera_cb.bind('<<ComboboxSelected>>', self.assignCamera)
+			if not dev_num == 0:
+				self.camera_cb.current(self.cameraID.get())
+		else:
+			self.entry1 = ttk.Entry(self.camera_f1, width=5, textvariable=self.cameraID)
 
 		# open up a camera
 		self.camera = Camera()
@@ -271,7 +305,10 @@ class GUI:
 		self.camera_f2.grid(row=2,column=0, sticky='nw', pady=(5, 0))
 		self.preview.grid(row=1,column=0,columnspan=7, sticky='nw')
 		self.label1.pack(side=tk.LEFT)
-		self.entry1.pack(side=tk.LEFT, padx=5)
+		if os.name == 'nt':
+			self.camera_cb.pack(side=tk.LEFT, padx=5)
+		else:
+			self.entry1.pack(side=tk.LEFT, padx=5)
 		self.reloadButton.pack(side=tk.LEFT)
 		self.partition1.pack(side=tk.LEFT, padx=10)
 		self.cb1.pack(side=tk.LEFT)
@@ -305,11 +342,15 @@ class GUI:
 
 		self.root.iconbitmap('../infinite.ico')
 		self.root.protocol("WM_DELETE_WINDOW", self.exit)
-		self.root.after(100, self.doProcess)
+		self.doProcess()
 
 	def openCamera(self):
 		self.camera.openCamera(self.cameraID.get())
 		self.settings['camera_id'] = self.cameraID.get()
+	
+	def assignCamera(self, event):
+		if os.name == 'nt':
+			self.cameraID.set(self.camera_dic[self.cameraName.get()])
 
 	def loadSettings(self):
 		self.settings = None
@@ -374,6 +415,8 @@ class GUI:
 		# save settings
 		json.dump(self.settings, open(SETTING_PATH, 'w'), indent=4)
 
+		self.camera.destroy()
+		cv2.destroyAllWindows()
 		self.root.destroy()
 
 	def saveCapture(self):
