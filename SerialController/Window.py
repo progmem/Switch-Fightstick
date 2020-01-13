@@ -64,6 +64,10 @@ class Camera:
 		if self.camera is not None and self.camera.isOpened():
 			self.camera.release()
 
+	def destroy(self):
+		if self.camera is not None and self.camera.isOpened():
+			self.camera.release()
+
 # GUI of switch controller simulator
 class ControllerGUI:
 	def __init__(self, root, ser):
@@ -213,6 +217,13 @@ class GUI:
 		self.camera = Camera()
 		self.openCamera()
 
+		if os.name == 'nt':
+			import clr
+			clr.AddReference("../DirectShowLib/DirectShowLib-2005")
+			from DirectShowLib import DsDevice, FilterCategory
+		else:
+			pass
+
 		self.showPreview = tk.BooleanVar()
 		self.cb1 = ttk.Checkbutton(
 			self.camera_f1,
@@ -340,7 +351,6 @@ class GUI:
 			if not type(child) is ttk.Combobox:
 				child.grid_configure(padx=5, pady=5)
 
-		self.root.iconbitmap('../infinite.ico')
 		self.root.protocol("WM_DELETE_WINDOW", self.exit)
 		self.doProcess()
 
@@ -453,19 +463,16 @@ class GUI:
 			self.assignUtilCommand(None)
 
 	def activateSerial(self):
-		try:
-			if self.ser.isOpened():
-				print('Port is already opened and being closed.')
-				self.ser.closeSerial()
-				self.keyPress = None
-				self.activateSerial()
-			else:
-				self.ser.openSerial("COM"+str(self.comPort.get()))
+		if self.ser.isOpened():
+			print('Port is already opened and being closed.')
+			self.ser.closeSerial()
+			self.keyPress = None
+			self.activateSerial()
+		else:
+			if self.ser.openSerial(self.comPort.get()):
 				self.settings['com_port'] = self.comPort.get()
 				print('COM Port ' + str(self.comPort.get()) + ' connected successfully')
 				self.keyPress = KeyPress(self.ser)
-		except IOError:
-			print('COM Port: can\'t be established')
 
 	def createControllerWindow(self):
 		if not self.controller is None:
@@ -475,26 +482,29 @@ class GUI:
 		window = ControllerGUI(self.root, self.ser)
 
 		# enable Keyboard as controller
-		self.keyboard = SwitchKeyboardController(self.keyPress)
-		self.keyboard.listen()
+		if self.keyboard is None:
+			self.keyboard = SwitchKeyboardController(self.keyPress)
+			self.keyboard.listen()
 
 		# bind focus
-		window.bind("<FocusIn>", self.onFocusInController)
-		window.bind("<FocusOut>", self.onFocusOutController)
-		self.root.bind("<FocusIn>", self.onFocusInController)
-		self.root.bind("<FocusOut>", self.onFocusOutController)
+		if os.name == 'nt':
+			window.bind("<FocusIn>", self.onFocusInController)
+			window.bind("<FocusOut>", self.onFocusOutController)
+			self.root.bind("<FocusIn>", self.onFocusInController)
+			self.root.bind("<FocusOut>", self.onFocusOutController)
 
 		window.protocol("WM_DELETE_WINDOW", self.closingController)
 		self.controller = window
 
 	def closingController(self):
-		# stop listening to keyboard events
-		if not self.keyboard is None:
-			self.keyboard.stop()
-			self.keyboard = None
+		if os.name == 'nt': # NOTE: Idk why but self.keyboard.stop() makes crash on Linux
+			# stop listening to keyboard events
+			if not self.keyboard is None:
+				self.keyboard.stop()
+				self.keyboard = None
 
-		self.root.bind("<FocusIn>", lambda _: None)
-		self.root.bind("<FocusOut>", lambda _: None)
+				self.root.bind("<FocusIn>", lambda _: None)
+				self.root.bind("<FocusOut>", lambda _: None)
 
 		self.controller.destroy()
 		self.controller = None

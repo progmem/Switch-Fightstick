@@ -242,7 +242,7 @@ https://github.com/ebith/Switch-Fightstick
 
 ## License
 本プロジェクトではLGPLライセンスのDirectShowLib-2005.dllを同梱し使用しています  
-[About DirectShowLib]([http://directshownet.sourceforge.net/](http://directshownet.sourceforge.net/))  
+[About DirectShowLib](http://directshownet.sourceforge.net/)  
 
 本プロジェクト自体はMITライセンスです  
 See here [LISENCE.txt](https://github.com/KawaSwitch/Poke-Controller/blob/master/LICENSE.txt)  
