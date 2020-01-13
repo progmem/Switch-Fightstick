@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
 import serial
-
 
 class Sender:
 	def __init__(self):
@@ -10,8 +10,24 @@ class Sender:
 		self.is_show_serial = False
 
 	def openSerial(self, portNum):
-		self.ser = serial.Serial(portNum, 9600)
-		
+		try:
+			if os.name == 'nt':
+				print('connecting to ' + "COM" + str(portNum))
+				self.ser = serial.Serial("COM" + str(portNum), 9600)
+				return True
+			elif os.name == 'posix':
+				print('connecting to ' + "/dev/ttyUSB" + str(portNum))
+				self.ser = serial.Serial("/dev/ttyUSB" + str(portNum))
+				return True
+			else:
+				print('not supported OS')
+				return False
+		except IOError:
+			print('COM Port: can\'t be established')
+			import traceback
+			traceback.print_exc()
+			return False
+				
 	def closeSerial(self):
 		self.ser.close()
 	
