@@ -188,11 +188,19 @@ Direction.UP = Direction(Stick.LEFT, 90)
 Direction.RIGHT = Direction(Stick.LEFT, 0)
 Direction.DOWN = Direction(Stick.LEFT, -90)
 Direction.LEFT = Direction(Stick.LEFT, -180)
+Direction.UP_RIGHT = Direction(Stick.LEFT, 45)
+Direction.DOWN_RIGHT = Direction(Stick.LEFT, -45)
+Direction.DOWN_LEFT = Direction(Stick.LEFT, -135)
+Direction.UP_LEFT = Direction(Stick.LEFT, 135)
 # Right stick for ease of use
 Direction.R_UP = Direction(Stick.RIGHT, 90)
 Direction.R_RIGHT = Direction(Stick.RIGHT, 0)
 Direction.R_DOWN = Direction(Stick.RIGHT, -90)
 Direction.R_LEFT = Direction(Stick.RIGHT, -180)
+Direction.R_UP_RIGHT = Direction(Stick.RIGHT, 45)
+Direction.R_DOWN_RIGHT = Direction(Stick.RIGHT, -45)
+Direction.R_DOWN_LEFT = Direction(Stick.RIGHT, -135)
+Direction.R_UP_LEFT = Direction(Stick.RIGHT, 135)
 
 # handles serial input to Joystick.c
 class KeyPress:

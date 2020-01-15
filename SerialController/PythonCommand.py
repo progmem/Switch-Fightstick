@@ -408,7 +408,7 @@ class InfinityCafe(RankGlitchPythonCommand):
 			self.press(Button.A, wait=1)
 			self.press(Button.A, wait=4)
 			self.press(Direction.UP, duration=0.2)
-			self.press([Direction.UP, Direction.LEFT], duration=1, wait=2)
+			self.press(Direction.UP_LEFT, duration=1, wait=2)
 
 			# in pokemon center
 			self.press(Direction.UP, duration=2)
@@ -460,6 +460,7 @@ class AutoRelease(ImageProcPythonCommand):
 
 			self.press(Direction.DOWN, wait=0.2)
 
+		if not self.checkIfAlive(): return
 		# Return from pokemon box
 		self.press(Button.B, wait=2)
 		self.press(Button.B, wait=2)
@@ -521,13 +522,13 @@ class AutoHatching(ImageProcPythonCommand):
 		self.itr_max = 6
 
 	def do(self):
-		self.press(Direction.DOWN, duration=0.05, wait=0.5)
+		self.press(Direction.DOWN, duration=0.05, wait=1)
 		self.press(Direction.DOWN, duration=0.8)
 		self.press(Direction.LEFT, duration=0.2)
 
 		while self.checkIfAlive():
 			for i in range(0, self.itr_max):
-				print('iteration: ' + str(i+1) + ' (' + str((i+1)*5) + '/30) -> (' + str((i+2)*5) + '/30)')
+				print('iteration: ' + str(i+1) + ' (' + str(i*5) + '/30) -> (' + str((i+1)*5) + '/30)')
 				print('hatched box num : ' + str(self.hatched_box_num))
 
 				self.getNewEgg()
@@ -683,8 +684,19 @@ class Debug(ImageProcPythonCommand):
 		super(Debug, self).__init__(name, cam)
 
 	def do(self):
-
+		self.goRound()
 		self.finish()
+	
+	def goRound(self):
+		self.press(Direction.LEFT, duration=0.5)
+		self.press(Direction.DOWN_LEFT, duration=0.5)
+		self.press(Direction.DOWN, duration=0.5)
+		self.press(Direction.DOWN_RIGHT, duration=0.5)
+		self.press(Direction.RIGHT, duration=0.5)
+		self.press(Direction.UP_RIGHT, duration=0.5)
+		self.press(Direction.UP, duration=0.5)
+		self.press(Direction.UP_LEFT, duration=0.5)
+		
 
 # Get watt automatically using the glitch
 # source: MCU Command 'InifinityWatt'

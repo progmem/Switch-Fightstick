@@ -38,9 +38,9 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
 それ以外はPCに繋いで動作させるつもりです  
 既存マクロの切り替えやPCで作成したマクロのマイコン/.cファイルへの書き込みはPCからすべて行う予定  
   
-### 現在実行可能な操作  
-現バージョンではデバグの効率化/接続用ボタン押下の廃止のために  
-一番最初の接続ではコントローラの接続画面からSyncを押してStartする必要があります  
+### 現在のデフォルトのコマンド 
+マイコンを挿した直後は簡易コントローラ(後述)などでいずれかのボタンを押すなどして,  
+コントローラを認識させてからコマンドをスタートしてください  
 [Poke-Controllerの使い方](https://github.com/KawaSwitch/Poke-Controller/wiki/Poke-Controller%E3%81%AE%E4%BD%BF%E3%81%84%E6%96%B9) ← 準備中  
   
 - MCU  
@@ -159,9 +159,9 @@ MCUとPythonの双方を選択可能ですがPythonを強く推奨します
 
 [Pythonコマンドの作成](https://github.com/KawaSwitch/Poke-Controller/wiki/%E6%96%B0%E3%81%97%E3%81%84Python%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%81%AE%E4%BD%9C%E3%82%8A%E6%96%B9)
 
-`self.press(Button.A, 0.1, 1)`  
-`self.hold([Direction.UP, Direction.R_LEFT])`  
-`self.isContainTemplate('status.png')`  
+`self.press(Button.A, 0.1, 1) # Aボタンを押して離す`  
+`self.hold([Direction.UP_LEFT, Direction.R_LEFT]) # 左スティックと右スティックを同時にホールド入力`  
+`self.isContainTemplate('status.png') # テンプレートマッチング`  
 など  
 
 ### 画像認識
