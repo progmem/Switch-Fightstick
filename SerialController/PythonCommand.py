@@ -33,7 +33,7 @@ class PythonCommand(Command.Command):
 		except:
 			if self.keys is None:
 				self.keys = Keys.KeyPress(ser)
-			print('interuppt')
+			print('interruppt')
 			import traceback
 			traceback.print_exc()
 			self.keys.end()
@@ -89,7 +89,7 @@ class PythonCommand(Command.Command):
 			self.keys.end()
 			self.keys = None
 			self.thread = None
-			print(self.name + ' has reached an alive check and exited succucesfully.')
+			print(self.name + ' has reached an alive check and exited successfully.')
 
 			if not self.postProcess is None:
 				self.postProcess()
@@ -477,7 +477,7 @@ class AutoRelease(ImageProcPythonCommand):
 		self.press(Button.A, wait=1)
 		self.press(Button.A, wait=0.3)
 
-# Egg hathing at count times
+# Egg hatching at count times
 # 指定回数の孵化(キャプボあり)
 class CountHatching(ImageProcPythonCommand):
 	def __init__(self, name, cam):
@@ -498,7 +498,7 @@ class CountHatching(ImageProcPythonCommand):
 				self.wait(1)
 				if not self.checkIfAlive(): return
 
-			print('egg hathing')
+			print('egg hatching')
 			self.holdEnd([Direction.RIGHT, Direction.R_LEFT])
 			self.press(Button.A)
 			self.wait(15)
@@ -546,7 +546,7 @@ class AutoHatching(ImageProcPythonCommand):
 						self.wait(1)
 						if not self.checkIfAlive(): return
 
-					print('egg hathing')
+					print('egg hatching')
 					self.holdEnd([Direction.RIGHT, Direction.R_LEFT])
 					self.press(Button.A)
 					self.wait(15)
