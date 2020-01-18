@@ -144,9 +144,10 @@ class SendFormat:
 
 # This class handle L stick and R stick at any angles
 class Direction:
-	def __init__(self, stick, angle, isDegree=True):
+	def __init__(self, stick, angle, isDegree=True, showName=None):
 		self.stick = stick	
 		self.angle_for_show = angle
+		self.showName = showName
 		angle = math.radians(angle) if isDegree else angle
 
 		# We set stick X and Y from 0 to 255, so they are calculated as below.
@@ -156,7 +157,10 @@ class Direction:
 		self.y = math.floor(127.5 * math.sin(angle) + 127.5)
 
 	def __repr__(self):
-		return "<{}, {}[deg]>".format(self.stick, self.angle_for_show)
+		if self.showName:
+			return "<{}, {}>".format(self.stick, self.showName)
+		else:
+			return "<{}, {}[deg]>".format(self.stick, self.angle_for_show)
 
 	def __eq__(self, other):
 		if (not type(other) is Direction):
@@ -184,23 +188,23 @@ class Direction:
 		return tilting
 
 # Left stick for ease of use
-Direction.UP = Direction(Stick.LEFT, 90)
-Direction.RIGHT = Direction(Stick.LEFT, 0)
-Direction.DOWN = Direction(Stick.LEFT, -90)
-Direction.LEFT = Direction(Stick.LEFT, -180)
-Direction.UP_RIGHT = Direction(Stick.LEFT, 45)
-Direction.DOWN_RIGHT = Direction(Stick.LEFT, -45)
-Direction.DOWN_LEFT = Direction(Stick.LEFT, -135)
-Direction.UP_LEFT = Direction(Stick.LEFT, 135)
+Direction.UP = Direction(Stick.LEFT, 90, showName='UP')
+Direction.RIGHT = Direction(Stick.LEFT, 0, showName='RIGHT')
+Direction.DOWN = Direction(Stick.LEFT, -90, showName='DOWN')
+Direction.LEFT = Direction(Stick.LEFT, -180, showName='LEFT')
+Direction.UP_RIGHT = Direction(Stick.LEFT, 45, showName='UP_RIGHT')
+Direction.DOWN_RIGHT = Direction(Stick.LEFT, -45, showName='DOWN_RIGHT')
+Direction.DOWN_LEFT = Direction(Stick.LEFT, -135, showName='DOWN_LEFT')
+Direction.UP_LEFT = Direction(Stick.LEFT, 135, showName='UP_LEFT')
 # Right stick for ease of use
-Direction.R_UP = Direction(Stick.RIGHT, 90)
-Direction.R_RIGHT = Direction(Stick.RIGHT, 0)
-Direction.R_DOWN = Direction(Stick.RIGHT, -90)
-Direction.R_LEFT = Direction(Stick.RIGHT, -180)
-Direction.R_UP_RIGHT = Direction(Stick.RIGHT, 45)
-Direction.R_DOWN_RIGHT = Direction(Stick.RIGHT, -45)
-Direction.R_DOWN_LEFT = Direction(Stick.RIGHT, -135)
-Direction.R_UP_LEFT = Direction(Stick.RIGHT, 135)
+Direction.R_UP = Direction(Stick.RIGHT, 90, showName='UP')
+Direction.R_RIGHT = Direction(Stick.RIGHT, 0, showName='RIGHT')
+Direction.R_DOWN = Direction(Stick.RIGHT, -90, showName='DOWN')
+Direction.R_LEFT = Direction(Stick.RIGHT, -180, showName='LEFT')
+Direction.R_UP_RIGHT = Direction(Stick.RIGHT, 45, showName='UP_RIGHT')
+Direction.R_DOWN_RIGHT = Direction(Stick.RIGHT, -45, showName='DOWN_RIGHT')
+Direction.R_DOWN_LEFT = Direction(Stick.RIGHT, -135, showName='DOWN_LEFT')
+Direction.R_UP_LEFT = Direction(Stick.RIGHT, 135, showName='UP_LEFT')
 
 # handles serial input to Joystick.c
 class KeyPress:
