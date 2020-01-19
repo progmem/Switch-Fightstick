@@ -775,6 +775,37 @@ class InfinityWatt(RankGlitchPythonCommand):
 				self.press(Button.HOME, wait=1) # ゲームに戻る
 				self.press(Button.HOME, wait=1)
 
+class InfinityFeather(RankGlitchPythonCommand):
+	def __init__(self, name):
+		super(InfinityFeather, self).__init__(name)
+
+	def do(self):
+		# 時間等確認用。使用する際は "import time" すること
+		# start = time.time()
+		# i = 0  # カウンタ
+		print('Start collecting feathers')
+		while self.checkIfAlive():
+			self.wait(0.75)
+			# i += 1
+			# print('Map')
+			self.press(Button.X, wait=1.5) # open up a map
+			self.press(Button.A, wait=3.0)
+			self.press(Direction(Stick.LEFT, 45), duration=0.05) # Select a Pokémon Day Care
+			self.press(Button.A, wait=1)
+			self.press(Button.A, wait=4.0)
+			if not self.checkIfAlive(): return
+			# print('pick feather')
+			self.press(Direction.DOWN_RIGHT, duration=0.15)
+			self.press(Direction.RIGHT, duration=3)
+			self.press(Button.A, wait=0.3)
+			self.press(Button.A, wait=0.3)
+			self.press(Button.A, wait=0.3)
+			self.press(Button.A, wait=0.3)
+			# print('Time leap')
+			if not self.checkIfAlive(): return
+			self.timeLeap()
+			# tm = round(time.time() - start, 2)
+			# print('Loop : {} in {} sec. Average: {} sec/loop'.format(i, tm, round(tm / i, 2)))
 
 # sample initial code
 # Copy and paste this class and write codes in start method.
@@ -801,6 +832,7 @@ commands = {
 	'無限IDくじ(ランクマ)': InfinityLottery,
 	'無限きのみ(ランクマ)': InfinityBerry,
 	'無限カフェ(ランクマ)': InfinityCafe,
+	'無限羽回収(ランクマ)': InfinityFeather,
 	'デバグ': Debug,
 }
 
