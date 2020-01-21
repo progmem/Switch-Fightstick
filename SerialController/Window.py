@@ -240,6 +240,12 @@ class GUI:
 			command=lambda: self.ser.setIsShowSerial(self.showSerial.get()))
 
 		# simple controller
+		self.useKeyboard = tk.BooleanVar()
+		self.cb_use_keyboard = ttk.Checkbutton(
+			self.control_lf, text='Use Keyboard',
+			onvalue=True, offvalue=False, variable=self.useKeyboard,
+			command=self.activateKeyboard)
+		self.useKeyboard.set(False)
 		self.simpleConButton = ttk.Button(self.control_lf, text='Controller', command=self.createControllerWindow)
 
 		# fps
@@ -302,7 +308,8 @@ class GUI:
 
 		# controller simulator
 		self.control_lf.grid(row=1, column=1, sticky='ne')
-		self.simpleConButton.grid(row=0, column=0)
+		self.cb_use_keyboard.grid(row=0, column=0)
+		self.simpleConButton.grid(row=1, column=0, pady=(5,0))
 
 		# commands selection
 		self.lf.grid(row=1,column=2, rowspan=3, sticky='ne')
@@ -469,32 +476,32 @@ class GUI:
 			return
 
 		window = ControllerGUI(self.root, self.ser)
-
-		# enable Keyboard as controller
-		if self.keyboard is None:
-			self.keyboard = SwitchKeyboardController(self.keyPress)
-			self.keyboard.listen()
-
-		# bind focus
-		if os.name == 'nt':
-			window.bind("<FocusIn>", self.onFocusInController)
-			window.bind("<FocusOut>", self.onFocusOutController)
-			self.root.bind("<FocusIn>", self.onFocusInController)
-			self.root.bind("<FocusOut>", self.onFocusOutController)
-
 		window.protocol("WM_DELETE_WINDOW", self.closingController)
 		self.controller = window
+	
+	def activateKeyboard(self):
+		if self.useKeyboard.get() == True:
+			# enable Keyboard as controller
+			if self.keyboard is None:
+				self.keyboard = SwitchKeyboardController(self.keyPress)
+				self.keyboard.listen()
+		
+			# bind focus
+			if os.name == 'nt':
+				self.root.bind("<FocusIn>", self.onFocusInController)
+				self.root.bind("<FocusOut>", self.onFocusOutController)
+
+		elif self.useKeyboard.get() == False:
+			if os.name == 'nt': # NOTE: Idk why but self.keyboard.stop() makes crash on Linux
+				if not self.keyboard is None:
+					# stop listening to keyboard events
+					self.keyboard.stop()
+					self.keyboard = None
+
+					self.root.bind("<FocusIn>", lambda _: None)
+					self.root.bind("<FocusOut>", lambda _: None)
 
 	def closingController(self):
-		if os.name == 'nt': # NOTE: Idk why but self.keyboard.stop() makes crash on Linux
-			# stop listening to keyboard events
-			if not self.keyboard is None:
-				self.keyboard.stop()
-				self.keyboard = None
-
-				self.root.bind("<FocusIn>", lambda _: None)
-				self.root.bind("<FocusOut>", lambda _: None)
-
 		self.controller.destroy()
 		self.controller = None
 
