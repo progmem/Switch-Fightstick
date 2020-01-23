@@ -474,7 +474,7 @@ class AutoRelease(ImageProcPythonCommand):
 		self.press(Direction.UP, wait=0.2)
 		self.press(Button.A, wait=1)
 		self.press(Direction.UP, wait=0.2)
-		self.press(Button.A, wait=1)
+		self.press(Button.A, wait=1.5)
 		self.press(Button.A, wait=0.3)
 
 # Egg hatching at count times
@@ -675,7 +675,7 @@ class AutoHatching(ImageProcPythonCommand):
 		self.press(Direction.UP, wait=0.2)
 		self.press(Button.A, wait=1)
 		self.press(Direction.UP, wait=0.2)
-		self.press(Button.A, wait=1)
+		self.press(Button.A, wait=1.5)
 		self.press(Button.A, wait=0.3)
 
 # for debug
