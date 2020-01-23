@@ -5,14 +5,13 @@ import sys, os
 from tkinter.scrolledtext import ScrolledText
 import tkinter as tk
 from tkinter import ttk
-import cv2
-import json
-from PIL import Image, ImageTk
-import time, datetime
+import cv2, json, time
 import McuCommand, PythonCommand, UnitCommand
-import Sender
+import Camera, Sender
 from Keys import KeyPress
 from Keyboard import SwitchKeyboardController
+from Camera import Camera
+from GuiAssets import CaptureArea, ControllerGUI
 
 SETTING_PATH = "./settings.json"
 
@@ -20,130 +19,6 @@ SETTING_PATH = "./settings.json"
 class MyScrolledText(ScrolledText):
 	def flush(self):
 		pass
-
-class Camera:
-	def __init__(self):
-		self.camera = None
-		self.capture_size = (1280, 720)
-
-	def openCamera(self, cameraId):
-		if self.camera is not None and self.camera.isOpened():
-			self.camera.release()
-			self.camera = None
-
-		if os.name == 'nt':
-			self.camera = cv2.VideoCapture(cameraId, cv2.CAP_DSHOW)
-		else:
-			self.camera = cv2.VideoCapture(cameraId)
-
-		if not self.camera.isOpened():
-			print("Camera ID " + str(cameraId) + " can't open.")
-			return
-		print("Camera ID " + str(cameraId) + " opened successfully")
-		self.camera.set(cv2.CAP_PROP_FPS, 60)
-		self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.capture_size[0])
-		self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.capture_size[1])
-
-	def isOpened(self):
-		return self.camera.isOpened()
-
-	def readFrame(self):
-		_, self.image_bgr = self.camera.read()
-		return self.image_bgr
-
-	def saveCapture(self):
-		dt_now = datetime.datetime.now()
-		fileName = dt_now.strftime('%Y-%m-%d_%H-%M-%S')+".png"
-		cv2.imwrite(fileName, self.image_bgr)
-		print('capture succeeded: ' + fileName)
-	
-	def destroy(self):
-		if self.camera is not None and self.camera.isOpened():
-			self.camera.release()
-
-	def destroy(self):
-		if self.camera is not None and self.camera.isOpened():
-			self.camera.release()
-
-# GUI of switch controller simulator
-class ControllerGUI:
-	def __init__(self, root, ser):
-		self.window = tk.Toplevel(root)
-		self.window.title('Switch Controller Simulator')
-		self.window.geometry("%dx%d%+d%+d" % (600, 300, 250, 125))
-		self.window.resizable(0, 0)
-
-		joycon_L_color = '#95f1ff'
-		joycon_R_color = '#ff6b6b'
-
-		joycon_L_frame = tk.Frame(self.window, width=300, height=300, relief='flat', bg=joycon_L_color)
-		joycon_R_frame = tk.Frame(self.window, width=300, height=300, relief='flat', bg=joycon_R_color)
-		hat_frame = tk.Frame(joycon_L_frame, relief='flat', bg=joycon_L_color)
-		abxy_frame = tk.Frame(joycon_R_frame, relief='flat', bg=joycon_R_color)
-
-		# ABXY
-		tk.Button(abxy_frame, text='A', command=lambda: UnitCommand.A().start(ser)).grid(row=1, column=2)
-		tk.Button(abxy_frame, text='B', command=lambda: UnitCommand.B().start(ser)).grid(row=2, column=1)
-		tk.Button(abxy_frame, text='X', command=lambda: UnitCommand.X().start(ser)).grid(row=0, column=1)
-		tk.Button(abxy_frame, text='Y', command=lambda: UnitCommand.Y().start(ser)).grid(row=1, column=0)
-		abxy_frame.place(relx=0.2, rely=0.3)
-
-		# HAT
-		# internal implements are not HAT buttons actually (just direction sticks), but we may change later
-		tk.Button(hat_frame, text='UP', command=lambda: UnitCommand.UP().start(ser)).grid(row=0, column=1)
-		tk.Button(hat_frame, text='RIGHT', command=lambda: UnitCommand.RIGHT().start(ser)).grid(row=1, column=2)
-		tk.Button(hat_frame, text='DOWN', command=lambda: UnitCommand.DOWN().start(ser)).grid(row=2, column=1)
-		tk.Button(hat_frame, text='LEFT', command=lambda: UnitCommand.LEFT().start(ser)).grid(row=1, column=0)
-		hat_frame.place(relx=0.2, rely=0.6)
-
-		# L side
-		tk.Button(joycon_L_frame, text='L', width=20, command=lambda: UnitCommand.L().start(ser)).place(x=30, y=30)
-		tk.Button(joycon_L_frame, text='ZL', width=20, command=lambda: UnitCommand.ZL().start(ser)).place(x=30, y=0)
-		tk.Button(joycon_L_frame, text='LCLICK', width=7, command=lambda: UnitCommand.LCLICK().start(ser)).place(x=120, y=120)
-		tk.Button(joycon_L_frame, text='MINUS', width=5, command=lambda: UnitCommand.MINUS().start(ser)).place(x=220, y=70)
-		tk.Button(joycon_L_frame, text='CAP', width=5, command=lambda: UnitCommand.CAPTURE().start(ser)).place(x=200, y=270)
-
-		# R side
-		tk.Button(joycon_R_frame, text='R', width=20, command=lambda: UnitCommand.R().start(ser)).place(x=120, y=30)
-		tk.Button(joycon_R_frame, text='ZR', width=20, command=lambda: UnitCommand.ZR().start(ser)).place(x=120, y=0)
-		tk.Button(joycon_R_frame, text='RCLICK', width=7, command=lambda: UnitCommand.RCLICK().start(ser)).place(x=120, y=205)
-		tk.Button(joycon_R_frame, text='PLUS', width=5, command=lambda: UnitCommand.PLUS().start(ser)).place(x=35, y=70)
-		tk.Button(joycon_R_frame, text='HOME', width=5, command=lambda: UnitCommand.HOME().start(ser)).place(x=50, y=270)
-
-		ttk.Label(self.window, text='or Keyboard can be used').place(x=450, y=270)
-
-		joycon_L_frame.grid(row=0, column=0)
-		joycon_R_frame.grid(row=0, column=1)
-
-		# button style settings
-		for button in abxy_frame.winfo_children():
-			self.applyButtonSetting(button)
-		for button in hat_frame.winfo_children():
-			self.applyButtonSetting(button)
-		for button in [b for b in joycon_L_frame.winfo_children() if type(b) is tk.Button]:
-			self.applyButtonColor(button)
-		for button in [b for b in joycon_R_frame.winfo_children() if type(b) is tk.Button]:
-			self.applyButtonColor(button)
-
-	def applyButtonSetting(self, button):
-		button['width'] = 7
-		self.applyButtonColor(button)
-	
-	def applyButtonColor(self, button):
-		button['bg'] = '#343434'
-		button['fg'] = '#fff'
-
-	def bind(self, event, func):
-		self.window.bind(event, func)
-
-	def protocol(self, event, func):
-		self.window.protocol(event, func)
-	
-	def focus_force(self):
-		self.window.focus_force()
-
-	def destroy(self):
-		self.window.destroy()
 
 # Main GUI
 class GUI:
@@ -212,7 +87,7 @@ class GUI:
 		self.comPort = tk.IntVar()
 		self.comPort.set(int(self.settings['com_port']))
 		self.entry2 = ttk.Entry(self.serial_lf, width=5, textvariable=self.comPort)
-		self.preview = ttk.Label(self.camera_lf)
+		self.preview = CaptureArea(self.camera, self.settings['fps'], self.showPreview, self.camera_lf)
 
 		# activate serial communication
 		self.ser = Sender.Sender()
@@ -226,7 +101,7 @@ class GUI:
 		self.reloadButton = ttk.Button(self.camera_f1, text='Reload Cam', command=self.openCamera)
 		self.reloadComPort = ttk.Button(self.serial_lf, text='Reload Port', command=self.activateSerial)
 		self.startButton = ttk.Button(self.lf, text='Start', command=self.startPlay)
-		self.captureButton = ttk.Button(self.camera_f1, text='Capture', command=self.saveCapture)
+		self.captureButton = ttk.Button(self.camera_f1, text='Capture', command=self.preview.saveCapture)
 
 		self.showSerial = tk.BooleanVar()
 		self.showSerial.set(False)
@@ -324,7 +199,7 @@ class GUI:
 				child.grid_configure(padx=5, pady=5)
 
 		self.root.protocol("WM_DELETE_WINDOW", self.exit)
-		self.doProcess()
+		self.preview.startCapture()
 
 	def openCamera(self):
 		self.camera.openCamera(self.cameraID.get())
@@ -401,11 +276,9 @@ class GUI:
 		cv2.destroyAllWindows()
 		self.root.destroy()
 
-	def saveCapture(self):
-		self.camera.saveCapture()
-
 	def applyFps(self, event):
 		print('changed FPS to: ' + self.fps.get() + ' [fps]')
+		self.preview.setFps(self.fps.get())
 		self.settings['fps'] = self.fps.get()
 
 	def assignMcuCommand(self, event):
@@ -516,19 +389,6 @@ class GUI:
 		if not self.keyboard is None:
 			self.keyboard.stop()
 			self.keyboard = None
-
-	def doProcess(self):
-		image_bgr = self.camera.readFrame()
-		if self.showPreview.get() and image_bgr is not None:
-			image_bgr = cv2.resize(image_bgr, (640, 360))
-			image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-			image_pil = Image.fromarray(image_rgb)
-			image_tk  = ImageTk.PhotoImage(image_pil)
-
-			self.preview.im = image_tk
-			self.preview['image']=image_tk
-
-		self.root.after((int)(16 * (60 / int(self.fps.get()))), self.doProcess)
 
 	def write(self, str):
 		self.logArea.insert(tk.END, str)
