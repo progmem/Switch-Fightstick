@@ -13,6 +13,8 @@ from Keyboard import SwitchKeyboardController
 from Camera import Camera
 from GuiAssets import CaptureArea, ControllerGUI
 
+NAME = "Poke-Controller"
+VERSION = "v1.0"
 SETTING_PATH = "./settings.json"
 
 # To avoid the error says 'ScrolledText' object has no attribute 'flush'
@@ -26,7 +28,7 @@ class GUI:
 		# NOTE: I'm gonna rewrite this function because this is not a good coding style
 
 		self.root = tk.Tk()
-		self.root.title('Pokemon Controller')
+		self.root.title(NAME + '  ' + VERSION)
 		self.frame1 = ttk.Frame(
 			self.root,
 			height=720,
