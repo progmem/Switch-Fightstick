@@ -1,8 +1,3 @@
-
-## Fork元: Switch-Fightstick
-マイコンをコントローラに偽装してSwitchと通信を行えるようにするプロジェクト  
-有名なプロジェクトなので詳しくはそちらのReadmeや解説してくれてるサイトを参照してください  
-
 ## Abstract
 ポケモン剣盾の自動化ソフトウェア  
 マイコンやPythonで書いた自動化コードを抜き差しなくPCで切り替えて操作できます  
@@ -39,9 +34,6 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
 既存マクロの切り替えやPCで作成したマクロのマイコン/.cファイルへの書き込みはPCからすべて行う予定  
   
 ### 現在のデフォルトのコマンド 
-マイコンを挿した直後は簡易コントローラ(後述)などでいずれかのボタンを押すなどして,  
-コントローラを認識させてからコマンドをスタートしてください  
-[Poke-Controllerの使い方](https://github.com/KawaSwitch/Poke-Controller/wiki/Poke-Controller%E3%81%AE%E4%BD%BF%E3%81%84%E6%96%B9) ← 準備中  
   
 - MCU  
   - A連打  
@@ -49,6 +41,7 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
   
   - リーグ自動周回  
     [発案元](http://niwaka-syndrome.blog.jp/archives/20509394.html) を要参照  
+    準備完了後, 受付に話しかけられる状態からスタートしてください  
 
   - ワット自動化  
     無限ワット対象の巣の200W/2000Wの光は消しておく.   
@@ -61,91 +54,13 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
     [提供元](https://medaka.5ch.net/test/read.cgi/poke/1574816324/)の>>25を参照  
   
 - Python  
-  <画像認識なし/任意>  
-  - A連打  
-    MCU版と同じ  
-    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/mash_a.PNG" width="720">
-    
-  - リーグ自動周回  
-    MCU版と同じ  
-    [発案元](http://niwaka-syndrome.blog.jp/archives/20509394.html) を要参照  
-    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/auto_league.PNG" width="720">
-  
-  - ワット自動化 高速化版(ランクマッチバグ使用)  
-    無限ワット対象の巣の200W/2000Wの光は消しておく.   
-    レイドのある巣を選ぶ場合倒しておくかレイドの無い巣を選ぶ.  
-    ランクマッチに一戦潜る(シングルorダブル)  
-    Switch側の本体設定で「インターネットで時間を合わせる」を**OFF**にしておく.  
-    
-    1: 「ねがいのかたまり」を巣に投げてレポート書いた後, 話しかけずに待機  
-    2: Startを押す  
-    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/inifinity_watt_automation.PNG" width="720">
-
-  - IDくじ自動化(ランクマッチバグ使用)  
-    ランクマッチに一戦潜る(シングルorダブル)  
-    Switch側の本体設定で「インターネットで時間を合わせる」を**OFF**にしておく.  
-    
-    1: ポケモンセンターの機械(ロトミ)の話しかける位置に立つ  
-    2: Startを押す  
-    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/auto_idLottery.PNG" width="720">
-    
-  - きのみ自動化(ランクマッチバグ使用)  
-    ランクマッチに一戦潜る(シングルorダブル)  
-    Switch側の本体設定で「インターネットで時間を合わせる」を**OFF**にしておく.  
-    自転車からは降りておく  
-    
-    <画像認識なし>  
-    野生のポケモンが降ってこない1回目だけ取得して終了し時渡り  
-    <画像認識あり> Experimental  
-    画像認識を用いてゆれが強くなったら終了し時渡り  
-    晴れなどの差分画像の変化が生じにくい天候に調整しておく(日付変更等)  
-    画面上半分に変化が生じにくい方向を向いておく  
-    
-    1: きのみを収穫したい木の話しかける位置に立つ  
-    2: Startを押す  
-    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/infinity_berry_image_recog.PNG" width="720">  
-    
-  - シュートシティ カフェ自動化(ランクマッチバグ使用)  
-    ランクマッチに一戦潜る(シングルorダブル)  
-    Switch側の本体設定で「インターネットで時間を合わせる」を**OFF**にしておく.  
-    Xメニューのタウンマップを左上に移動させてカーソルを合わせておく(Yボタンで入れ替え可能)  
-    戦闘アニメーションを**OFF**にしておく  
-    PPを回復しておく  
-    
-    **必要なポケモン**  
-    マジカルシャインを覚えさせたブリムオン100レベルCS極振り  
-    マジカルシャインを技構成の一番上にしておく  
-    
-    ブリムオンよりSが低く戦闘開始時に特性が表示されないポケモン(レベルUP演出省略のため100レベル推奨)  
-    私はレイド用のHA極振りのニャイキングを使ってます  
-    
-    1: 上記ポケモンをブリムオン先頭にして2匹だけいれておく(戦うには2匹以上必要)  
-    2: シュートシティのカフェで話しかける位置に立つ  
-    3: Startを押す  
-    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/infinity_cafe_v0.PNG" width="720">
-  
-  - 自動リリース  
-    <画像認識なし>  
-    1ボックスすべてのポケモンを逃がします. 空きは不可  
-    <画像認識あり>  
-    空いている箇所(空白or卵)があればスキップする  
-    色違いであればスキップする(後実装で選択式に変更予定)  
-    
-	プラスボタンで技構成のあるステータス画面を表示するようにしておく      
-    ボックス内の持ち方を「つうじょう」にする(デフォルトの赤い矢印の状態)  
-    
-    1: ボックスを開き一番左上のポケモンにカーソルを合わせる  
-    2: Startを押す  
-    <img src="https://github.com/KawaSwitch/Poke-Controller/blob/photo/photos/auto_release.PNG" width="720">  
-  
-  <br>
-  
-  <画像認識必須>  
-  現在なし  
+  下記の記事を参考にしてください  
+  [シリアル通信のデフォルト実装コマンド](https://github.com/KawaSwitch/Poke-Controller/wiki/%E3%83%87%E3%83%95%E3%82%A9%E3%83%AB%E3%83%88%E3%81%AE%E5%AE%9F%E8%A3%85%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89(%E3%82%B7%E3%83%AA%E3%82%A2%E3%83%AB%E9%80%9A%E4%BF%A1-Python))
 
   <br>
 
-
+マイコンを挿した直後はコントローラを認識させてからコマンドをスタートしてください  
+[Poke-Controllerの使い方](https://github.com/KawaSwitch/Poke-Controller/wiki/Poke-Controller%E3%81%AE%E4%BD%BF%E3%81%84%E6%96%B9)  
 
 既存のコマンドは順次移植/追加予定で自作も上げていきます  
 [プルリクエスト](https://github.com/KawaSwitch/Poke-Controller/pulls)も受け付けています
