@@ -9,6 +9,10 @@ import Keys
 import cv2
 from Keys import Button, Direction, Stick
 
+# the class For notifying stop signal is sent from Main window
+class StopThread(Exception):
+	pass
+
 # Python command
 class PythonCommand(Command.Command):
 	def __init__(self, name):
@@ -30,6 +34,9 @@ class PythonCommand(Command.Command):
 		try:
 			if self.alive:
 				self.do()
+				self.finish()
+		except StopThread:
+			print(self.name + ' has finished successfully.')
 		except:
 			if self.keys is None:
 				self.keys = Keys.KeyPress(ser)
@@ -43,7 +50,7 @@ class PythonCommand(Command.Command):
 		self.alive = True
 		self.postProcess = postProcess
 		if not self.thread:
-			self.thread = threading.Thread(target=self.do_safe, args=([ser]))
+			self.thread = threading.Thread(target=self.do_safe, args=(ser,))
 			self.thread.start()
 
 	def end(self, ser):
@@ -52,7 +59,7 @@ class PythonCommand(Command.Command):
 	def sendStopRequest(self):
 		if self.checkIfAlive(): # try if we can stop now
 			self.alive = False
-			print (self.name + ': we\'ve sent a stop request.')
+			print(self.name + ': we\'ve sent a stop request.')
 
 	# NOTE: Use this function if you want to get out from a command loop by yourself
 	def finish(self):
@@ -65,6 +72,7 @@ class PythonCommand(Command.Command):
 		self.wait(duration)
 		self.keys.inputEnd(buttons)
 		self.wait(wait)
+		self.checkIfAlive()
 
 	# press button at duration times(s) repeatedly
 	def pressRep(self, buttons, repeat, duration=0.1, interval=0.1, wait=0.1):
@@ -79,22 +87,25 @@ class PythonCommand(Command.Command):
 	# release holding buttons
 	def holdEnd(self, buttons):
 		self.keys.holdEnd(buttons)
+		self.checkIfAlive()
 
 	# do nothing at wait time(s)
 	def wait(self, wait):
 		sleep(wait)
+		self.checkIfAlive()
 
 	def checkIfAlive(self):
 		if not self.alive:
 			self.keys.end()
 			self.keys = None
 			self.thread = None
-			print(self.name + ' has reached an alive check and exited successfully.')
 
 			if not self.postProcess is None:
 				self.postProcess()
 				self.postProcess = None
-			return False
+
+			# raise exception for exit working thread
+			raise StopThread('exit successfully')
 		else:
 			return True
 
@@ -115,7 +126,6 @@ class RankGlitchPythonCommand(PythonCommand):
 		self.press(Direction.RIGHT)
 		self.press(Button.A, wait=1.5) # System Settings
 		self.press(Direction.DOWN, duration=2, wait=0.5)
-		if not self.checkIfAlive(): return
 
 		self.press(Button.A, wait=0.3) # System Settings > System
 		self.press(Direction.DOWN)
@@ -124,7 +134,6 @@ class RankGlitchPythonCommand(PythonCommand):
 		self.press(Direction.DOWN, wait=0.3)
 		self.press(Button.A, wait=0.2) # Date and Time
 		self.press(Direction.DOWN, duration=0.7, wait=0.2)
-		if not self.checkIfAlive(): return
 
 		# increment and decrement
 		if is_go_back:
@@ -132,7 +141,6 @@ class RankGlitchPythonCommand(PythonCommand):
 			self.press(Direction.UP, wait=0.2) # Increment a year
 			self.press(Direction.RIGHT, duration=1.5)
 			self.press(Button.A, wait=0.5)
-			if not self.checkIfAlive(): return
 
 			self.press(Button.A, wait=0.2)
 			self.press(Direction.LEFT, duration=1.5)
@@ -150,7 +158,6 @@ class RankGlitchPythonCommand(PythonCommand):
 			self.press(Direction.RIGHT, duration=1)
 			self.press(Button.A, wait=0.5)
 
-		if not self.checkIfAlive(): return
 		self.press(Button.HOME, wait=1)
 		self.press(Button.HOME, wait=1)
 
@@ -219,8 +226,6 @@ class Sync(PythonCommand):
 		self.press(Button.HOME, 0.1, 1)
 		self.press(Button.A, 0.1, 0.5)
 
-		self.finish()
-
 # Unsync controller
 # 同期解除
 class Unsync(PythonCommand):
@@ -238,7 +243,6 @@ class Unsync(PythonCommand):
 		self.press(Button.A, 0.1, 0.5)
 		self.press(Button.A, 0.1, 0.3)
 
-		self.finish()
 
 # Mash a button A
 # A連打
@@ -247,7 +251,7 @@ class Mash_A(PythonCommand):
 		super(Mash_A, self).__init__(name)
 
 	def do(self):
-		while self.checkIfAlive():
+		while True:
 			self.wait(0.5)
 			self.press(Button.A)
 
@@ -259,7 +263,7 @@ class AutoLeague(PythonCommand):
 
 	def do(self):
 		self.hold(Direction(Stick.LEFT, 70))
-		while self.checkIfAlive():
+		while True:
 			self.wait(0.5)
 
 			for _ in range(0, 10):
@@ -275,18 +279,16 @@ class InfinityLottery(RankGlitchPythonCommand):
 		super(InfinityLottery, self).__init__(name)
 
 	def do(self):
-		while self.checkIfAlive():
+		while True:
 			self.press(Button.A, wait=0.5)
 			self.press(Button.B, wait=0.5)
 			self.press(Direction.DOWN, wait=0.5)
 
 			for _ in range(0, 10):	# A loop
 				self.press(Button.A, wait=0.5)
-				if not self.checkIfAlive(): return
 
 			for _ in range(0, 20):  # B loop
 				self.press(Button.B, wait=0.5)
-				if not self.checkIfAlive(): return
 
 			# Time glitch
 			self.timeLeap()
@@ -300,7 +302,7 @@ class InfinityBerry(ImageProcPythonCommand, RankGlitchPythonCommand):
 		self.cam = cam
 
 	def do(self):
-		while self.checkIfAlive():
+		while True:
 
 			# If camera is not opened, then pick 1 and timeleap
 			if not self.cam.isOpened():
@@ -310,7 +312,6 @@ class InfinityBerry(ImageProcPythonCommand, RankGlitchPythonCommand):
 
 				for _ in range(0, 15):  # B loop
 					self.press(Button.B, wait=0.5)
-					if not self.checkIfAlive(): return
 
 				# Time glitch
 				self.timeLeap()
@@ -327,7 +328,6 @@ class InfinityBerry(ImageProcPythonCommand, RankGlitchPythonCommand):
 
 					while not self.isContainTemplate('fell_message.png'):
 						self.press(Button.B, wait=0.5)
-						if not self.checkIfAlive(): return
 					print('fell message!')
 					self.press(Button.A, wait=0.5)
 
@@ -342,7 +342,6 @@ class InfinityBerry(ImageProcPythonCommand, RankGlitchPythonCommand):
 
 				for _ in range(0, 10):  # B loop
 					self.press(Button.B, wait=0.5)
-					if not self.checkIfAlive(): return
 
 				# Time glitch
 				self.timeLeap()
@@ -384,22 +383,19 @@ class InfinityCafe(RankGlitchPythonCommand):
 		self.pp_max = 10
 
 	def do(self):
-		while self.checkIfAlive():
+		while True:
 			# battle agaist a master at PP times
 			for __ in range(0, self.pp_max):
 				self.wait(1)
 
 				for _ in range(0, 35):	# A loop
 					self.press(Button.A, wait=0.5)
-					if not self.checkIfAlive(): return
 				self.wait(5)
 
 				for _ in range(0, 45):  # B loop
 					self.press(Button.B, wait=0.5)
-					if not self.checkIfAlive(): return
 
 				self.timeLeap()
-				if not self.checkIfAlive(): return
 
 			# go to pokemon center to restore PP
 			self.press(Direction.DOWN, duration=3.5)
@@ -414,18 +410,14 @@ class InfinityCafe(RankGlitchPythonCommand):
 			self.press(Direction.UP, duration=2)
 			for _ in range(0, 10):	# A loop
 				self.press(Button.A, wait=0.5)
-				if not self.checkIfAlive(): return
 			for _ in range(0, 15):	# B loop
 				self.press(Button.B, wait=0.5)
-				if not self.checkIfAlive(): return
 			self.press(Direction.DOWN, duration=2, wait=2)
-			if not self.checkIfAlive(): return
 
 			# move to cafe in Wyndon (Shoot City)
 			self.press(Direction.LEFT, duration=3)
 			self.press(Direction.UP, duration=4)
 			self.press(Direction.RIGHT, duration=1 ,wait=2)
-			if not self.checkIfAlive(): return
 
 			self.press(Direction.UP, duration=2, wait=1)
 
@@ -442,8 +434,6 @@ class AutoRelease(ImageProcPythonCommand):
 
 		for i in range(0, self.row):
 			for j in range(0, self.col):
-				if not self.checkIfAlive(): return
-
 				if not self.cam.isOpened():
 					self.Release()
 				else:
@@ -460,13 +450,10 @@ class AutoRelease(ImageProcPythonCommand):
 
 			self.press(Direction.DOWN, wait=0.2)
 
-		if not self.checkIfAlive(): return
 		# Return from pokemon box
 		self.press(Button.B, wait=2)
 		self.press(Button.B, wait=2)
 		self.press(Button.B, wait=1.5)
-
-		self.finish()
 
 	def Release(self):
 		self.press(Button.A, wait=0.5)
@@ -496,7 +483,6 @@ class CountHatching(ImageProcPythonCommand):
 			# turn round and round
 			while not self.isContainTemplate('egg_notice.png'):
 				self.wait(1)
-				if not self.checkIfAlive(): return
 
 			print('egg hatching')
 			self.holdEnd([Direction.RIGHT, Direction.R_LEFT])
@@ -506,9 +492,6 @@ class CountHatching(ImageProcPythonCommand):
 				self.press(Button.A, wait=1)
 			self.hatched_num += 1
 			print('hatched_num: ' + str(self.hatched_num))
-			if not self.checkIfAlive(): return
-
-		self.finish()
 
 # auto egg hatching using image recognition
 # 自動卵孵化(キャプボあり)
@@ -526,13 +509,12 @@ class AutoHatching(ImageProcPythonCommand):
 		self.press(Direction.DOWN, duration=0.8)
 		self.press(Direction.LEFT, duration=0.2)
 
-		while self.checkIfAlive():
+		while True:
 			for i in range(0, self.itr_max):
 				print('iteration: ' + str(i+1) + ' (' + str(i*5) + '/30) -> (' + str((i+1)*5) + '/30)')
 				print('hatched box num : ' + str(self.hatched_box_num))
 
 				self.getNewEgg()
-				if not self.checkIfAlive(): return
 				self.press(Direction.UP, duration=0.05, wait=0.5)
 				self.press(Direction.UP, duration=1)
 
@@ -544,7 +526,6 @@ class AutoHatching(ImageProcPythonCommand):
 					# turn round and round
 					while not self.isContainTemplate('egg_notice.png'):
 						self.wait(1)
-						if not self.checkIfAlive(): return
 
 					print('egg hatching')
 					self.holdEnd([Direction.RIGHT, Direction.R_LEFT])
@@ -556,7 +537,6 @@ class AutoHatching(ImageProcPythonCommand):
 					self.party_num += 1
 					print('party_num: ' + str(self.party_num))
 					print('all hatched num: ' + str(self.hatched_num))
-					if not self.checkIfAlive(): return
 
 					self.press(Button.X, wait=1)
 					self.press(Button.A, wait=3) # open up a map
@@ -565,7 +545,6 @@ class AutoHatching(ImageProcPythonCommand):
 					self.press(Direction.DOWN, duration=0.05, wait=0.5)
 					self.press(Direction.DOWN, duration=0.8)
 					self.press(Direction.LEFT, duration=0.2)
-					if not self.checkIfAlive(): return
 
 					if self.party_num < 6:
 						# get a new egg
@@ -581,7 +560,6 @@ class AutoHatching(ImageProcPythonCommand):
 
 				self.putPokemonsToBox(start=1, num=5)
 				self.party_num = 1
-				if not self.checkIfAlive(): return
 
 				if i < self.itr_max - 1:
 					self.press(Button.B, wait=0.5)
@@ -603,15 +581,12 @@ class AutoHatching(ImageProcPythonCommand):
 			if is_contain_shiny:
 				print('shiny!')
 				break
-			if not self.checkIfAlive(): return
 
 			self.press(Button.B, wait=0.5)
 			self.press(Button.B, wait=2)
 			self.press(Button.B, wait=2)
 			self.press(Direction.LEFT, wait=0.2) # set cursor to map
 			self.press(Button.B, wait=1.5)
-
-		self.finish()
 
 	def getNewEgg(self):
 		self.press(Button.A, wait=0.5)
@@ -648,7 +623,6 @@ class AutoHatching(ImageProcPythonCommand):
 		col = 6
 		for i in range(0, row):
 			for j in range(0, col):
-				if not self.checkIfAlive(): return False
 
 				# if shiny, then stop
 				if self.isContainTemplate('shiny_mark.png', threshold=0.9):
@@ -658,8 +632,6 @@ class AutoHatching(ImageProcPythonCommand):
 				if self.isContainTemplate('milcery_status.png', threshold=0.4):
 					# Release a pokemon
 					self.Release()
-				if not self.checkIfAlive(): return False
-
 
 				if not j == col - 1:
 					if i % 2 == 0:	self.press(Direction.RIGHT, wait=0.2)
@@ -685,7 +657,6 @@ class Debug(ImageProcPythonCommand):
 
 	def do(self):
 		self.goRound()
-		self.finish()
 	
 	def goRound(self):
 		self.press(Direction.LEFT, duration=0.5)
@@ -706,7 +677,7 @@ class InfinityWatt(RankGlitchPythonCommand):
 		self.use_rank = True
 
 	def do(self):
-		while self.checkIfAlive():
+		while True:
 			self.wait(1)
 
 			if self.use_rank:
@@ -784,7 +755,7 @@ class InfinityFeather(RankGlitchPythonCommand):
 		# start = time.time()
 		# i = 0  # カウンタ
 		print('Start collecting feathers')
-		while self.checkIfAlive():
+		while True:
 			self.wait(0.75)
 			# i += 1
 			# print('Map')
@@ -793,7 +764,7 @@ class InfinityFeather(RankGlitchPythonCommand):
 			self.press(Direction(Stick.LEFT, 45), duration=0.05) # Select a Pokémon Day Care
 			self.press(Button.A, wait=1)
 			self.press(Button.A, wait=4.0)
-			if not self.checkIfAlive(): return
+
 			# print('pick feather')
 			self.press(Direction.DOWN_RIGHT, duration=0.15)
 			self.press(Direction.RIGHT, duration=3)
@@ -801,8 +772,8 @@ class InfinityFeather(RankGlitchPythonCommand):
 			self.press(Button.A, wait=0.3)
 			self.press(Button.A, wait=0.3)
 			self.press(Button.A, wait=0.3)
+
 			# print('Time leap')
-			if not self.checkIfAlive(): return
 			self.timeLeap()
 			# tm = round(time.time() - start, 2)
 			# print('Loop : {} in {} sec. Average: {} sec/loop'.format(i, tm, round(tm / i, 2)))
@@ -818,7 +789,7 @@ class Fossil_shiny(ImageProcPythonCommand):
 	def fossil_loop(self, head=0, body=0):
 		# start = time.time()
 		i = 0
-		while self.checkIfAlive():
+		while True:
 			for j in range(30):
 				print(str(30*i+j+1)+"体目 ({}/30 of a box)".format(j+1))
 				self.press(Button.A, wait=0.75)
@@ -835,9 +806,7 @@ class Fossil_shiny(ImageProcPythonCommand):
 				self.press(Button.A, wait=0.75) # select "それでよければ"
 				while not self.isContainTemplate('Network_Offline.png', 0.8):
 					self.press(Button.B, wait=0.5)
-					if not self.checkIfAlive(): return
 				self.wait(1.0)
-				if not self.checkIfAlive(): return
 
 			# open up pokemon box
 			self.press(Button.X, wait=1)
@@ -851,7 +820,6 @@ class Fossil_shiny(ImageProcPythonCommand):
 			if is_contain_shiny:
 				print('Shiny!')
 				break
-			if not self.checkIfAlive(): return
 
 			self.press(Button.HOME, wait=2)  # EXIT Game
 			self.press(Button.X, wait=0.6)
@@ -860,21 +828,17 @@ class Fossil_shiny(ImageProcPythonCommand):
 			self.press(Button.A)  # User selection
 			while not self.isContainTemplate('OP.png', 0.7): # recognize Opening
 				self.wait(0.2)
-				if not self.checkIfAlive(): return
 			self.press(Button.A)  # load save-data
 			while not self.isContainTemplate('Network_Offline.png', 0.8):
 				self.wait(0.5)
-				if not self.checkIfAlive(): return
 			self.wait(1.0)
 			i += 1
-		self.finish()
 
 	def CheckBox(self):
 		row = 5
 		col = 6
 		for i in range(0, row):
 			for j in range(0, col):
-				if not self.checkIfAlive(): return False
 				# if shiny, then stop
 				if self.isContainTemplate('shiny_mark.png', threshold=0.9):
 					return True
@@ -882,7 +846,6 @@ class Fossil_shiny(ImageProcPythonCommand):
 				if self.isContainTemplate('status.png', threshold=0.7): # 恐らくmilcery_status.pngで可能だが念の為。
 					# Release a pokemon
 					pass
-				if not self.checkIfAlive(): return False
 				if not j == col - 1:
 					if i % 2 == 0:
 						self.press(Direction.RIGHT, wait=0.2)

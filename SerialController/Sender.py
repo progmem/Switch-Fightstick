@@ -38,7 +38,10 @@ class Sender:
 		self.is_show_serial = is_show
 
 	def writeRow(self, row):
-		self.ser.write((row+'\r\n').encode('utf-8'))
+		try:
+			self.ser.write((row+'\r\n').encode('utf-8'))
+		except serial.serialutil.SerialException as e:
+			print(e)
 
 		# Show sending serial datas
 		if self.is_show_serial:
