@@ -13,8 +13,7 @@ class Camera:
 
 	def openCamera(self, cameraId):
 		if self.camera is not None and self.camera.isOpened():
-			self.camera.release()
-			self.camera = None
+			self.destroy()
 
 		if os.name == 'nt':
 			self.camera = cv2.VideoCapture(cameraId, cv2.CAP_DSHOW)
@@ -50,7 +49,4 @@ class Camera:
 	def destroy(self):
 		if self.camera is not None and self.camera.isOpened():
 			self.camera.release()
-
-	def destroy(self):
-		if self.camera is not None and self.camera.isOpened():
-			self.camera.release()
+			self.camera = None

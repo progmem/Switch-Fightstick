@@ -315,6 +315,7 @@ class GUI:
 		# Get names of detected camera devices
 		captureDevices = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice)
 		self.camera_dic = {device.Name: cam_id for cam_id, device in enumerate(captureDevices)}
+		self.camera_dic['Disable'] = max(list(self.camera_dic.values())) + 1
 		dev_num = len(self.camera_dic)
 
 		if self.cameraID.get() > dev_num - 1:
