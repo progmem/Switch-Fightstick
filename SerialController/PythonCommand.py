@@ -439,7 +439,7 @@ class AutoRelease(ImageProcPythonCommand):
 				else:
 					# if shiny, then skip
 					if not self.isContainTemplate('shiny_mark.png', threshold=0.9):
-						if self.isContainTemplate('milcery_status.png', threshold=0.4): # Maybe this threshold works for only Japanese version.
+						if self.isContainTemplate('status.png', threshold=0.7): # Maybe this threshold works for only Japanese version.
 							# Release a pokemon
 							self.Release()
 
@@ -629,7 +629,7 @@ class AutoHatching(ImageProcPythonCommand):
 					return True
 
 				# Maybe this threshold works for only Japanese version.
-				if self.isContainTemplate('milcery_status.png', threshold=0.4):
+				if self.isContainTemplate('status.png', threshold=0.7):
 					# Release a pokemon
 					self.Release()
 
@@ -843,8 +843,7 @@ class Fossil_shiny(ImageProcPythonCommand):
 				if self.isContainTemplate('shiny_mark.png', threshold=0.9):
 					return True
 				# Maybe this threshold works for only Japanese version.
-				if self.isContainTemplate('status.png', threshold=0.7): # 恐らくmilcery_status.pngで可能だが念の為。
-					# Release a pokemon
+				if self.isContainTemplate('status.png', threshold=0.7):
 					pass
 				if not j == col - 1:
 					if i % 2 == 0:
