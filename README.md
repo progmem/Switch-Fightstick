@@ -32,6 +32,13 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
 本プロジェクトではキャプボを使わない動作/軽い動作はマイコン独立で,  
 それ以外はPCに繋いで動作させるつもりです  
 既存マクロの切り替えやPCで作成したマクロのマイコン/.cファイルへの書き込みはPCからすべて行う予定  
+
+## How to use  
+こちらで解説しています  
+[Poke-Controllerの使い方](https://github.com/KawaSwitch/Poke-Controller/wiki/Poke-Controller%E3%81%AE%E4%BD%BF%E3%81%84%E6%96%B9)  
+
+分からないことがあれば遠慮なく[Issue](https://github.com/KawaSwitch/Poke-Controller/issues)まで  
+[Q&A](https://github.com/KawaSwitch/Poke-Controller/wiki/Q&A)や[解決済みIssue](https://github.com/KawaSwitch/Poke-Controller/issues?q=is%3Aissue+is%3Aclosed)なども役に立つかもしれません  
   
 ### 現在のデフォルトのコマンド 
   
@@ -58,9 +65,6 @@ AVRマイコンとPC(+キャプボ)を用いてポケモン剣盾における以
   [シリアル通信のデフォルト実装コマンド](https://github.com/KawaSwitch/Poke-Controller/wiki/%E3%83%87%E3%83%95%E3%82%A9%E3%83%AB%E3%83%88%E3%81%AE%E5%AE%9F%E8%A3%85%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89(%E3%82%B7%E3%83%AA%E3%82%A2%E3%83%AB%E9%80%9A%E4%BF%A1-Python))
 
   <br>
-
-マイコンを挿した直後はコントローラを認識させてからコマンドをスタートしてください  
-[Poke-Controllerの使い方](https://github.com/KawaSwitch/Poke-Controller/wiki/Poke-Controller%E3%81%AE%E4%BD%BF%E3%81%84%E6%96%B9)  
 
 既存のコマンドは順次移植/追加予定で自作も上げていきます  
 [プルリクエスト](https://github.com/KawaSwitch/Poke-Controller/pulls)も受け付けています
@@ -153,11 +157,10 @@ PC-ATmegaマイコン-PCを繋いでる プログラムを参考にさせてい�
 https://github.com/ebith/Switch-Fightstick  
   
 その他沢山のブログ等を参考にさせていただいています  
-また本プロジェクトでは自動化コード(それ以外でも)のプルリクエスト歓迎してます!  
 
 ## License
 本プロジェクトではLGPLライセンスのDirectShowLib-2005.dllを同梱し使用しています  
 [About DirectShowLib](http://directshownet.sourceforge.net/)  
 
 本プロジェクト自体はMITライセンスです  
-See here [LISENCE.txt](https://github.com/KawaSwitch/Poke-Controller/blob/master/LICENSE.txt)  
+See here [LISENCE](https://github.com/KawaSwitch/Poke-Controller/blob/master/LICENSE)  
