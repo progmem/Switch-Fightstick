@@ -99,6 +99,7 @@ class GUI:
 		self.rb1 = ttk.Radiobutton(self.lf, text='Mcu', value='Mcu', variable=self.v1, command=self.setCommandCmbbox)
 		self.rb2 = ttk.Radiobutton(self.lf, text='Python', value='Python', variable=self.v1, command=self.setCommandCmbbox)
 		self.rb3 = ttk.Radiobutton(self.lf, text='Utility', value='Utility', variable=self.v1, command=self.setCommandCmbbox)
+		self.reloadCommandButton = ttk.Button(self.lf, text='Reload', command=self.reloadCommand)
 
 		self.reloadButton = ttk.Button(self.camera_f1, text='Reload Cam', command=self.openCamera)
 		self.reloadComPort = ttk.Button(self.serial_lf, text='Reload Port', command=self.activateSerial)
@@ -137,22 +138,15 @@ class GUI:
 		# commands
 		self.mcu_name = tk.StringVar()
 		self.mcu_cb = ttk.Combobox(self.lf, textvariable=self.mcu_name, state="readonly")
-		self.mcu_cb['values'] = [name for name in McuCommand.commands.keys()]
 		self.mcu_cb.bind('<<ComboboxSelected>>', self.assignMcuCommand)
-		self.mcu_cb.current(0)
-
 		self.py_name = tk.StringVar()
 		self.py_cb = ttk.Combobox(self.lf, textvariable=self.py_name, state="readonly")
-		self.py_cb['values'] = [name for name in PythonCommand.commands.keys()]
 		self.py_cb.bind('<<ComboboxSelected>>', self.assignPythonCommand)
-		self.py_cb.current(0)
-		self.assignCommand()
-
 		self.util_name = tk.StringVar()
 		self.util_cb = ttk.Combobox(self.lf, textvariable=self.util_name, state="readonly")
-		self.util_cb['values'] = [name for name in PythonCommand.utils.keys()]
 		self.util_cb.bind('<<ComboboxSelected>>', self.assignUtilCommand)
-		self.util_cb.current(0)
+		self.setCommandItems()
+		self.assignCommand()
 
 		self.partition1 = ttk.Label(self.camera_f1, text=' / ')
 		self.partition2 = ttk.Label(self.camera_f1, text=' / ')
@@ -194,6 +188,7 @@ class GUI:
 		self.rb2.grid(row=1,column=0, sticky='w')
 		self.rb3.grid(row=2,column=0, sticky='w')
 		self.setCommandCmbbox()
+		self.reloadCommandButton.grid(row=3,column=1, sticky='e')
 		self.startButton.grid(row=3,column=2, sticky='e')
 
 		for child in self.frame1.winfo_children():
@@ -202,6 +197,14 @@ class GUI:
 
 		self.root.protocol("WM_DELETE_WINDOW", self.exit)
 		self.preview.startCapture()
+
+	def setCommandItems(self):
+		self.mcu_cb['values'] = [name for name in McuCommand.commands.keys()]
+		self.mcu_cb.current(0)
+		self.py_cb['values'] = [name for name in PythonCommand.commands.keys()]
+		self.py_cb.current(0)
+		self.util_cb['values'] = [name for name in PythonCommand.utils.keys()]
+		self.util_cb.current(0)
 
 	def openCamera(self):
 		self.camera.openCamera(self.cameraID.get())
@@ -397,6 +400,23 @@ class GUI:
 		self.logArea.insert(tk.END, str)
 		time.sleep(0.0001)
 		self.logArea.see(tk.END)
+
+	def reloadCommand(self):
+		import importlib
+		importlib.reload(McuCommand)
+		importlib.reload(PythonCommand)
+		importlib.reload(UnitCommand)
+		if self.v1.get() == 'Mcu':
+			visibledCb = self.mcu_cb
+		elif self.v1.get() == 'Python':
+			visibledCb = self.py_cb
+		elif self.v1.get() == 'Utility':
+			visibledCb = self.util_cb
+		oldval = visibledCb.get()
+		self.setCommandItems()
+		if(oldval in visibledCb['values']):
+			visibledCb.set(oldval)
+		print('Reload command modules.')
 
 if __name__ == "__main__":
 	gui = GUI()
