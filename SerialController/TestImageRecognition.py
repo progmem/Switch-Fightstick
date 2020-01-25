@@ -123,8 +123,26 @@ def testAkaze(test_path):
 	cap.release()
 	cv2.destroyAllWindows()
 
-if __name__ == "__main__":
-	#res = isContainTemplate("sample.png", "dougu_to_bag.png", 0.7, True)
-	#testInterframeDiff()
+def compareHistgram(test_path1, test_path2):
+	from matplotlib import pyplot as plt
 
-	testAkaze('pannels.png')
+	# 0: BGR, 1: Gray, 2: HSV
+	methods = [cv2.IMREAD_COLOR, cv2.COLOR_BGR2GRAY, cv2.COLOR_BGR2HSV]
+	method = methods[2]
+
+	img1 = cv2.imread(TEMPLATE_PATH+test_path1, method)
+	img2 = cv2.imread(TEMPLATE_PATH+test_path2, method)
+	
+	channel = 0
+	bins = 256
+	hist1 = cv2.calcHist([img1], [channel], None, [bins], [0, 256])
+	hist2 = cv2.calcHist([img2], [channel], None, [bins], [0, 256])
+	
+	print(cv2.compareHist(hist1, hist2, 0))
+	plt.plot(hist1, color='b')
+	plt.plot(hist2, color='g')
+	plt.show()
+
+
+if __name__ == "__main__":
+	compareHistgram('normal.png', 'shiny.png')
