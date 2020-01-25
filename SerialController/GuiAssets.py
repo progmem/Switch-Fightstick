@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 import cv2
 from PIL import Image, ImageTk
+import UnitCommand
 
 class CaptureArea(ttk.Label):
 	def __init__(self, camera, fps, is_show, master=None):
