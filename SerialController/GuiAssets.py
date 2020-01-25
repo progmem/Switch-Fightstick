@@ -7,17 +7,24 @@ import cv2
 from PIL import Image, ImageTk
 import UnitCommand
 
-class CaptureArea(ttk.Label):
+class CaptureArea(tk.Label):
 	def __init__(self, camera, fps, is_show, master=None):
-		super().__init__(master)
+		super().__init__(master, borderwidth=0, cursor='tcross')
 		self.camera = camera
 		self.show_size = (640, 360)
 		self.is_show_var = is_show
 
 		self.setFps(fps)
+		self.bind("<ButtonPress-1>", self.mouseLeftDown)
 	
 	def setFps(self, fps):
 		self.next_frames = (int)(16 * (60 / int(fps)))
+
+	def mouseLeftDown(self, event):
+		x, y = event.x, event.y
+		ratio_x = float(self.camera.capture_size[0] / self.show_size[0])
+		ratio_y = float(self.camera.capture_size[1] / self.show_size[1])
+		print('mouse down: show ({}, {}) / capture ({}, {})'.format(x, y, int(x * ratio_x), int(y * ratio_y)))
 	
 	def startCapture(self):
 		self.capture()
