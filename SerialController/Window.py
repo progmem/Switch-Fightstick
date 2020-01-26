@@ -48,6 +48,8 @@ class GUI:
 		# frames
 		self.camera_f1 = ttk.Frame(self.camera_lf, relief='flat')
 		self.camera_f2 = ttk.Frame(self.camera_lf, relief='flat')
+		self.serial_f1 = ttk.Frame(self.serial_lf, relief='flat')
+		self.serial_f2 = ttk.Frame(self.serial_lf, relief='flat')
 
 		# log area
 		self.logArea = MyScrolledText(self.frame1, width=70)
@@ -85,10 +87,10 @@ class GUI:
 			variable=self.showPreview)
 		self.showPreview.set(True)
 
-		self.label2 = ttk.Label(self.serial_lf, text='COM Port:')
+		self.label2 = ttk.Label(self.serial_f1, text='COM Port:')
 		self.comPort = tk.IntVar()
 		self.comPort.set(int(self.settings['com_port']))
-		self.entry2 = ttk.Entry(self.serial_lf, width=5, textvariable=self.comPort)
+		self.entry2 = ttk.Entry(self.serial_f1, width=5, textvariable=self.comPort)
 		self.preview = CaptureArea(self.camera, self.settings['fps'], self.showPreview, self.camera_lf)
 
 		# activate serial communication
@@ -98,18 +100,17 @@ class GUI:
 		self.v1 = tk.StringVar(value='Python')
 		self.rb1 = ttk.Radiobutton(self.lf, text='Mcu', value='Mcu', variable=self.v1, command=self.setCommandCmbbox)
 		self.rb2 = ttk.Radiobutton(self.lf, text='Python', value='Python', variable=self.v1, command=self.setCommandCmbbox)
-		self.rb3 = ttk.Radiobutton(self.lf, text='Utility', value='Utility', variable=self.v1, command=self.setCommandCmbbox)
 		self.reloadCommandButton = ttk.Button(self.lf, text='Reload', command=self.reloadCommand)
 
 		self.reloadButton = ttk.Button(self.camera_f1, text='Reload Cam', command=self.openCamera)
-		self.reloadComPort = ttk.Button(self.serial_lf, text='Reload Port', command=self.activateSerial)
+		self.reloadComPort = ttk.Button(self.serial_f1, text='Reload Port', command=self.activateSerial)
 		self.startButton = ttk.Button(self.lf, text='Start', command=self.startPlay)
 		self.captureButton = ttk.Button(self.camera_f1, text='Capture', command=self.preview.saveCapture)
 
 		self.showSerial = tk.BooleanVar()
 		self.showSerial.set(False)
 		self.cb_show_ser = ttk.Checkbutton(
-			self.serial_lf,
+			self.serial_f2,
 			padding=5,
 			text='Show Serial',
 			onvalue=True,
@@ -142,9 +143,6 @@ class GUI:
 		self.py_name = tk.StringVar()
 		self.py_cb = ttk.Combobox(self.lf, textvariable=self.py_name, state="readonly")
 		self.py_cb.bind('<<ComboboxSelected>>', self.assignPythonCommand)
-		self.util_name = tk.StringVar()
-		self.util_cb = ttk.Combobox(self.lf, textvariable=self.util_name, state="readonly")
-		self.util_cb.bind('<<ComboboxSelected>>', self.assignUtilCommand)
 		self.setCommandItems()
 		self.assignCommand()
 
@@ -172,10 +170,12 @@ class GUI:
 
 		# serial
 		self.serial_lf.grid(row=1,column=0, sticky='nw')
-		self.label2.grid(row=0,column=0, sticky='w')
-		self.entry2.grid(row=0,column=1, sticky='w')
-		self.reloadComPort.grid(row=0,column=2, padx=(5,0), sticky='w')
-		self.cb_show_ser.grid(row=1, column=0)
+		self.serial_f1.grid(row=0,column=0, sticky='nw')
+		self.serial_f2.grid(row=1,column=0, sticky='nw', pady=(5, 0))
+		self.label2.pack(side=tk.LEFT)
+		self.entry2.pack(side=tk.LEFT, padx=5)
+		self.reloadComPort.pack(side=tk.LEFT)
+		self.cb_show_ser.pack(side=tk.LEFT)
 
 		# controller simulator
 		self.control_lf.grid(row=1, column=1, sticky='ne')
@@ -186,10 +186,9 @@ class GUI:
 		self.lf.grid(row=1,column=2, rowspan=3, sticky='ne')
 		self.rb1.grid(row=0,column=0, sticky='w')
 		self.rb2.grid(row=1,column=0, sticky='w')
-		self.rb3.grid(row=2,column=0, sticky='w')
 		self.setCommandCmbbox()
-		self.reloadCommandButton.grid(row=3,column=1, sticky='e')
-		self.startButton.grid(row=3,column=2, sticky='e')
+		self.reloadCommandButton.grid(row=3,column=1, sticky='e', pady=(10, 0))
+		self.startButton.grid(row=3,column=2, sticky='e', pady=(10, 0))
 
 		for child in self.frame1.winfo_children():
 			if not type(child) is ttk.Combobox:
@@ -203,8 +202,6 @@ class GUI:
 		self.mcu_cb.current(0)
 		self.py_cb['values'] = [name for name in PythonCommand.commands.keys()]
 		self.py_cb.current(0)
-		self.util_cb['values'] = [name for name in PythonCommand.utils.keys()]
-		self.util_cb.current(0)
 
 	def openCamera(self):
 		self.camera.openCamera(self.cameraID.get())
@@ -245,9 +242,9 @@ class GUI:
 		if self.v1.get() == 'Mcu':
 			name = self.mcu_name.get()
 			self.cur_command = McuCommand.commands[name](name)
-		elif self.v1.get() == 'Python' or self.v1.get() == 'Utility':
-			name = self.py_name.get() if self.v1.get() == 'Python' else self.util_name.get()
-			cmd_class = PythonCommand.commands[name] if self.v1.get() == 'Python' else PythonCommand.utils[name]
+		elif self.v1.get() == 'Python':
+			name = self.py_name.get() 
+			cmd_class = PythonCommand.commands[name]
 
 			if issubclass(cmd_class, PythonCommand.ImageProcPythonCommand):
 				self.cur_command = cmd_class(name, self.camera)
@@ -292,25 +289,15 @@ class GUI:
 	def assignPythonCommand(self, event):
 		print('changed to python command: ' + self.py_name.get())
 
-	def assignUtilCommand(self, event):
-		print('changed to utility command: ' + self.util_name.get())
-
 	def setCommandCmbbox(self):
 		if self.v1.get() == 'Mcu':
-			self.mcu_cb.grid(row=1,column=1, columnspan=2, padx=(10, 0))
+			self.mcu_cb.grid(row=0,column=1, columnspan=2, padx=(10, 0))
 			self.py_cb.grid_remove()
-			self.util_cb.grid_remove()
 			self.assignMcuCommand(None)
 		elif self.v1.get() == 'Python':
 			self.mcu_cb.grid_remove()
-			self.py_cb.grid(row=1,column=1, columnspan=2, padx=(10, 0))
-			self.util_cb.grid_remove()
+			self.py_cb.grid(row=0,column=1, columnspan=2, padx=(10, 0))
 			self.assignPythonCommand(None)
-		elif self.v1.get() == 'Utility':
-			self.mcu_cb.grid_remove()
-			self.py_cb.grid_remove()
-			self.util_cb.grid(row=1,column=1, columnspan=2, padx=(10, 0))
-			self.assignUtilCommand(None)
 
 	def locateCameraCmbbox(self):
 		import clr
@@ -406,12 +393,12 @@ class GUI:
 		importlib.reload(McuCommand)
 		importlib.reload(PythonCommand)
 		importlib.reload(UnitCommand)
+
 		if self.v1.get() == 'Mcu':
 			visibledCb = self.mcu_cb
 		elif self.v1.get() == 'Python':
 			visibledCb = self.py_cb
-		elif self.v1.get() == 'Utility':
-			visibledCb = self.util_cb
+
 		oldval = visibledCb.get()
 		self.setCommandItems()
 		if(oldval in visibledCb['values']):
