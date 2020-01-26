@@ -11,6 +11,7 @@
 *.exe
 *.json
 LUFA/
+SerialController/Captures/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
