@@ -32,6 +32,7 @@ class SwitchKeyboardController(Keyboard):
 		super(SwitchKeyboardController, self).__init__()
 		self.key = keyPress
 		self.holding = []
+		self.holdingDir = []
 
 		self.key_map = {
 			'y': Button.Y,
@@ -72,20 +73,13 @@ class SwitchKeyboardController(Keyboard):
 		
 		# for special keys
 		except AttributeError:
-			if key in self.holding:
+			if key in self.holdingDir:
 				return
 
 			for k in self.key_map.keys():
 				if key == k:
-					self.key.input(self.key_map[k])
-					self.holding.append(key)
-
-			if Key.up in self.holding:
-				if Key.right in self.holding:	self.key.input(Direction(Stick.LEFT, 45))
-				elif Key.left in self.holding:	self.key.input(Direction(Stick.LEFT, 135))
-			elif Key.down in self.holding:
-				if Key.left in self.holding:	self.key.input(Direction(Stick.LEFT, 225))
-				elif Key.right in self.holding:	self.key.input(Direction(Stick.LEFT, 315))
+					self.holdingDir.append(key)
+					self.inputDir(self.holdingDir)
 
 	def on_release(self, key):
 		if key is None:
@@ -97,6 +91,22 @@ class SwitchKeyboardController(Keyboard):
 				self.key.inputEnd(self.key_map[key.char])
 		
 		except AttributeError:
-			if key in self.holding:
-				self.holding.remove(key)
+			if key in self.holdingDir:
+				self.holdingDir.remove(key)
 				self.key.inputEnd(self.key_map[key])
+				self.inputDir(self.holdingDir)
+	
+	def inputDir(self, dirs):
+		if len(dirs) == 0:
+			return
+		elif len(dirs) == 1:
+			self.key.input(self.key_map[dirs[0]])
+		elif len(dirs) > 1:
+			valid_dirs = dirs[-2:] # set only last 2 directions
+
+			if Key.up in valid_dirs:
+				if Key.right in valid_dirs:	self.key.input(Direction.UP_RIGHT)
+				elif Key.left in valid_dirs:	self.key.input(Direction.UP_LEFT)
+			elif Key.down in valid_dirs:
+				if Key.left in valid_dirs:	self.key.input(Direction.DOWN_LEFT)
+				elif Key.right in valid_dirs:	self.key.input(Direction.DOWN_RIGHT)
