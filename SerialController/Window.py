@@ -77,7 +77,7 @@ class GUI:
 		self.camera = Camera()
 		self.openCamera()
 
-		self.showPreview = tk.BooleanVar()
+		self.showPreview = tk.BooleanVar(value=self.settings['is_show_realtime'])
 		self.cb1 = ttk.Checkbutton(
 			self.camera_f1,
 			padding=5,
@@ -85,7 +85,6 @@ class GUI:
 			onvalue=True,
 			offvalue=False,
 			variable=self.showPreview)
-		self.showPreview.set(True)
 
 		self.label2 = ttk.Label(self.serial_f1, text='COM Port:')
 		self.comPort = tk.IntVar()
@@ -107,8 +106,7 @@ class GUI:
 		self.startButton = ttk.Button(self.lf, text='Start', command=self.startPlay)
 		self.captureButton = ttk.Button(self.camera_f1, text='Capture', command=self.preview.saveCapture)
 
-		self.showSerial = tk.BooleanVar()
-		self.showSerial.set(False)
+		self.showSerial = tk.BooleanVar(value=self.settings['is_show_serial'])
 		self.cb_show_ser = ttk.Checkbutton(
 			self.serial_f2,
 			padding=5,
@@ -119,12 +117,12 @@ class GUI:
 			command=lambda: self.ser.setIsShowSerial(self.showSerial.get()))
 
 		# simple controller
-		self.useKeyboard = tk.BooleanVar()
+		self.useKeyboard = tk.BooleanVar(value=self.settings['is_use_keyboard'])
 		self.cb_use_keyboard = ttk.Checkbutton(
 			self.control_lf, text='Use Keyboard',
 			onvalue=True, offvalue=False, variable=self.useKeyboard,
 			command=self.activateKeyboard)
-		self.useKeyboard.set(False)
+		self.activateKeyboard()
 		self.simpleConButton = ttk.Button(self.control_lf, text='Controller', command=self.createControllerWindow)
 
 		# fps
@@ -218,11 +216,14 @@ class GUI:
 		else:
 			default = {
 				"camera_id": 0,
-				"com_port": 1,
-				"fps": "45"
+				"com_port": 3,
+				"fps": "45",
+				"is_show_realtime": True,
+				"is_show_serial": False,
+				"is_use_keyboard": True,
 			}
 			json.dump(default, open(SETTING_PATH, 'w'), indent=4)
-			print('default settings file has been created')
+			print('A default settings file has been created.')
 			self.loadSettings()
 
 	def startPlay(self):
