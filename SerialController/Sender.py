@@ -5,9 +5,9 @@ import os
 import serial
 
 class Sender:
-	def __init__(self):
+	def __init__(self, is_show_serial):
 		self.ser = None
-		self.is_show_serial = False
+		self.is_show_serial = is_show_serial
 
 	def openSerial(self, portNum):
 		try:
@@ -33,9 +33,6 @@ class Sender:
 	
 	def isOpened(self):
 		return not self.ser is None and self.ser.isOpen()
-	
-	def setIsShowSerial(self, is_show):
-		self.is_show_serial = is_show
 
 	def writeRow(self, row):
 		try:
@@ -44,5 +41,5 @@ class Sender:
 			print(e)
 
 		# Show sending serial datas
-		if self.is_show_serial:
+		if self.is_show_serial.get():
 			print(row)

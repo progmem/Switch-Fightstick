@@ -12,6 +12,7 @@
 *.json
 LUFA/
 SerialController/Captures/
+SerialController/settings.poke
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

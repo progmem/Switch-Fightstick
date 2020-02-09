@@ -60,39 +60,34 @@ class GUI:
 
 		# camera settings
 		self.label1 = ttk.Label(self.camera_f1, text='Camera ID:')
-		self.cameraID = tk.IntVar()
-		self.cameraID.set(self.settings.camera_id)
 		self.camera_entry = None
 		if os.name == 'nt':
 			try:
 				self.locateCameraCmbbox()
 			except:
 				# Locate an entry instead whenever dll is not imported successfully
-				self.camera_entry = ttk.Entry(self.camera_f1, width=5, textvariable=self.cameraID)
+				self.camera_entry = ttk.Entry(self.camera_f1, width=5, textvariable=self.settings.camera_id)
 		else:
-			self.camera_entry = ttk.Entry(self.camera_f1, width=5, textvariable=self.cameraID)
+			self.camera_entry = ttk.Entry(self.camera_f1, width=5, textvariable=self.settings.camera_id)
 
 		# open up a camera
 		self.camera = Camera()
 		self.openCamera()
 
-		self.showPreview = tk.BooleanVar(value=self.settings.is_show_realtime)
 		self.cb1 = ttk.Checkbutton(
 			self.camera_f1,
 			padding=5,
 			text='Show Realtime',
 			onvalue=True,
 			offvalue=False,
-			variable=self.showPreview)
+			variable=self.settings.is_show_realtime)
 
 		self.label2 = ttk.Label(self.serial_f1, text='COM Port:')
-		self.comPort = tk.IntVar()
-		self.comPort.set(self.settings.com_port)
-		self.entry2 = ttk.Entry(self.serial_f1, width=5, textvariable=self.comPort)
-		self.preview = CaptureArea(self.camera, self.settings.fps, self.showPreview, self.camera_lf)
+		self.entry2 = ttk.Entry(self.serial_f1, width=5, textvariable=self.settings.com_port)
+		self.preview = CaptureArea(self.camera, self.settings.fps.get(), self.settings.is_show_realtime, self.camera_lf)
 
 		# activate serial communication
-		self.ser = Sender.Sender()
+		self.ser = Sender.Sender(self.settings.is_show_serial)
 		self.activateSerial()
 
 		self.v1 = tk.StringVar(value='Python')
@@ -105,33 +100,28 @@ class GUI:
 		self.startButton = ttk.Button(self.lf, text='Start', command=self.startPlay)
 		self.captureButton = ttk.Button(self.camera_f1, text='Capture', command=self.preview.saveCapture)
 
-		self.showSerial = tk.BooleanVar(value=self.settings.is_show_serial)
 		self.cb_show_ser = ttk.Checkbutton(
 			self.serial_f2,
 			padding=5,
 			text='Show Serial',
 			onvalue=True,
 			offvalue=False,
-			variable=self.showSerial,
-			command=lambda: self.ser.setIsShowSerial(self.showSerial.get()))
+			variable=self.settings.is_show_serial)
 
 		# simple controller
-		self.useKeyboard = tk.BooleanVar(value=self.settings.is_use_keyboard)
 		self.cb_use_keyboard = ttk.Checkbutton(
 			self.control_lf, text='Use Keyboard',
-			onvalue=True, offvalue=False, variable=self.useKeyboard,
+			onvalue=True, offvalue=False, variable=self.settings.is_use_keyboard,
 			command=self.activateKeyboard)
 		self.activateKeyboard()
 		self.simpleConButton = ttk.Button(self.control_lf, text='Controller', command=self.createControllerWindow)
 
 		# fps
 		self.label3 = ttk.Label(self.camera_f2, text='FPS:')
-		self.fps = tk.StringVar()
-		self.fps.set(str(self.settings.fps))
-		self.fps_cb = ttk.Combobox(self.camera_f2, textvariable=self.fps, width=2, state="readonly")
+		self.fps_cb = ttk.Combobox(self.camera_f2, textvariable=self.settings.fps, width=2, state="readonly")
 		self.fps_cb['values'] = [45, 30, 15]
 		self.fps_cb.bind('<<ComboboxSelected>>', self.applyFps)
-		self.fps_cb.current(self.fps_cb['values'].index(self.fps.get()))
+		self.fps_cb.current(self.fps_cb['values'].index(self.settings.fps.get()))
 
 		# commands
 		self.mcu_name = tk.StringVar()
@@ -201,12 +191,11 @@ class GUI:
 		self.py_cb.current(0)
 
 	def openCamera(self):
-		self.camera.openCamera(self.cameraID.get())
-		self.settings.camera_id = self.cameraID.get()
+		self.camera.openCamera(self.settings.camera_id.get())
 	
 	def assignCamera(self, event):
 		if os.name == 'nt':
-			self.cameraID.set(self.camera_dic[self.cameraName.get()])
+			self.settings.camera_id.set(self.camera_dic[self.cameraName.get()])
 
 	def loadSettings(self):
 		self.settings = Settings.GuiSettings()
@@ -266,9 +255,8 @@ class GUI:
 		self.root.destroy()
 
 	def applyFps(self, event):
-		print('changed FPS to: ' + self.fps.get() + ' [fps]')
-		self.preview.setFps(self.fps.get())
-		self.settings.fps = int(self.fps.get())
+		print('changed FPS to: ' + self.settings.fps.get() + ' [fps]')
+		self.preview.setFps(self.settings.fps.get())
 
 	def assignMcuCommand(self, event):
 		print('changed to mcu command: ' + self.mcu_name.get())
@@ -297,9 +285,9 @@ class GUI:
 		self.camera_dic['Disable'] = max(list(self.camera_dic.values())) + 1
 		dev_num = len(self.camera_dic)
 
-		if self.cameraID.get() > dev_num - 1:
+		if self.settings.camera_id.get() > dev_num - 1:
 			print('inappropriate camera ID! -> set to 0')
-			self.cameraID.set(0)
+			self.settings.camera_id.set(0)
 			if dev_num == 0: print('No camera devices can be found.')
 
 		# locate a combobox instead of an entry
@@ -309,7 +297,7 @@ class GUI:
 		self.camera_entry['values'] = [device for device in self.camera_dic.keys()]
 		self.camera_entry.bind('<<ComboboxSelected>>', self.assignCamera)
 		if not dev_num == 0:
-			self.camera_entry.current(self.cameraID.get())
+			self.camera_entry.current(self.settings.camera_id.get())
 
 	def activateSerial(self):
 		if self.ser.isOpened():
@@ -318,9 +306,8 @@ class GUI:
 			self.keyPress = None
 			self.activateSerial()
 		else:
-			if self.ser.openSerial(self.comPort.get()):
-				self.settings.com_port = int(self.comPort.get())
-				print('COM Port ' + str(self.comPort.get()) + ' connected successfully')
+			if self.ser.openSerial(self.settings.com_port.get()):
+				print('COM Port ' + str(self.settings.com_port.get()) + ' connected successfully')
 				self.keyPress = KeyPress(self.ser)
 
 	def createControllerWindow(self):
@@ -333,7 +320,7 @@ class GUI:
 		self.controller = window
 	
 	def activateKeyboard(self):
-		if self.useKeyboard.get() == True:
+		if self.settings.is_use_keyboard.get() == True:
 			# enable Keyboard as controller
 			if self.keyboard is None:
 				self.keyboard = SwitchKeyboardController(self.keyPress)
@@ -344,7 +331,7 @@ class GUI:
 				self.root.bind("<FocusIn>", self.onFocusInController)
 				self.root.bind("<FocusOut>", self.onFocusOutController)
 
-		elif self.useKeyboard.get() == False:
+		else:
 			if os.name == 'nt': # NOTE: Idk why but self.keyboard.stop() makes crash on Linux
 				if not self.keyboard is None:
 					# stop listening to keyboard events
