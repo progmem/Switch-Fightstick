@@ -5,9 +5,9 @@ import sys, os
 from tkinter.scrolledtext import ScrolledText
 import tkinter as tk
 from tkinter import ttk
-import cv2, json, time
+import cv2, time
 import McuCommand, PythonCommand, UnitCommand
-import Camera, Sender
+import Camera, Sender, Settings
 from Keys import KeyPress
 from Keyboard import SwitchKeyboardController
 from Camera import Camera
@@ -15,7 +15,6 @@ from GuiAssets import CaptureArea, ControllerGUI
 
 NAME = "Poke-Controller"
 VERSION = "v1.0"
-SETTING_PATH = "./settings.json"
 
 # To avoid the error says 'ScrolledText' object has no attribute 'flush'
 class MyScrolledText(ScrolledText):
@@ -62,7 +61,7 @@ class GUI:
 		# camera settings
 		self.label1 = ttk.Label(self.camera_f1, text='Camera ID:')
 		self.cameraID = tk.IntVar()
-		self.cameraID.set(int(self.settings['camera_id']))
+		self.cameraID.set(self.settings.camera_id)
 		self.camera_entry = None
 		if os.name == 'nt':
 			try:
@@ -77,7 +76,7 @@ class GUI:
 		self.camera = Camera()
 		self.openCamera()
 
-		self.showPreview = tk.BooleanVar(value=self.settings['is_show_realtime'])
+		self.showPreview = tk.BooleanVar(value=self.settings.is_show_realtime)
 		self.cb1 = ttk.Checkbutton(
 			self.camera_f1,
 			padding=5,
@@ -88,9 +87,9 @@ class GUI:
 
 		self.label2 = ttk.Label(self.serial_f1, text='COM Port:')
 		self.comPort = tk.IntVar()
-		self.comPort.set(int(self.settings['com_port']))
+		self.comPort.set(self.settings.com_port)
 		self.entry2 = ttk.Entry(self.serial_f1, width=5, textvariable=self.comPort)
-		self.preview = CaptureArea(self.camera, self.settings['fps'], self.showPreview, self.camera_lf)
+		self.preview = CaptureArea(self.camera, self.settings.fps, self.showPreview, self.camera_lf)
 
 		# activate serial communication
 		self.ser = Sender.Sender()
@@ -106,7 +105,7 @@ class GUI:
 		self.startButton = ttk.Button(self.lf, text='Start', command=self.startPlay)
 		self.captureButton = ttk.Button(self.camera_f1, text='Capture', command=self.preview.saveCapture)
 
-		self.showSerial = tk.BooleanVar(value=self.settings['is_show_serial'])
+		self.showSerial = tk.BooleanVar(value=self.settings.is_show_serial)
 		self.cb_show_ser = ttk.Checkbutton(
 			self.serial_f2,
 			padding=5,
@@ -117,7 +116,7 @@ class GUI:
 			command=lambda: self.ser.setIsShowSerial(self.showSerial.get()))
 
 		# simple controller
-		self.useKeyboard = tk.BooleanVar(value=self.settings['is_use_keyboard'])
+		self.useKeyboard = tk.BooleanVar(value=self.settings.is_use_keyboard)
 		self.cb_use_keyboard = ttk.Checkbutton(
 			self.control_lf, text='Use Keyboard',
 			onvalue=True, offvalue=False, variable=self.useKeyboard,
@@ -128,7 +127,7 @@ class GUI:
 		# fps
 		self.label3 = ttk.Label(self.camera_f2, text='FPS:')
 		self.fps = tk.StringVar()
-		self.fps.set(str(self.settings['fps']))
+		self.fps.set(str(self.settings.fps))
 		self.fps_cb = ttk.Combobox(self.camera_f2, textvariable=self.fps, width=2, state="readonly")
 		self.fps_cb['values'] = [45, 30, 15]
 		self.fps_cb.bind('<<ComboboxSelected>>', self.applyFps)
@@ -203,28 +202,15 @@ class GUI:
 
 	def openCamera(self):
 		self.camera.openCamera(self.cameraID.get())
-		self.settings['camera_id'] = self.cameraID.get()
+		self.settings.camera_id = self.cameraID.get()
 	
 	def assignCamera(self, event):
 		if os.name == 'nt':
 			self.cameraID.set(self.camera_dic[self.cameraName.get()])
 
 	def loadSettings(self):
-		self.settings = None
-		if os.path.isfile(SETTING_PATH):
-			self.settings = json.load(open(SETTING_PATH, 'r'))
-		else:
-			default = {
-				"camera_id": 0,
-				"com_port": 3,
-				"fps": "45",
-				"is_show_realtime": True,
-				"is_show_serial": False,
-				"is_use_keyboard": True,
-			}
-			json.dump(default, open(SETTING_PATH, 'w'), indent=4)
-			print('A default settings file has been created.')
-			self.loadSettings()
+		self.settings = Settings.GuiSettings()
+		self.settings.load()
 
 	def startPlay(self):
 		if self.cur_command is None:
@@ -273,7 +259,7 @@ class GUI:
 			self.keyboard = None
 
 		# save settings
-		json.dump(self.settings, open(SETTING_PATH, 'w'), indent=4)
+		self.settings.save()
 
 		self.camera.destroy()
 		cv2.destroyAllWindows()
@@ -282,7 +268,7 @@ class GUI:
 	def applyFps(self, event):
 		print('changed FPS to: ' + self.fps.get() + ' [fps]')
 		self.preview.setFps(self.fps.get())
-		self.settings['fps'] = self.fps.get()
+		self.settings.fps = int(self.fps.get())
 
 	def assignMcuCommand(self, event):
 		print('changed to mcu command: ' + self.mcu_name.get())
@@ -333,7 +319,7 @@ class GUI:
 			self.activateSerial()
 		else:
 			if self.ser.openSerial(self.comPort.get()):
-				self.settings['com_port'] = self.comPort.get()
+				self.settings.com_port = int(self.comPort.get())
 				print('COM Port ' + str(self.comPort.get()) + ' connected successfully')
 				self.keyPress = KeyPress(self.ser)
 
