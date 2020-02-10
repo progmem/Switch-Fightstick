@@ -2,17 +2,13 @@
 # -*- coding: utf-8 -*-
 
 from abc import ABCMeta, abstractclassmethod
-import Sender
+from . import Sender
 
 class Command:
 	__metaclass__ = ABCMeta
 
-	def __init__(self, name):
-		self.name = name
+	def __init__(self):
 		self.isRunning = False
-
-	def getName(self):
-		return self.name
 
 	@abstractclassmethod
 	def start(self, ser, postProcess=None):

@@ -3,9 +3,10 @@
 
 import tkinter as tk
 from tkinter import ttk
+from tkinter.scrolledtext import ScrolledText
 import cv2
 from PIL import Image, ImageTk
-import UnitCommand
+from Commands import UnitCommand
 
 class CaptureArea(tk.Label):
 	def __init__(self, camera, fps, is_show, master=None):
@@ -41,9 +42,8 @@ class CaptureArea(tk.Label):
 			return
 
 		if image_bgr is not None:
-			image_bgr = cv2.resize(image_bgr, self.show_size)
 			image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-			image_pil = Image.fromarray(image_rgb)
+			image_pil = Image.fromarray(image_rgb).resize(self.show_size)
 			image_tk  = ImageTk.PhotoImage(image_pil)
 
 			self.im = image_tk
@@ -136,3 +136,8 @@ class ControllerGUI:
 
 	def destroy(self):
 		self.window.destroy()
+
+# To avoid the error says 'ScrolledText' object has no attribute 'flush'
+class MyScrolledText(ScrolledText):
+	def flush(self):
+		pass

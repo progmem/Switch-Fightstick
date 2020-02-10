@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pynput.keyboard import Key, Listener
-from Keys import KeyPress, Button, Direction, Stick
+from Commands.Keys import KeyPress, Button, Direction, Stick
 
 # This handles keyboard interactions
 class Keyboard:

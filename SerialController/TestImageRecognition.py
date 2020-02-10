@@ -145,4 +145,16 @@ def compareHistgram(test_path1, test_path2):
 
 
 if __name__ == "__main__":
-	compareHistgram('normal.png', 'shiny.png')
+	#compareHistgram('normal.png', 'shiny.png')
+
+	img1 = cv2.imread(TEMPLATE_PATH+'zachian_part.png', cv2.IMREAD_COLOR)
+	img2 = cv2.imread(TEMPLATE_PATH+'zachian_part2.png', cv2.IMREAD_COLOR)
+
+	# generate Brute-Force Matcher
+	bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=False)
+
+	kp1, _, kp2, _, good = getRobustFeatures(img1, img2, bf)
+	img3 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, good, None, flags=2)
+
+	while not ( cv2.waitKey(1) & 0xFF == ord('q') ):
+		cv2.imshow('img', img3)
