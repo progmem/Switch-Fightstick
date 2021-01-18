@@ -9,3 +9,5 @@
 *.sym
 *.eep
 LUFA/
+
+/cmake-build-debug

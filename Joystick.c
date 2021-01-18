@@ -63,6 +63,7 @@ This code exists solely to actually test on. This will eventually be replaced.
 // We're going to capture each port separately and store the contents into a 32-bit value.
 uint32_t pb_debounce = 0;
 uint32_t pd_debounce = 0;
+uint32_t pc_debounce = 0;
 
 // We also need a port state capture. We'll use a 16-bit value for this.
 uint16_t bd_state = 0;
@@ -76,6 +77,7 @@ void debounce_ports(void) {
 	// We'll shift the current value of the debounce down one set of 8 bits. We'll also read in the state of the pins.
 	pb_debounce = (pb_debounce << 8) + PINB;
 	pd_debounce = (pd_debounce << 8) + PIND;
+	pc_debounce = (pc_debounce << 8) + PINC;
 
 	// We'll then iterate through a simple for loop.
 	for (int i = 0; i < 8; i++) {
@@ -126,6 +128,9 @@ void SetupHardware(void) {
 
 	DDRB  &= ~0xFF;
 	PORTB |=  0xFF;
+
+	DDRC  &= ~0xFF;
+	PORTC |=  0xFF;
 	// The USB stack should be initialized last.
 	USB_Init();
 }
@@ -244,6 +249,26 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	memset(ReportData, 0, sizeof(USB_JoystickReport_Input_t));
 
 	buf_button   = (~PIND_DEBOUNCED & 0xFF) << (~PINB_DEBOUNCED & 0x08 ? 8 : 0);
+
+	if ((PINC & 0x01) == 0) {
+		ReportData->Button |= SWITCH_SELECT; /* Sets the bit of SWITCH_HOME onto Button */
+	}
+    if ((PINC & 0x02) == 0) {
+        ReportData->Button |= SWITCH_START; /* Sets the bit of SWITCH_HOME onto Button */
+    }
+    if ((PINC & 0x04) == 0) {
+        ReportData->Button |= SWITCH_LCLICK; /* Sets the bit of SWITCH_HOME onto Button */
+    }
+    if ((PINC & 0x08) == 0) {
+        ReportData->Button |= SWITCH_RCLICK; /* Sets the bit of SWITCH_HOME onto Button */
+    }
+	if ((PINC & 0x10) == 0) {
+		ReportData->Button |= SWITCH_HOME; /* Sets the bit of SWITCH_HOME onto Button */
+	}
+	if ((PINC & 0x20) == 0) {
+		ReportData->Button |= SWITCH_CAPTURE; /* Sets the bit of SWITCH_HOME onto Button */
+	}
+
 	buf_joystick = (~PINB_DEBOUNCED & 0xFF);
 
 	for (int i = 0; i < 16; i++) {
