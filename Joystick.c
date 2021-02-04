@@ -33,22 +33,22 @@ original 13 bits of space, along with attempting to investigate the remaining
 button was operational on the stick.
 */
 uint16_t ButtonMap[16] = {
-	0x01,
-	0x02,
-	0x04,
-	0x08,
-	0x10,
-	0x20,
-	0x40,
-	0x80,
-	0x100,
-	0x200,
-	0x400,
-	0x800,
-	0x1000,
-	0x2000,
-	0x4000,
-	0x8000,
+		0x01,
+		0x02,
+		0x04,
+		0x08,
+		0x10,
+		0x20,
+		0x40,
+		0x80,
+		0x100,
+		0x200,
+		0x400,
+		0x800,
+		0x1000,
+		0x2000,
+		0x4000,
+		0x8000,
 };
 
 /*** Debounce ****
@@ -62,34 +62,45 @@ This code exists solely to actually test on. This will eventually be replaced.
 // Quick debounce hackery!
 // We're going to capture each port separately and store the contents into a 32-bit value.
 uint32_t pb_debounce = 0;
-uint32_t pd_debounce = 0;
 uint32_t pc_debounce = 0;
+uint32_t pd_debounce = 0;
 
 // We also need a port state capture. We'll use a 16-bit value for this.
-uint16_t bd_state = 0;
+uint16_t bdB_state = 0;
+uint16_t bdC_state = 0;
+uint16_t bdD_state = 0;
 
 // We'll also give us some useful macros here.
-#define PINB_DEBOUNCED ((bd_state >> 0) & 0xFF)
-#define PIND_DEBOUNCED ((bd_state >> 8) & 0xFF) 
+#define PINB_DEBOUNCED ((bdB_state >> 0) & 0xFF)
+#define PINC_DEBOUNCED ((bdC_state >> 0) & 0xFF)
+#define PIND_DEBOUNCED ((bdD_state >> 0) & 0xFF)
 
 // So let's do some debounce! Lazily, and really poorly.
 void debounce_ports(void) {
 	// We'll shift the current value of the debounce down one set of 8 bits. We'll also read in the state of the pins.
 	pb_debounce = (pb_debounce << 8) + PINB;
-	pd_debounce = (pd_debounce << 8) + PIND;
 	pc_debounce = (pc_debounce << 8) + PINC;
+	pd_debounce = (pd_debounce << 8) + PIND;
 
 	// We'll then iterate through a simple for loop.
 	for (int i = 0; i < 8; i++) {
-		if ((pb_debounce & (0x1010101 << i)) == (0x1010101 << i)) // wat
-			bd_state |= (1 << i);
-		else if ((pb_debounce & (0x1010101 << i)) == (0))
-			bd_state &= ~(uint16_t)(1 << i);
+		if ((pb_debounce & (0x1010101 << i)) == (0x1010101 << i)) { // wat
+			bdB_state |= (1 << i);
+		} else if ((pb_debounce & (0x1010101 << i)) == (0)) {
+			bdB_state &= ~(uint16_t)(1 << i);
+		}
 
-		if ((pd_debounce & (0x1010101 << i)) == (0x1010101 << i))
-			bd_state |= (1 << (8 + i));
-		else if ((pd_debounce & (0x1010101 << i)) == (0))
-			bd_state &= ~(uint16_t)(1 << (8 + i));
+		if ((pc_debounce & (0x1010101 << i)) == (0x1010101 << i)) { // wat
+			bdC_state |= (1 << i);
+		} else if ((pc_debounce & (0x1010101 << i)) == (0)) {
+			bdC_state &= ~(uint16_t)(1 << i);
+		}
+
+		if ((pd_debounce & (0x1010101 << i)) == (0x1010101 << i)) { // wat
+			bdD_state |= (1 << i);
+		} else if ((pd_debounce & (0x1010101 << i)) == (0)) {
+			bdD_state &= ~(uint16_t)(1 << i);
+		}
 	}
 }
 
@@ -100,8 +111,7 @@ int main(void) {
 	// We'll then enable global interrupts for our use.
 	GlobalInterruptEnable();
 	// Once that's done, we'll enter an infinite loop.
-	for (;;)
-	{
+	for (;;) {
 		// We need to run our task to process and deliver data for our IN and OUT endpoints.
 		HID_Task();
 		// We also need to run the main USB management task.
@@ -123,14 +133,14 @@ void SetupHardware(void) {
 	// We can then initialize our hardware and peripherals, including the USB stack.
 
 	// Both PORTD and PORTB will be used for handling the buttons and stick.
-	DDRD  &= ~0xFF;
-	PORTD |=  0xFF;
+	DDRD &= ~0xFF;
+	PORTD |= 0xFF;
 
-	DDRB  &= ~0xFF;
-	PORTB |=  0xFF;
+	DDRB &= ~0xFF;
+	PORTB |= 0xFF;
 
-	DDRC  &= ~0xFF;
-	PORTC |=  0xFF;
+	DDRC &= ~0xFF;
+	PORTC |= 0xFF;
 	// The USB stack should be initialized last.
 	USB_Init();
 }
@@ -159,12 +169,10 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
 // Process control requests sent to the device from the USB host.
 void EVENT_USB_Device_ControlRequest(void) {
 	// We can handle two control requests: a GetReport and a SetReport.
-	switch (USB_ControlRequest.bRequest)
-	{
+	switch (USB_ControlRequest.bRequest) {
 		// GetReport is a request for data from the device.
 		case HID_REQ_GetReport:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
+			if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE)) {
 				// We'll create an empty report.
 				USB_JoystickReport_Input_t JoystickInputData;
 				// We'll then populate this report with what we want to send to the host.
@@ -179,8 +187,7 @@ void EVENT_USB_Device_ControlRequest(void) {
 
 			break;
 		case HID_REQ_SetReport:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
+			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE)) {
 				// We'll create a place to store our data received from the host.
 				USB_JoystickReport_Output_t JoystickOutputData;
 				// Since this is a control endpoint, we need to clear up the SETUP packet on this endpoint.
@@ -199,16 +206,14 @@ void EVENT_USB_Device_ControlRequest(void) {
 void HID_Task(void) {
 	// If the device isn't connected and properly configured, we can't do anything here.
 	if (USB_DeviceState != DEVICE_STATE_Configured)
-	  return;
+		return;
 
 	// We'll start with the OUT endpoint.
 	Endpoint_SelectEndpoint(JOYSTICK_OUT_EPADDR);
 	// We'll check to see if we received something on the OUT endpoint.
-	if (Endpoint_IsOUTReceived())
-	{
+	if (Endpoint_IsOUTReceived()) {
 		// If we did, and the packet has data, we'll react to it.
-		if (Endpoint_IsReadWriteAllowed())
-		{
+		if (Endpoint_IsReadWriteAllowed()) {
 			// We'll create a place to store our data received from the host.
 			USB_JoystickReport_Output_t JoystickOutputData;
 			// We'll then take in that data, setting it up in our storage.
@@ -223,8 +228,7 @@ void HID_Task(void) {
 	// We'll then move on to the IN endpoint.
 	Endpoint_SelectEndpoint(JOYSTICK_IN_EPADDR);
 	// We first check to see if the host is ready to accept data.
-	if (Endpoint_IsINReady())
-	{
+	if (Endpoint_IsINReady()) {
 		// We'll create an empty report.
 		USB_JoystickReport_Input_t JoystickInputData;
 		// We'll then populate this report with what we want to send to the host.
@@ -240,57 +244,66 @@ void HID_Task(void) {
 }
 
 // Prepare the next report for the host.
-void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
+void GetNextReport(USB_JoystickReport_Input_t *const ReportData) {
 	// All of this code here is handled -really poorly-, and should be replaced with something a bit more production-worthy.
-	uint16_t buf_button   = 0x00;
-	uint8_t  buf_joystick = 0x00;
+	uint8_t buf_pb = 0x00;
+	uint8_t buf_pc = 0x00;
+	uint8_t buf_pd = 0x00;
 
 	/* Clear the report contents */
 	memset(ReportData, 0, sizeof(USB_JoystickReport_Input_t));
 
-	buf_button   = (~PIND_DEBOUNCED & 0xFF) << (~PINB_DEBOUNCED & 0x08 ? 8 : 0);
+	buf_pb = (~PINB_DEBOUNCED & 0xFF);
+	buf_pc = (~PINC_DEBOUNCED & 0xFF);
+	buf_pd = (~PIND_DEBOUNCED & 0xFF);
 
-	if ((PINC & 0x01) == 0) {
-		ReportData->Button |= SWITCH_SELECT; /* Sets the bit of SWITCH_HOME onto Button */
+	if (buf_pc & (1 << 0)) {
+		ReportData->Button |= SWITCH_SELECT; /* Sets the bit of SWITCH_SELECT onto Button */
 	}
-    if ((PINC & 0x02) == 0) {
-        ReportData->Button |= SWITCH_START; /* Sets the bit of SWITCH_HOME onto Button */
-    }
-    if ((PINC & 0x04) == 0) {
-        ReportData->Button |= SWITCH_LCLICK; /* Sets the bit of SWITCH_HOME onto Button */
-    }
-    if ((PINC & 0x08) == 0) {
-        ReportData->Button |= SWITCH_RCLICK; /* Sets the bit of SWITCH_HOME onto Button */
-    }
-	if ((PINC & 0x10) == 0) {
+	if (buf_pc & (1 << 1)) {
+		ReportData->Button |= SWITCH_START; /* Sets the bit of SWITCH_START onto Button */
+	}
+	if (buf_pc & (1 << 2)) {
+		ReportData->Button |= SWITCH_LCLICK; /* Sets the bit of SWITCH_LCLICK onto Button */
+	}
+	if (buf_pc & (1 << 3)) {
+		ReportData->Button |= SWITCH_RCLICK; /* Sets the bit of SWITCH_RCLICK onto Button */
+	}
+	if (buf_pc & (1 << 4)) {
 		ReportData->Button |= SWITCH_HOME; /* Sets the bit of SWITCH_HOME onto Button */
 	}
-	if ((PINC & 0x20) == 0) {
-		ReportData->Button |= SWITCH_CAPTURE; /* Sets the bit of SWITCH_HOME onto Button */
+	if (buf_pc & (1 << 5)) {
+		ReportData->Button |= SWITCH_CAPTURE; /* Sets the bit of SWITCH_CAPTURE onto Button */
 	}
 
-	buf_joystick = (~PINB_DEBOUNCED & 0xFF);
-
 	for (int i = 0; i < 16; i++) {
-		if (buf_button & (1 << i))
+		if (buf_pd & (1 << i))
 			ReportData->Button |= ButtonMap[i];
 	}
 
-	if (buf_joystick & 0x10)
+	for (int i = 0; i < 8; i++) {
+		if (buf_pb & (1 << (i + 8))) {
+			ReportData->Button |= ButtonMap[i + 8];
+		}
+	}
+
+	if (pb_debounce & 0x10) {
 		ReportData->LX = 0;
-	else if (buf_joystick & 0x20)
+	} else if (pb_debounce & 0x20) {
 		ReportData->LX = 255;
-	else
+	} else {
 		ReportData->LX = 128;
+	}
 
-	if (buf_joystick & 0x80)
+	if (pb_debounce & 0x80) {
 		ReportData->LY = 0;
-	else if (buf_joystick & 0x40)
+	} else if (pb_debounce & 0x40) {
 		ReportData->LY = 255;
-	else
+	} else {
 		ReportData->LY = 128;
+	}
 
-	switch(buf_joystick & 0xF0) {
+	switch (pb_debounce & 0xF0) {
 		case 0x80: // Top
 			ReportData->HAT = 0x00;
 			break;
