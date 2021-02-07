@@ -141,6 +141,9 @@ void SetupHardware(void) {
 
 	DDRC &= ~0xFF;
 	PORTC |= 0xFF;
+
+	DDRF |= 0xFF;
+	PORTF &= ~0xFF;
 	// The USB stack should be initialized last.
 	USB_Init();
 }
@@ -275,6 +278,8 @@ void GetNextReport(USB_JoystickReport_Input_t *const ReportData) {
 	if (buf_pc & (1 << 5)) {
 		ReportData->Button |= SWITCH_CAPTURE; /* Sets the bit of SWITCH_CAPTURE onto Button */
 	}
+
+	PINF |= 0x01;
 
 	for (int i = 0; i < 16; i++) {
 		if (buf_pd & (1 << i))
