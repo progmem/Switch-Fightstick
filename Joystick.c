@@ -91,6 +91,8 @@ void debounce_ports(void) {
 	}
 }
 
+uint8_t flag = 0;
+
 // Main entry point.
 int main(void) {
 	// We'll start by performing hardware and peripheral setup.
@@ -106,7 +108,9 @@ int main(void) {
 		USB_USBTask();
 		// As part of this loop, we'll also run our bad debounce code.
 		// Optimally, we should replace this with something that fires on a timer.
-		debounce_ports();
+		//debounce_ports();
+		_delay_ms(200);
+		flag = !flag;
 	}
 }
 
@@ -235,7 +239,9 @@ void HID_Task(void) {
 }
 
 // Prepare the next report for the host.
-void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
+void GetNextReport(USB_JoystickReport_Input_t* const ReportData)
+{
+#if 0
 	// All of this code here is handled -really poorly-, and should be replaced with something a bit more production-worthy.
 	uint16_t buf_button   = 0x00;
 	uint8_t  buf_joystick = 0x00;
@@ -293,4 +299,34 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 		default:
 			ReportData->HAT = 0x08;
 	}
+#else
+
+	/* Clear the report contents */
+	memset(ReportData, 0, sizeof(USB_JoystickReport_Input_t));
+	/*
+	SWITCH_Y       = 0x01,
+	SWITCH_B       = 0x02,
+	SWITCH_A       = 0x04,
+	SWITCH_X       = 0x08,
+	SWITCH_L       = 0x10,
+	SWITCH_R       = 0x20,
+	SWITCH_ZL      = 0x40,
+	SWITCH_ZR      = 0x80,
+	SWITCH_SELECT  = 0x100,
+	SWITCH_START   = 0x200,
+	SWITCH_LCLICK  = 0x400,
+	SWITCH_RCLICK  = 0x800,
+	SWITCH_HOME    = 0x1000,
+	SWITCH_CAPTURE = 0x2000,
+	*/
+
+	if(flag)
+		ReportData->Button |= SWITCH_A;
+
+	ReportData->LX = 128;
+	ReportData->LY = 128;
+	ReportData->RX = 128;
+	ReportData->RY = 128;
+
+#endif
 }
