@@ -256,9 +256,11 @@ void GetNextReport(USB_JoystickReport_Input_t *const ReportData) {
 	/* Clear the report contents */
 	memset(ReportData, 0, sizeof(USB_JoystickReport_Input_t));
 
-	buf_pb = (~PINB_DEBOUNCED & 0xFF);
-	buf_pc = (~PINC_DEBOUNCED & 0xFF);
+
+
 	buf_pd = (~PIND_DEBOUNCED & 0xFF);
+	buf_pc = (~PINC_DEBOUNCED & 0xFF);
+	buf_pb = (~PINB_DEBOUNCED & 0xFF);
 
 	if (buf_pc & (1 << 0)) {
 		ReportData->Button |= SWITCH_SELECT; /* Sets the bit of SWITCH_SELECT onto Button */
@@ -278,6 +280,10 @@ void GetNextReport(USB_JoystickReport_Input_t *const ReportData) {
 	if (buf_pc & (1 << 5)) {
 		ReportData->Button |= SWITCH_CAPTURE; /* Sets the bit of SWITCH_CAPTURE onto Button */
 	}
+	
+	if (buf_pb & (1 << 3)) {
+		ReportData->Button |= SWITCH_ZL; /* Sets the bit of Shoulder ZL onto Button */
+	}
 
 	PINF |= 0x01;
 
@@ -286,29 +292,23 @@ void GetNextReport(USB_JoystickReport_Input_t *const ReportData) {
 			ReportData->Button |= ButtonMap[i];
 	}
 
-	for (int i = 0; i < 8; i++) {
-		if (buf_pb & (1 << (i + 8))) {
-			ReportData->Button |= ButtonMap[i + 8];
-		}
-	}
-
-	if (pb_debounce & 0x10) {
+	if (buf_pb & 0x10) {
 		ReportData->LX = 0;
-	} else if (pb_debounce & 0x20) {
+	} else if (buf_pb & 0x20) {
 		ReportData->LX = 255;
 	} else {
 		ReportData->LX = 128;
 	}
 
-	if (pb_debounce & 0x80) {
+	if (buf_pb & 0x80) {
 		ReportData->LY = 0;
-	} else if (pb_debounce & 0x40) {
+	} else if (buf_pb & 0x40) {
 		ReportData->LY = 255;
 	} else {
 		ReportData->LY = 128;
 	}
 
-	switch (pb_debounce & 0xF0) {
+	switch (buf_pb & 0xF0) {
 		case 0x80: // Top
 			ReportData->HAT = 0x00;
 			break;
